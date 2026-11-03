@@ -4,6 +4,7 @@
  */
 export const PERMISOS = {
   agendaCrear: 'AGENDA:CREAR',
+  agendaEditar: 'AGENDA:EDITAR',
   agendaVer: 'AGENDA:VER',
   atencionCrear: 'ATENCION:CREAR',
   atencionEditar: 'ATENCION:EDITAR',
@@ -19,4 +20,5 @@ export const PERMISOS = {
   seguridadEditar: 'SEGURIDAD:EDITAR',
   seguridadVer: 'SEGURIDAD:VER',
   ventasCrear: 'VENTAS:CREAR',
+  ventasVer: 'VENTAS:VER',
 } as const;
