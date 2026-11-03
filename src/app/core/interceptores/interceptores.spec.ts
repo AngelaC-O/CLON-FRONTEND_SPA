@@ -100,6 +100,12 @@ describe('interceptores', () => {
     expect(notificaciones.actual()).toBeNull();
   });
 
+  it('el 403 de la regla RF82 lleva al cambio de clave', () => {
+    fallar('/api/v1/areas', 403, { detail: 'Debe cambiar su clave', regla: 'RF82' });
+    expect(navegar).toHaveBeenCalledWith('/cambio-clave');
+    expect(notificaciones.actual()).toBeNull();
+  });
+
   it('avisa el 403 y los errores del servidor', () => {
     fallar('/api/v1/areas', 403, { detail: 'No tiene permiso para esta operación.' });
     expect(notificaciones.actual()?.texto).toBe('No tiene permiso para esta operación.');

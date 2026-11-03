@@ -1,0 +1,238 @@
+<div class="col" style="gap: 16px">
+  <div class="row">
+    <div class="sp">
+      <h1 class="h1">Catálogo y configuración</h1>
+      <div class="mut">Áreas y servicios con variantes de precio fijo (CUS57).</div>
+    </div>
+    @if (puedeCrear()) {
+      <button class="btn lg sec" type="button" (click)="abrirArea()">+ Área</button>
+      <button class="btn lg" type="button" (click)="abrirServicio()">+ Servicio</button>
+    }
+  </div>
+
+  <nav class="tabs" aria-label="Secciones del catálogo">
+    <a
+      class="tab"
+      routerLink="/catalogo"
+      routerLinkActive="on"
+      [routerLinkActiveOptions]="{ exact: true }"
+    >
+      Servicios
+    </a>
+    @if (verRecursos()) {
+      <a class="tab" routerLink="/sedes/recursos" routerLinkActive="on">Recursos</a>
+    }
+  </nav>
+
+  <div class="row" style="gap: 8px">
+    <button
+      class="btn sm"
+      type="button"
+      [class.sec]="filtroArea() !== null"
+      (click)="filtroArea.set(null)"
+    >
+      Todas
+    </button>
+    @for (area of areas(); track area.idArea) {
+      <button
+        class="btn sm"
+        type="button"
+        [class.sec]="filtroArea() !== area.idArea"
+        (click)="filtroArea.set(area.idArea ?? null)"
+      >
+        {{ area.nombreArea }}
+      </button>
+    }
+  </div>
+
+  <div class="gf2">
+    @for (servicio of serviciosVisibles(); track servicio.idServicio) {
+      <div class="card col" style="gap: 10px">
+        <div class="row">
+          <div class="sp">
+            <div class="h3" style="font-size: 17px">{{ servicio.nombre }}</div>
+            <div class="xs mut">
+              {{ areaDe(servicio.idArea)?.nombreArea }} · ref. {{ servicio.duracionRefMin }} min
+            </div>
+          </div>
+          @if (areaDe(servicio.idArea); as area) {
+            <span
+              class="chip"
+              [class.salon]="area.linea === 'SALON'"
+              [class.spa]="area.linea === 'SPA'"
+            >
+              {{ area.linea === 'SALON' ? 'Salón' : 'Spa' }}
+            </span>
+          }
+        </div>
+        <div class="col" style="gap: 6px">
+          @for (variante of servicio.variantes; track variante.nombreVariante) {
+            <div class="row sm">
+              <span class="sp">{{ variante.nombreVariante }}</span>
+              <b class="num">S/ {{ variante.precio }}</b>
+            </div>
+          }
+        </div>
+      </div>
+    } @empty {
+      <div class="card vacio">Aquí aparecen los servicios que registres desde esta pantalla.</div>
+    }
+  </div>
+</div>
+
+@if (modal() === 'area') {
+  <app-modal titulo="Nueva área" [angosto]="true" (cerrar)="modal.set(null)">
+    <form [formGroup]="formArea" (ngSubmit)="registrarArea()">
+      <div class="mb">
+        @if (errorFormulario(); as mensaje) {
+          <div class="alert bad" role="alert">{{ mensaje }}</div>
+        }
+        <div class="fld">
+          <span class="lbl">LÍNEA</span>
+          <div class="seg" role="group" aria-label="Línea">
+            @for (linea of lineas; track linea.valor) {
+              <button
+                type="button"
+                [class.on]="formArea.controls.linea.value === linea.valor"
+                [attr.aria-pressed]="formArea.controls.linea.value === linea.valor"
+                (click)="formArea.controls.linea.setValue(linea.valor)"
+              >
+                {{ linea.etiqueta }}
+              </button>
+            }
+          </div>
+        </div>
+        <div class="fld">
+          <label class="lbl" for="nombreArea">NOMBRE DEL ÁREA</label>
+          <input class="inp" id="nombreArea" maxlength="60" formControlName="nombreArea" />
+        </div>
+      </div>
+      <div class="mf">
+        <button class="btn sec" type="button" (click)="modal.set(null)">Cancelar</button>
+        <button class="btn" type="submit" [disabled]="enviando()">Nueva área</button>
+      </div>
+    </form>
+  </app-modal>
+}
+
+@if (modal() === 'servicio') {
+  <app-modal titulo="Nuevo servicio" (cerrar)="modal.set(null)">
+    <form [formGroup]="formServicio" (ngSubmit)="registrarServicio()">
+      <div class="mb">
+        @if (errorFormulario(); as mensaje) {
+          <div class="alert bad" role="alert">{{ mensaje }}</div>
+        }
+        <div class="g2">
+          <div class="fld">
+            <label class="lbl" for="nombre">NOMBRE</label>
+            <input class="inp" id="nombre" maxlength="80" formControlName="nombre" />
+          </div>
+          <div class="fld">
+            <label class="lbl" for="idArea">ÁREA</label>
+            <select class="inp" id="idArea" formControlName="idArea">
+              @for (area of areas(); track area.idArea) {
+                <option [ngValue]="area.idArea">{{ area.nombreArea }}</option>
+              }
+            </select>
+          </div>
+          <div class="fld">
+            <label class="lbl" for="duracionRefMin">DURACIÓN REFERENCIAL (MIN)</label>
+            <input
+              class="inp"
+              id="duracionRefMin"
+              type="number"
+              min="1"
+              formControlName="duracionRefMin"
+            />
+          </div>
+          <div class="fld">
+            <label class="lbl" for="tipoRecurso">TIPO DE RECURSO</label>
+            <select class="inp" id="tipoRecurso" formControlName="tipoRecurso">
+              @for (tipo of tipos; track tipo.valor) {
+                <option [value]="tipo.valor">{{ tipo.etiqueta }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="h3">Variantes y precio fijo (RN40)</div>
+        @for (
+          variante of formServicio.controls.variantes.controls;
+          track variante;
+          let v = $index
+        ) {
+          <div class="col" style="gap: 8px" [formGroup]="variante">
+            <div class="row nw">
+              <input
+                class="inp"
+                maxlength="60"
+                placeholder="Variante"
+                [attr.aria-label]="'Nombre de la variante ' + (v + 1)"
+                formControlName="nombreVariante"
+              />
+              <input
+                class="inp"
+                style="width: 120px"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="S/"
+                [attr.aria-label]="'Precio de la variante ' + (v + 1)"
+                formControlName="precio"
+              />
+              <button class="btn ghost sm" type="button" (click)="quitarVariante(v)">Quitar</button>
+            </div>
+            @for (insumo of variante.controls.insumos.controls; track insumo; let n = $index) {
+              <div class="row nw" style="padding-left: 16px" [formGroup]="insumo">
+                <input
+                  class="inp"
+                  type="number"
+                  min="1"
+                  placeholder="Código del producto"
+                  [attr.aria-label]="'Producto del insumo ' + (n + 1)"
+                  formControlName="idProducto"
+                />
+                <input
+                  class="inp"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="Cantidad estimada"
+                  [attr.aria-label]="'Cantidad del insumo ' + (n + 1)"
+                  formControlName="cantidadEstimada"
+                />
+                <button
+                  class="btn ghost sm"
+                  type="button"
+                  (click)="variante.controls.insumos.removeAt(n)"
+                >
+                  Quitar
+                </button>
+              </div>
+            }
+            <button
+              class="btn ghost sm"
+              type="button"
+              style="align-self: flex-start"
+              (click)="agregarInsumo(variante)"
+            >
+              + Insumo
+            </button>
+          </div>
+        }
+        <button
+          class="btn sec sm"
+          type="button"
+          style="align-self: flex-start"
+          (click)="agregarVariante()"
+        >
+          + Variante
+        </button>
+      </div>
+      <div class="mf">
+        <button class="btn sec" type="button" (click)="modal.set(null)">Cancelar</button>
+        <button class="btn" type="submit" [disabled]="enviando()">Guardar servicio</button>
+      </div>
+    </form>
+  </app-modal>
+}

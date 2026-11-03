@@ -1,19 +1,24 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { mensajeDelProblema } from '../../../core/api/problema';
 import { SesionService } from '../../../core/sesion/sesion.service';
 
 /** Cambio de la clave propia (CUS50, DF-18: está en el contrato, no en el draw.io). */
 @Component({
   selector: 'app-cambio-clave',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   template: `
     <div class="login" style="grid-template-columns: 1fr">
       <div class="forma">
         <form class="card col" [formGroup]="formulario" (ngSubmit)="guardar()">
           <h1 class="h1">Cambiar clave</h1>
+          @if (sesion.debeCambiarClave()) {
+            <div class="alert warn" role="status">
+              Debes cambiar tu clave antes de usar el sistema.
+            </div>
+          }
           @if (error(); as mensaje) {
             <div class="alert bad" role="alert">{{ mensaje }}</div>
           }
@@ -38,6 +43,11 @@ import { SesionService } from '../../../core/sesion/sesion.service';
             />
           </div>
           <button class="btn blk" type="submit" [disabled]="enviando()">Cambiar clave</button>
+          @if (sesion.debeCambiarClave()) {
+            <button class="btn ghost blk" type="button" (click)="salir()">Salir</button>
+          } @else {
+            <a class="btn ghost blk" routerLink="/inicio">Volver al inicio</a>
+          }
         </form>
       </div>
     </div>
@@ -45,7 +55,7 @@ import { SesionService } from '../../../core/sesion/sesion.service';
 })
 export class CambioClave {
   private readonly router = inject(Router);
-  private readonly sesion = inject(SesionService);
+  protected readonly sesion = inject(SesionService);
 
   protected readonly formulario = inject(FormBuilder).nonNullable.group({
     claveActual: ['', Validators.required],
@@ -74,5 +84,10 @@ export class CambioClave {
         }
       },
     });
+  }
+
+  protected salir(): void {
+    const volver = () => void this.router.navigateByUrl('/login');
+    this.sesion.cerrarSesion().subscribe({ next: volver, error: volver });
   }
 }

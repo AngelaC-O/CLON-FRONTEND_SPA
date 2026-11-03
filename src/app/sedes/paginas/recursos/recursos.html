@@ -1,0 +1,106 @@
+<div class="col" style="gap: 16px">
+  <div class="row">
+    <div class="sp">
+      <h1 class="h1">Catálogo y configuración</h1>
+      <div class="mut">Recursos de la sede con su tiempo de limpieza (CUS61).</div>
+    </div>
+    <button class="btn lg" type="button" (click)="abrir()">+ Recurso</button>
+  </div>
+
+  <nav class="tabs" aria-label="Secciones del catálogo">
+    @if (verServicios()) {
+      <a class="tab" routerLink="/catalogo" routerLinkActive="on">Servicios</a>
+    }
+    <a class="tab" routerLink="/sedes/recursos" routerLinkActive="on">Recursos</a>
+  </nav>
+
+  <div class="card cp0 tw">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Recurso</th>
+          <th>Tipo</th>
+          <th class="r">Limpieza</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (recurso of recursos(); track recurso.idRecurso) {
+          <tr>
+            <td class="b">{{ recurso.nombre }}</td>
+            <td class="sm">{{ etiquetaTipo(recurso.tipo) }}</td>
+            <td class="r num">{{ recurso.minutosLimpieza }} <span class="xs mut">min</span></td>
+            <td>
+              <span
+                class="chip"
+                [class.ok]="recurso.estado === 'DISPONIBLE'"
+                [class.warn]="recurso.estado === 'MANTENIMIENTO'"
+              >
+                {{ recurso.estado }}
+              </span>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td class="vacio" colspan="4">
+              Aquí aparecen los recursos que registres desde esta pantalla.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <div class="xs mut">
+    Cada recurso tiene su propio tiempo de limpieza, de 0 a 30 minutos (RN03), que la agenda bloquea
+    después de cada servicio.
+  </div>
+</div>
+
+@if (modalAbierto()) {
+  <app-modal titulo="Registrar recurso" [angosto]="true" (cerrar)="modalAbierto.set(false)">
+    <form [formGroup]="formulario" (ngSubmit)="guardar()">
+      <div class="mb">
+        @if (errorFormulario(); as mensaje) {
+          <div class="alert bad" role="alert">{{ mensaje }}</div>
+        }
+        <div class="fld">
+          <label class="lbl" for="idSede">CÓDIGO DE LA SEDE</label>
+          <input class="inp" id="idSede" type="number" min="1" formControlName="idSede" />
+        </div>
+        <div class="fld">
+          <label class="lbl" for="nombre">NOMBRE</label>
+          <input
+            class="inp"
+            id="nombre"
+            maxlength="60"
+            placeholder="Ej. Camilla 1"
+            formControlName="nombre"
+          />
+        </div>
+        <div class="fld">
+          <label class="lbl" for="tipo">TIPO DE RECURSO</label>
+          <select class="inp" id="tipo" formControlName="tipo">
+            @for (tipo of tipos; track tipo.valor) {
+              <option [value]="tipo.valor">{{ tipo.etiqueta }}</option>
+            }
+          </select>
+        </div>
+        <div class="fld">
+          <label class="lbl" for="minutosLimpieza">MINUTOS DE LIMPIEZA</label>
+          <input
+            class="inp"
+            id="minutosLimpieza"
+            type="number"
+            min="0"
+            max="30"
+            formControlName="minutosLimpieza"
+          />
+        </div>
+      </div>
+      <div class="mf">
+        <button class="btn sec" type="button" (click)="modalAbierto.set(false)">Cancelar</button>
+        <button class="btn" type="submit" [disabled]="enviando()">Guardar recurso</button>
+      </div>
+    </form>
+  </app-modal>
+}

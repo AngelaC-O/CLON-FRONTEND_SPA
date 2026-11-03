@@ -3,11 +3,13 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { mensajeDelProblema } from '../api/problema';
+import { leerProblema, mensajeDelProblema } from '../api/problema';
 import { NotificacionesService } from '../notificaciones/notificaciones.service';
 import { SesionService } from '../sesion/sesion.service';
 
 const URL_LOGIN = `${environment.apiBase}/auth/login`;
+/** El back-end responde 403 con esta regla mientras la clave sea temporal. */
+const REGLA_CLAVE_VENCIDA = 'RF82';
 
 /**
  * Atiende los errores comunes del ProblemDetail y siempre deja pasar el error a quien llamó.
@@ -26,6 +28,8 @@ export const erroresInterceptor: HttpInterceptorFn = (req, next) => {
           sesion.limpiar();
           notificaciones.mostrar(mensajeDelProblema(error, 'Inicie sesión para continuar.'));
           void router.navigateByUrl('/login');
+        } else if (status === 403 && leerProblema(error)?.regla === REGLA_CLAVE_VENCIDA) {
+          void router.navigateByUrl('/cambio-clave');
         } else if (status === 403) {
           notificaciones.mostrar(
             mensajeDelProblema(error, 'No tiene permiso para esta operación.'),

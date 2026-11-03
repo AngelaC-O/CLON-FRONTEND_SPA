@@ -2,9 +2,15 @@
 
 ## Estado
 
-Está lista la base: configuración, tokens, `core/`, layout, rutas, servicios HTTP y modelos de los 7 módulos, inicio y cierre de sesión (CUS50 y CUS51) y cambio de clave. Las demás fronteras `IGU_` son páginas de reserva, sin formularios: faltan las pantallas de 18 CUS.
+Pantallas listas (6 CUS): `IGU_Login` (CUS50, CUS51, con cambio de clave), inicio y menú por permisos (RF78), `IGU_Usuarios` (CUS52, CUS53), `IGU_Catalogo` (CUS57) e `IGU_Recursos` (CUS61). Las demás fronteras `IGU_` siguen como páginas de reserva: faltan las pantallas de 14 CUS.
 
-Comprobado: `npm run build` y `npm test -- --watch=false` pasan, y el layout se revisó en el navegador a 1440, 834 y 390. **Sin comprobar:** el flujo contra el back-end real (cookie de sesión, XSRF, respuestas de login), porque no estaba corriendo durante el trabajo; el proxy respondió 502. Las pruebas usan respuestas simuladas.
+Comprobado:
+
+- `npm run build` y `npm test -- --watch=false` pasan, con una prueba de componente por página.
+- **Contra el back-end real (localhost:8080):** login con el usuario `recepcion` del script 15, redirección a `/cambio-clave`, 403 RF82 en lo demás, cookie XSRF y logout con su cabecera. Dejó sus filas de auditoría; la clave temporal no se cambió.
+- **En el navegador, con respuestas simuladas:** inicio, usuarios, matriz y catálogo a 1440; recursos a 1440, 834 y 390. El login, sin simular, a 1440 y 390.
+
+**Sin comprobar contra el back-end real:** las escrituras de CUS52, CUS53, CUS57 y CUS61, ni el cambio de clave completo. Hacerlo deja datos en la base local y gasta la clave temporal de un usuario de prueba.
 
 ## Dudas
 
@@ -42,7 +48,16 @@ Comprobado: `npm run build` y `npm test -- --watch=false` pasan, y el layout se 
 | 8 | `openapi.yaml` y draw.io | El cambio de clave está en el contrato, pero no en el draw.io (DF-18). | Se implementó: `debeCambiarClave` lo vuelve necesario. |
 | 9 | Pedido frente a `U2.md` | El pedido nombra 7 módulos; `U2.md` tiene 10, más `comun`. | Se crean los 7: los demás no tienen CUS en esta iteración. |
 | 10 | Módulo `pagos` | No tiene frontera `IGU_`, y el webhook de Izipay no lo llama el navegador. | Solo servicio y modelos del enlace de adelanto, sin rutas. |
-| 11 | Figma | La página 01 es una instancia de código y `get_variable_defs` exige una capa seleccionada. No se revisaron los marcos de la página 02. | Los tokens salen del prototipo; sus cortes (1100 y 700 px) dan los tres tamaños pedidos. Falta contrastar con la página 02. |
+| 11 | Figma | La página 01 es una instancia de código y, en la 02, los nodos 4:5, 4:17, 4:185 y 4:245 son imágenes: no entregan variables ni capas. | Los tokens salen del prototipo; esas imágenes se usan como referencia visual. |
+| 12 | Figma y prototipo (login) | En móvil, el prototipo oculta el panel de la foto y Figma lo muestra encima del formulario. Figma también trae «¿Olvidaste tu contraseña?», acceso de demostración y mapa de CUS. | Manda Figma para el panel. Lo demás no tiene CUS en esta iteración y no se construyó. |
+| 13 | Figma frente al contrato (inicio) | 4:17 muestra indicadores, próximas citas, pendientes y ocupación, sin operación en CUS50. El chip «Caja abierta» tampoco tiene dato. | No se inventan cifras: quedan saludo, fecha, sede, las dos acciones y accesos por permiso. |
+| 14 | Figma frente al contrato (usuarios) | 4:245 lista a todos los usuarios con persona y último acceso; no hay `GET /usuarios` ni esos campos. | La tabla muestra solo los usuarios tocados en la pantalla, con el código del personal. Para los demás hay un formulario por código de usuario. |
+| 15 | Figma frente al alcance (usuarios) | «Restablecer clave», «Desactivar», «Auditoría» e «Incidentes» son CUS54 a CUS56. | Fuera de esta iteración. |
+| 16 | Prototipo frente al contrato (roles) | El prototipo dice que roles y permisos son listas fijas y muestra una matriz de solo lectura; el draw.io y `PUT /roles/{idRol}/permisos` permiten editarlos. | Matriz más formulario de edición (CUS53). Sin `GET` de permisos, módulo y acción se escriben, con sugerencias de los ya usados. |
+| 17 | Figma y prototipo frente al contrato (catálogo) | 4:185 lista todos los servicios y permite editarlos; no hay `GET /servicios` ni `PUT`. También dice que las cinco áreas son fijas, pero el draw.io y `POST /areas` permiten crearlas. | Las tarjetas muestran solo lo registrado en la pantalla, sin «Editar servicio». Se puede crear área. |
+| 18 | Figma frente al contrato (recursos) | El prototipo edita la limpieza y cambia el estado en la tabla, y lista todos los recursos; solo existe `POST /recursos`. | Tabla de solo lectura con lo registrado en la pantalla. Se usan los 7 tipos del contrato (el modal del prototipo omite Lavacabezas). |
+| 19 | Figma frente al alcance (catálogo) | Las pestañas Paquetes, Promociones, Medios de pago, Series y Parámetros son de otros CUS. | Solo Servicios y Recursos; esta enlaza a `/sedes/recursos`, del módulo `sedes`. |
+| 20 | `openapi.yaml` frente al back-end | `FiltroCambioClave` responde 403 con regla RF82 mientras la clave sea temporal; el contrato solo documenta el 403 `ACCESO_DENEGADO`. | El interceptor lleva a `/cambio-clave` al recibirlo. Conviene documentarlo en el contrato. |
 
 ## Decisiones tomadas
 
@@ -55,4 +70,10 @@ Comprobado: `npm run build` y `npm test -- --watch=false` pasan, y el layout se 
 7. **CUS13 en `ventas`.** Sus endpoints y `IGU_VentaRapida` son de venta rápida, aunque `U2.md` reparte el caso entre `agenda` (atención) y `ventas` (cobro).
 8. **Accesibilidad.** Las clases son las del prototipo; los botones de navegación pasaron a enlaces (`routerLink`) y los campos tienen `label` asociado.
 9. **Plan de commits.** Para no pasar de 8 commits ni mezclar dos módulos: configuración, `core/`, layout y `pagos` van juntos en el primero, y las pruebas de `seguridad` y `agenda` van en el commit de su módulo, no al final. `app.routes.ts` va en el último porque importa todos los módulos.
-10. **`./mvnw -q verify` no aplica aquí.** Este repositorio solo tiene el front-end; el back-end no se ejecutó ni se modificó.
+10. **`./mvnw -q verify` no aplica aquí.** Este repositorio solo tiene el front-end; el back-end no se modificó.
+11. **Solo los endpoints del CUS.** Inicio no llama a nada; Usuarios lee `GET /roles`; Catálogo lee `GET /areas`; Recursos no lee nada. Por eso no se usa `GET /citas/agenda` en Inicio aunque exista: es de CUS08.
+12. **Datos que no vienen de una lista.** Código del personal, de producto y de usuario se escriben a mano (Duda 2). La sede del recurso se propone desde la sesión y se puede cambiar.
+13. **Acciones según el permiso.** Además de la guarda de ruta, los botones de crear y editar se ocultan sin `CATALOGO:CREAR`, `SEGURIDAD:CREAR` o `SEGURIDAD:EDITAR`.
+14. **Modales de formulario.** No se cierran al hacer clic afuera, para no perder lo escrito; solo con Cancelar o Escape. Cambia lo que hace el prototipo.
+15. **Botones.** «+ Crear usuario», «+ Área», «+ Servicio» y «+ Recurso» abren el modal como en Figma; el que envía usa el «Clic en ...» del draw.io.
+16. **Plan de commits de esta entrega.** Las pruebas de cada módulo van en su propio commit después de todas las páginas: cabe en 8 y no mezcla módulos.

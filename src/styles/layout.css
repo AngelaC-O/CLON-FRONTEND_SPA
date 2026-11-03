@@ -216,9 +216,6 @@
   .login {
     grid-template-columns: 1fr;
   }
-  .login .hero {
-    display: none;
-  }
 }
 /* En el diálogo «Más» sí se ven las etiquetas y los grupos del menú. */
 .modal .nv {
