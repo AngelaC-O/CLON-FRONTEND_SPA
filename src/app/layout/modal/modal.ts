@@ -10,6 +10,7 @@ import { Component, input, output } from '@angular/core';
       <div
         class="modal"
         [class.n]="angosto()"
+        [class.w]="ancho()"
         role="dialog"
         aria-modal="true"
         [attr.aria-label]="titulo()"
@@ -27,5 +28,6 @@ import { Component, input, output } from '@angular/core';
 export class Modal {
   readonly titulo = input.required<string>();
   readonly angosto = input(false);
+  readonly ancho = input(false);
   readonly cerrar = output<void>();
 }

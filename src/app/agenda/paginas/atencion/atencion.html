@@ -18,7 +18,18 @@
           individual.
         }
       </div>
-      <a class="btn" style="align-self: center" routerLink="/agenda/mi-agenda">Ir a Mi agenda</a>
+      <div class="row" style="justify-content: center">
+        <a class="btn sec" routerLink="/agenda/mi-agenda">Ir a Mi agenda</a>
+        @if (puedeCobrar()) {
+          <a
+            class="btn"
+            routerLink="/ventas/cobros"
+            [queryParams]="{ idAtencion: atencion.idAtencion }"
+          >
+            Ir a cobrar
+          </a>
+        }
+      </div>
     </div>
   } @else if (enCurso.actual(); as atencion) {
     <div class="gs">

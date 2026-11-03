@@ -14,6 +14,7 @@ import {
   tituloBloque,
 } from '../../modelos/agenda.vista';
 import { CitasService } from '../../servicios/citas.service';
+import { AdelantoCita } from './adelanto-cita';
 import { ListaEspera } from './lista-espera';
 import { NuevaCita, PedidoEspera } from './nueva-cita';
 
@@ -23,10 +24,10 @@ const HORA_APERTURA = 9;
 const HORA_CIERRE = 20;
 const PX_POR_MINUTO = 1;
 
-/** IGU_Agenda: CUS05, CUS06 y CUS08. */
+/** IGU_Agenda: CUS05, CUS06, CUS07 y CUS08. */
 @Component({
   selector: 'app-agenda',
-  imports: [ReactiveFormsModule, NuevaCita, ListaEspera],
+  imports: [ReactiveFormsModule, AdelantoCita, NuevaCita, ListaEspera],
   templateUrl: './agenda.html',
   styleUrl: './agenda.css',
 })
@@ -52,6 +53,13 @@ export class Agenda implements OnInit {
   protected readonly esperas = signal<ListaEsperaDTO[]>([]);
 
   protected readonly puedeCrear = computed(() => this.sesion.tienePermiso(PERMISOS.agendaCrear));
+  protected readonly puedeCobrarAdelanto = computed(() =>
+    this.sesion.tienePermiso(PERMISOS.agendaEditar),
+  );
+  /** Cita recién agendada, para ofrecer su adelanto sin buscarla en la rejilla. */
+  protected readonly citaNueva = signal<CitaDTO | null>(null);
+  /** undefined: cerrado; null: abierto sin cita elegida, se escribe el código. */
+  protected readonly citaAdelanto = signal<number | null | undefined>(undefined);
   protected readonly ocupados = computed(() =>
     ordenarPorInicio(this.bloques().filter((b) => b.franja === 'OCUPADA')),
   );
@@ -132,10 +140,23 @@ export class Agenda implements OnInit {
 
   protected citaAgendada(cita: CitaDTO): void {
     this.modalCita.set(false);
+    this.citaNueva.set(cita);
     this.notificaciones.mostrar(`Cita ${cita.idCita} agendada.`);
     if (cita.fechaHoraInicio.startsWith(this.fechaVista())) {
       this.verAgenda();
     }
+  }
+
+  protected tieneAdelanto(bloque: BloqueAgendaDTO): boolean {
+    return bloque.origen === 'CITA' && bloque.estado === 'PENDIENTE';
+  }
+
+  protected adelantoRegistrado(cita: CitaDTO): void {
+    this.citaAdelanto.set(undefined);
+    if (this.citaNueva()?.idCita === cita.idCita) {
+      this.citaNueva.set(null);
+    }
+    this.notificaciones.mostrar(`Adelanto registrado en la cita ${cita.idCita}.`);
   }
 
   protected esperaAnotada(espera: ListaEsperaDTO): void {

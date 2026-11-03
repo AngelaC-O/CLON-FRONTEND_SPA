@@ -83,6 +83,9 @@ a.card:hover {
   background: var(--sup);
   color: var(--ink);
 }
+.inp[readonly] {
+  background: var(--linea-suave);
+}
 .inp:focus {
   outline: 2px solid var(--salon);
   outline-offset: 1px;
@@ -290,8 +293,28 @@ textarea.inp {
 .modal-bg .modal.n {
   max-width: 460px;
 }
+.modal-bg .modal.w {
+  max-width: 860px;
+}
 .velo {
   background: var(--velo);
+}
+.btn.bad {
+  background: var(--bad);
+  border-color: var(--bad);
+  color: var(--sup);
+}
+.btn.bad:hover {
+  background: var(--bad);
+  opacity: 0.9;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  display: inline-block;
+  flex: none;
 }
 .btn.salon {
   background: var(--salon-d);
@@ -419,5 +442,25 @@ textarea.inp {
   }
   .mf .btn {
     flex: 1;
+  }
+}
+.qr {
+  width: 200px;
+  height: 200px;
+  background: var(--sup);
+  padding: var(--e-10);
+  border: 1px solid var(--line);
+}
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .imprimible,
+  .imprimible * {
+    visibility: visible;
+  }
+  .imprimible {
+    position: absolute;
+    inset: 0 0 auto;
   }
 }

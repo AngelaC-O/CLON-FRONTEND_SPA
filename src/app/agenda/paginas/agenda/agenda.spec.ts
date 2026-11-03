@@ -200,4 +200,83 @@ describe('Agenda', () => {
     expect(raiz.querySelector('app-lista-espera .alert.bad')?.textContent).toContain('anterior');
     http.expectNone('/api/v1/citas/lista-espera');
   });
+
+  const permisosAdelanto = [...permisos, 'AGENDA:EDITAR'];
+  const adelantoDeLaCita = async () => {
+    await montar(permisosAdelanto);
+    raiz
+      .querySelector<HTMLButtonElement>('.bloque button[aria-label="Adelanto de la cita 950"]')!
+      .click();
+    await estable();
+    expect(raiz.querySelector<HTMLInputElement>('#adelantoIdCita')?.value).toBe('950');
+    escribir('adelantoMonto', '50');
+  };
+
+  it('CUS07: sin AGENDA:EDITAR no ofrece adelanto', async () => {
+    await montar(permisos);
+    expect(boton('Adelanto')).toBeUndefined();
+  });
+
+  it('CUS07: registra el adelanto en efectivo', async () => {
+    await adelantoDeLaCita();
+    await clic('Registrar adelanto en efectivo');
+    const peticion = http.expectOne('/api/v1/citas/950/adelanto');
+    expect(peticion.request.body).toEqual({ adelantoMonto: 50, idMedioPago: 1 });
+    peticion.flush({ idCita: 950, adelantoMonto: 50 });
+    await estable();
+    expect(raiz.querySelector('app-adelanto-cita')).toBeNull();
+  });
+
+  it('CUS07: genera el enlace de pago para compartir, sin darlo por pagado', async () => {
+    await adelantoDeLaCita();
+    await clic('Tarjeta');
+    await clic('Generar enlace de pago');
+    const peticion = http.expectOne('/api/v1/citas/950/enlace-adelanto');
+    expect(peticion.request.body).toEqual({ adelantoMonto: 50, idMedioPago: 4 });
+    peticion.flush({
+      idTransaccion: 5521,
+      canal: 'LINK',
+      estado: 'PENDIENTE',
+      enlacePago: 'https://izipay.example/abc',
+      fechaExpiracion: '2026-11-04T15:30:00',
+    });
+    await estable();
+    const modal = raiz.querySelector('app-adelanto-cita')!;
+    expect(modal.textContent).toContain('RN04');
+    expect(modal.textContent).toContain('15:30');
+    expect(modal.querySelector<HTMLInputElement>('app-compartir-enlace input')?.value).toBe(
+      'https://izipay.example/abc',
+    );
+    expect(modal.querySelector('a[href^="https://wa.me/"]')).not.toBeNull();
+  });
+
+  it('CUS07: muestra el 404 y deja el modal abierto', async () => {
+    await adelantoDeLaCita();
+    await clic('Registrar adelanto en efectivo');
+    http
+      .expectOne('/api/v1/citas/950/adelanto')
+      .flush({ detail: 'La cita no existe' }, { status: 404, statusText: 'Not Found' });
+    await estable();
+    expect(raiz.querySelector('app-adelanto-cita .alert.bad')?.textContent).toContain('no existe');
+  });
+
+  it('CUS07: después de agendar, ofrece el adelanto de esa cita', async () => {
+    await montar(permisosAdelanto);
+    await clic('+ Nueva cita');
+    await elegirClienta();
+    escribir('citaIdVariante', '2');
+    await clic('Ver disponibilidad');
+    http
+      .expectOne(`/api/v1/citas/disponibilidad?idVariante=2&fecha=${HOY}`)
+      .flush([{ inicio: `${HOY}T15:00:00`, duracionMin: 30, idsPersonal: [4], idsRecurso: [1] }]);
+    await estable();
+    await clic('15:00');
+    await clic('Agendar');
+    http.expectOne('/api/v1/citas').flush({ idCita: 951, fechaHoraInicio: `${HOY}T15:00:00` });
+    await estable();
+    http.expectOne(`/api/v1/citas/agenda?fecha=${HOY}`).flush(BLOQUES);
+    await estable();
+    await clic('Registrar adelanto');
+    expect(raiz.querySelector<HTMLInputElement>('#adelantoIdCita')?.value).toBe('951');
+  });
 });

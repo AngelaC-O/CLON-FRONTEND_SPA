@@ -4,6 +4,8 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { mensajeDelProblema } from '../../../core/api/problema';
 import { NotificacionesService } from '../../../core/notificaciones/notificaciones.service';
+import { PERMISOS } from '../../../core/sesion/permisos';
+import { SesionService } from '../../../core/sesion/sesion.service';
 import { AtencionDTO } from '../../modelos/agenda.modelos';
 import { horaDe } from '../../modelos/agenda.vista';
 import { AtencionEnCursoService } from '../../servicios/atencion-en-curso.service';
@@ -18,11 +20,13 @@ import { AtencionesService } from '../../servicios/atenciones.service';
 export class Atencion {
   private readonly notificaciones = inject(NotificacionesService);
   private readonly servicio = inject(AtencionesService);
+  private readonly sesion = inject(SesionService);
   protected readonly enCurso = inject(AtencionEnCursoService);
 
   protected readonly horaDe = horaDe;
   protected readonly ahora = signal(Date.now());
   protected readonly finalizada = signal<AtencionDTO | null>(null);
+  protected readonly puedeCobrar = computed(() => this.sesion.tienePermiso(PERMISOS.ventasCrear));
   protected readonly enviando = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly reloj = computed(() => {

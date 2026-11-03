@@ -8,4 +8,5 @@ export type {
   Egreso,
   EsperadoDTO,
   EsperadoMedioDTO,
+  Medio,
 } from '../../core/api/modelos.generados';

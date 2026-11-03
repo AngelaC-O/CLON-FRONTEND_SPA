@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { parametros } from '../../core/api/parametros';
 import { EnlaceComprobanteDTO } from '../modelos/ventas.modelos';
 
 /** CUS20. */
@@ -14,7 +15,13 @@ export class ComprobantesService {
     return this.http.get(`${this.url}/${idComprobante}/representacion`, { responseType: 'blob' });
   }
 
-  obtenerEnlace(idComprobante: number): Observable<EnlaceComprobanteDTO> {
-    return this.http.get<EnlaceComprobanteDTO>(`${this.url}/${idComprobante}/enlace`);
+  obtenerEnlace(
+    idComprobante: number,
+    canal?: string,
+    correo?: string,
+  ): Observable<EnlaceComprobanteDTO> {
+    return this.http.get<EnlaceComprobanteDTO>(`${this.url}/${idComprobante}/enlace`, {
+      params: parametros({ canal, correo }),
+    });
   }
 }
