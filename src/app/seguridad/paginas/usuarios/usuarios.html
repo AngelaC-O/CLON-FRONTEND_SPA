@@ -1,0 +1,273 @@
+<div class="col" style="gap: 16px">
+  <div class="row">
+    <div class="sp">
+      <h1 class="h1">Usuarios y seguridad</h1>
+      <div class="mut">Solo la dueña crea usuarios y asigna roles (RN39). CUS52 y CUS53.</div>
+    </div>
+    @if (puedeCrear() && pestana() === 'usuarios') {
+      <button class="btn lg" type="button" (click)="abrirRegistro()">+ Crear usuario</button>
+    }
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button
+      class="tab"
+      type="button"
+      role="tab"
+      [class.on]="pestana() === 'usuarios'"
+      [attr.aria-selected]="pestana() === 'usuarios'"
+      (click)="pestana.set('usuarios')"
+    >
+      Usuarios
+    </button>
+    <button
+      class="tab"
+      type="button"
+      role="tab"
+      [class.on]="pestana() === 'permisos'"
+      [attr.aria-selected]="pestana() === 'permisos'"
+      (click)="pestana.set('permisos')"
+    >
+      Matriz de permisos
+    </button>
+  </div>
+
+  @if (pestana() === 'usuarios') {
+    <div class="card cp0 tw">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Personal</th>
+            <th>Usuario</th>
+            <th>Rol</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (usuario of usuarios(); track usuario.idUsuario) {
+            <tr>
+              <td class="b num">{{ usuario.idPersonal }}</td>
+              <td class="num sm">{{ usuario.nombreUsuario }}</td>
+              <td>
+                @if (puedeEditar()) {
+                  <select
+                    #rolFila
+                    class="inp"
+                    style="min-height: 36px; width: 200px"
+                    aria-label="Rol del usuario"
+                  >
+                    @for (rol of roles(); track rol.idRol) {
+                      <option [value]="rol.idRol" [selected]="rol.idRol === usuario.idRol">
+                        {{ rol.nombre }}
+                      </option>
+                    }
+                  </select>
+                  <button
+                    class="btn sm sec"
+                    type="button"
+                    style="margin-left: 8px"
+                    (click)="asignar(usuario.idUsuario, +rolFila.value)"
+                  >
+                    Asignar rol
+                  </button>
+                } @else {
+                  {{ nombreRol(usuario.idRol) }}
+                }
+              </td>
+              <td>
+                <span
+                  class="chip"
+                  [class.ok]="usuario.estado === 'ACTIVO'"
+                  [class.bad]="usuario.estado === 'BLOQUEADO'"
+                >
+                  {{ usuario.estado }}
+                </span>
+                @if (usuario.debeCambiarClave) {
+                  <div class="xs mut">Debe cambiar su clave</div>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td class="vacio" colspan="4">
+                Aquí aparecen los usuarios que registres o actualices desde esta pantalla.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (puedeEditar()) {
+      <form class="card col" [formGroup]="formAsignacion" (ngSubmit)="asignarDesdeFormulario()">
+        <h2 class="h2">Asignar rol a otro usuario</h2>
+        @if (errorAsignacion(); as mensaje) {
+          <div class="alert bad" role="alert">{{ mensaje }}</div>
+        }
+        <div class="g2">
+          <div class="fld">
+            <label class="lbl" for="asignarIdUsuario">CÓDIGO DEL USUARIO</label>
+            <input
+              class="inp"
+              id="asignarIdUsuario"
+              type="number"
+              min="1"
+              formControlName="idUsuario"
+            />
+          </div>
+          <div class="fld">
+            <label class="lbl" for="asignarIdRol">ROL</label>
+            <select class="inp" id="asignarIdRol" formControlName="idRol">
+              @for (rol of roles(); track rol.idRol) {
+                <option [ngValue]="rol.idRol">{{ rol.nombre }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        <button class="btn sec" type="submit" style="align-self: flex-start">Asignar rol</button>
+      </form>
+    }
+  } @else {
+    <div class="card cp0 tw">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Módulo</th>
+            @for (rol of roles(); track rol.idRol) {
+              <th class="c">{{ rol.nombre }}</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (fila of matriz(); track fila.modulo) {
+            <tr>
+              <td class="b">{{ fila.modulo }}</td>
+              @for (celda of fila.celdas; track celda.idRol) {
+                <td class="c sm" [class.mut]="!celda.acciones">{{ celda.acciones || '—' }}</td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (puedeEditar()) {
+      <form class="card col" [formGroup]="formRol" (ngSubmit)="guardarPermisos()">
+        <h2 class="h2">Permisos del rol</h2>
+        @if (errorRol(); as mensaje) {
+          <div class="alert bad" role="alert">{{ mensaje }}</div>
+        }
+        <div class="g2">
+          <div class="fld">
+            <label class="lbl" for="rolIdRol">ROL</label>
+            <select class="inp" id="rolIdRol" formControlName="idRol" (change)="cargarRol()">
+              @for (rol of roles(); track rol.idRol) {
+                <option [ngValue]="rol.idRol">{{ rol.nombre }}</option>
+              }
+            </select>
+          </div>
+          <div class="fld">
+            <label class="lbl" for="rolEstado">ESTADO</label>
+            <select class="inp" id="rolEstado" formControlName="estado">
+              <option value="ACTIVO">ACTIVO</option>
+              <option value="INACTIVO">INACTIVO</option>
+            </select>
+          </div>
+        </div>
+        <div class="fld">
+          <label class="lbl" for="rolDescripcion">DESCRIPCIÓN</label>
+          <input class="inp" id="rolDescripcion" maxlength="150" formControlName="descripcion" />
+        </div>
+        <div class="h3">Permisos</div>
+        @for (permiso of formRol.controls.permisos.controls; track permiso; let i = $index) {
+          <div class="row nw" [formGroup]="permiso">
+            <input
+              class="inp"
+              list="modulosConocidos"
+              maxlength="40"
+              placeholder="Módulo"
+              [attr.aria-label]="'Módulo del permiso ' + (i + 1)"
+              formControlName="modulo"
+            />
+            <input
+              class="inp"
+              list="accionesConocidas"
+              maxlength="30"
+              placeholder="Acción"
+              [attr.aria-label]="'Acción del permiso ' + (i + 1)"
+              formControlName="accion"
+            />
+            <button class="btn ghost sm" type="button" (click)="quitarPermiso(i)">Quitar</button>
+          </div>
+        }
+        <datalist id="modulosConocidos">
+          @for (modulo of modulosConocidos(); track modulo) {
+            <option [value]="modulo"></option>
+          }
+        </datalist>
+        <datalist id="accionesConocidas">
+          @for (accion of accionesConocidas(); track accion) {
+            <option [value]="accion"></option>
+          }
+        </datalist>
+        <div class="row">
+          <button class="btn sec sm" type="button" (click)="agregarPermiso()">+ Permiso</button>
+          <span class="sp"></span>
+          <button class="btn" type="submit" [disabled]="enviando()">
+            Guardar permisos del rol
+          </button>
+        </div>
+      </form>
+    }
+  }
+</div>
+
+@if (modalAbierto()) {
+  <app-modal titulo="Crear usuario" [angosto]="true" (cerrar)="modalAbierto.set(false)">
+    <form [formGroup]="formUsuario" (ngSubmit)="registrar()">
+      <div class="mb">
+        @if (errorRegistro(); as mensaje) {
+          <div class="alert bad" role="alert">{{ mensaje }}</div>
+        }
+        <div class="fld">
+          <label class="lbl" for="idPersonal">CÓDIGO DEL PERSONAL</label>
+          <input class="inp" id="idPersonal" type="number" min="1" formControlName="idPersonal" />
+        </div>
+        <div class="fld">
+          <label class="lbl" for="nombreUsuario">NOMBRE DE USUARIO</label>
+          <input
+            class="inp"
+            id="nombreUsuario"
+            maxlength="50"
+            placeholder="nombre.apellido"
+            autocomplete="off"
+            formControlName="nombreUsuario"
+          />
+        </div>
+        <div class="fld">
+          <label class="lbl" for="clave">CONTRASEÑA INICIAL (8 A 72 CARACTERES)</label>
+          <input
+            class="inp"
+            id="clave"
+            type="password"
+            autocomplete="new-password"
+            formControlName="clave"
+          />
+        </div>
+        <div class="xs mut">La persona deberá cambiarla en su primer ingreso.</div>
+        <div class="fld">
+          <label class="lbl" for="idRol">ROL</label>
+          <select class="inp" id="idRol" formControlName="idRol">
+            @for (rol of roles(); track rol.idRol) {
+              <option [ngValue]="rol.idRol">{{ rol.nombre }}</option>
+            }
+          </select>
+        </div>
+      </div>
+      <div class="mf">
+        <button class="btn sec" type="button" (click)="modalAbierto.set(false)">Cancelar</button>
+        <button class="btn" type="submit" [disabled]="enviando()">Registrar usuario</button>
+      </div>
+    </form>
+  </app-modal>
+}
