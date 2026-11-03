@@ -1,15 +1,35 @@
 import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { PERMISOS } from '../../core/sesion/permisos';
 import { SesionService } from '../../core/sesion/sesion.service';
 import { MENU } from '../menu';
 
-/** Accesos a los módulos del rol; los pendientes del prototipo no tienen endpoint en el contrato. */
+/**
+ * Cabecera y acciones del nodo 4:17. No llama a ningún endpoint: los indicadores, las citas y los
+ * pendientes de ese nodo no tienen operación en CUS50 (ver docs/NOTAS_IT1.md).
+ */
 @Component({
   selector: 'app-inicio',
   imports: [RouterLink],
   template: `
     <div class="col" style="gap: 16px">
-      <h1 class="h1">Hola, {{ sesion.sesion()?.nombreUsuario }}</h1>
+      <div class="row">
+        <div class="sp">
+          <div class="xs mut eyebrow">{{ fecha }} · SEDE {{ sesion.sesion()?.idSede }}</div>
+          <h1 class="h1">{{ saludo }}, {{ nombre() }}</h1>
+        </div>
+        @if (puedeSinCita()) {
+          <a class="btn lg salon" routerLink="/ventas/sin-cita">
+            <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M13 2L4 14h7l-1 8 9-12h-7z"></path>
+            </svg>
+            Atención sin cita
+          </a>
+        }
+        @if (puedeNuevaCita()) {
+          <a class="btn lg sec" routerLink="/agenda">Nueva cita</a>
+        }
+      </div>
       <div class="gf">
         @for (item of accesos(); track item.ruta) {
           <a class="card" [routerLink]="item.ruta">
@@ -26,7 +46,34 @@ import { MENU } from '../menu';
 })
 export class Inicio {
   protected readonly sesion = inject(SesionService);
+
+  protected readonly fecha = new Intl.DateTimeFormat('es-PE', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  })
+    .format(new Date())
+    .replace(',', '')
+    .toUpperCase();
+  protected readonly saludo = saludoDe(new Date().getHours());
+  protected readonly nombre = computed(() => {
+    const primero = (this.sesion.sesion()?.nombreUsuario ?? '').split(/[.\s_-]+/)[0];
+    return primero.charAt(0).toUpperCase() + primero.slice(1);
+  });
+  protected readonly puedeSinCita = computed(() => this.sesion.tienePermiso(PERMISOS.ventasCrear));
+  protected readonly puedeNuevaCita = computed(
+    () =>
+      this.sesion.tienePermiso(PERMISOS.agendaCrear) &&
+      this.sesion.tienePermiso(PERMISOS.agendaVer),
+  );
   protected readonly accesos = computed(() =>
     MENU.filter((item) => item.ruta !== '/inicio' && this.sesion.tienePermiso(...item.permisos)),
   );
+}
+
+function saludoDe(hora: number): string {
+  if (hora < 12) {
+    return 'Buen día';
+  }
+  return hora < 19 ? 'Buenas tardes' : 'Buenas noches';
 }
