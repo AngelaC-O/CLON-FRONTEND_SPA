@@ -1,0 +1,86 @@
+<div class="col" style="gap: 16px; max-width: 1100px">
+  <div>
+    <h1 class="h1">Atención en curso</h1>
+    <div class="mut">Cronómetro, observaciones y fin de la atención.</div>
+  </div>
+
+  @if (finalizada(); as atencion) {
+    <div class="card col" style="text-align: center; padding: 40px">
+      <div class="h2">Atención finalizada</div>
+      <p class="mut" style="margin: 0">
+        Cita {{ atencion.idCita }} · fin {{ horaDe(atencion.horaFin) }}. Queda lista para cobro.
+      </p>
+      <div class="alert info" style="text-align: left">
+        @if (atencion.idClientePaquete) {
+          Se descontó una sesión del paquete o membresía de la clienta.
+        } @else {
+          La clienta no tenía sesiones disponibles para este servicio: se cobra como servicio
+          individual.
+        }
+      </div>
+      <a class="btn" style="align-self: center" routerLink="/agenda/mi-agenda">Ir a Mi agenda</a>
+    </div>
+  } @else if (enCurso.actual(); as atencion) {
+    <div class="gs">
+      <div class="col" style="gap: 16px">
+        <div class="card reloj" style="text-align: center; background: var(--pri); color: #fff">
+          <div class="xs b" style="letter-spacing: 0.1em; opacity: 0.8">
+            EN ATENCIÓN · INICIO {{ horaDe(atencion.horaInicio) }}
+          </div>
+          <div class="num" style="font: 400 68px/1.1 var(--fuente-titulo)">{{ reloj() }}</div>
+          <div style="opacity: 0.85">Cita {{ atencion.idCita }}</div>
+        </div>
+
+        <div class="card col">
+          <div class="fld">
+            <label class="lbl" for="observaciones">OBSERVACIONES</label>
+            <textarea
+              class="inp"
+              id="observaciones"
+              maxlength="300"
+              placeholder="Producto usado, preferencias, indicaciones…"
+              [formControl]="observaciones"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="card col">
+          <div class="h3">Paquete o membresía</div>
+          <div class="alert info">
+            Si la clienta tiene sesiones disponibles para este servicio, se descontará una al
+            finalizar. Si no, se cobra como servicio individual.
+          </div>
+        </div>
+      </div>
+
+      <div class="card col">
+        <h2 class="h2">Resumen</h2>
+        @if (error(); as mensaje) {
+          <div class="alert bad" role="alert">{{ mensaje }}</div>
+        }
+        <div class="b">Variante {{ atencion.idVariante }}</div>
+        <div class="xs mut">
+          Recurso {{ atencion.idRecurso }} · Especialista {{ atencion.idPersonal }}
+        </div>
+        <div class="xs mut">Duración declarada: {{ atencion.tiempoDeclaradoMin }} min</div>
+        <button
+          class="btn lg blk"
+          type="button"
+          [disabled]="enviando() || observaciones.invalid"
+          (click)="finalizar()"
+        >
+          Finalizar
+        </button>
+        <div class="xs mut" style="text-align: center">
+          Registra la hora de fin y deja la atención lista para cobro.
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="card" style="text-align: center; padding: 40px">
+      <div class="h2">No hay atención en curso</div>
+      <p class="mut">Inicia una desde «Mi agenda».</p>
+      <a class="btn" routerLink="/agenda/mi-agenda">Ir a Mi agenda</a>
+    </div>
+  }
+</div>

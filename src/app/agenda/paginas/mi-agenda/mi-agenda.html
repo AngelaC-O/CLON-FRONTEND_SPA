@@ -1,0 +1,100 @@
+<div class="col" style="gap: 16px; max-width: 1100px">
+  <div class="row">
+    <div class="sp">
+      <h1 class="h1">Mi agenda</h1>
+      <div class="mut">Las citas de hoy.</div>
+    </div>
+    @if (especialistas().length) {
+      <div class="fld">
+        <label class="lbl" for="miEspecialista">ESPECIALISTA</label>
+        <select
+          class="inp"
+          id="miEspecialista"
+          style="min-width: 200px"
+          (change)="elegirEspecialista($any($event.target).value)"
+        >
+          @for (id of especialistas(); track id) {
+            <option [value]="id" [selected]="id === idPersonal()">Especialista {{ id }}</option>
+          }
+        </select>
+      </div>
+    }
+  </div>
+
+  @for (bloque of misCitas(); track bloque.origen + '-' + bloque.idOrigen) {
+    <div class="card" [style.opacity]="bloque.estado === 'FINALIZADA' ? 0.6 : 1">
+      <div class="row nw" style="align-items: flex-start">
+        <div style="width: 74px; flex: none">
+          <div class="kpi num" style="font-size: 26px">{{ horaDe(bloque.inicio) }}</div>
+          <div class="xs mut">hasta {{ horaDe(bloque.fin) }}</div>
+        </div>
+        <div class="sp">
+          <div class="b" style="font-size: 16px">{{ tituloBloque(bloque) }}</div>
+          <div class="mut">Variante {{ bloque.idVariante }}</div>
+          <div class="row xs" style="gap: 6px; margin-top: 6px">
+            <span class="chip">Recurso {{ bloque.idRecurso }}</span>
+            <span class="chip" [class]="claseEstado(bloque.estado)">
+              {{ etiquetaEstado(bloque.estado) }}
+            </span>
+          </div>
+        </div>
+      </div>
+      @if (bloque.origen === 'CITA') {
+        @if (bloque.estado === 'PENDIENTE') {
+          <button
+            class="btn lg blk"
+            type="button"
+            style="margin-top: 12px"
+            (click)="abrirInicio(bloque)"
+          >
+            Iniciar atención
+          </button>
+        } @else if (bloque.estado === 'EN_ATENCION') {
+          @if (puedeContinuar(bloque)) {
+            <button
+              class="btn lg blk salon"
+              type="button"
+              style="margin-top: 12px"
+              (click)="continuar()"
+            >
+              Continuar atención
+            </button>
+          } @else {
+            <div class="alert warn" style="margin-top: 12px" role="status">
+              Esta atención se inició en otra pestaña o equipo; continúala desde allí.
+            </div>
+          }
+        }
+      }
+    </div>
+  } @empty {
+    <div class="card vacio">No tienes citas hoy.</div>
+  }
+</div>
+
+@if (citaPorIniciar(); as cita) {
+  <app-modal titulo="Iniciar atención" [angosto]="true" (cerrar)="citaPorIniciar.set(null)">
+    <form [formGroup]="formInicio" (ngSubmit)="iniciar()">
+      <div class="mb">
+        <div class="mut sm">{{ tituloBloque(cita) }} · Variante {{ cita.idVariante }}</div>
+        @if (errorInicio(); as mensaje) {
+          <div class="alert bad" role="alert">{{ mensaje }}</div>
+        }
+        <div class="fld">
+          <label class="lbl" for="tiempoDeclaradoMin">TIEMPO EXACTO (MIN)</label>
+          <input
+            class="inp"
+            id="tiempoDeclaradoMin"
+            type="number"
+            min="1"
+            formControlName="tiempoDeclaradoMin"
+          />
+        </div>
+      </div>
+      <div class="mf">
+        <button class="btn sec" type="button" (click)="citaPorIniciar.set(null)">Cancelar</button>
+        <button class="btn" type="submit" [disabled]="enviando()">Iniciar atención</button>
+      </div>
+    </form>
+  </app-modal>
+}

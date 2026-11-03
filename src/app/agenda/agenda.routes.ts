@@ -15,6 +15,14 @@ export default [
     loadComponent: () => import('./paginas/clientas/clientas').then((m) => m.Clientas),
   },
   {
+    path: 'mi-agenda',
+    canActivate: [
+      permisoGuard(PERMISOS.atencionCrear, PERMISOS.atencionEditar),
+      permisoGuard(PERMISOS.agendaVer),
+    ],
+    loadComponent: () => import('./paginas/mi-agenda/mi-agenda').then((m) => m.MiAgenda),
+  },
+  {
     path: 'atencion',
     canActivate: [permisoGuard(PERMISOS.atencionCrear, PERMISOS.atencionEditar)],
     loadComponent: () => import('./paginas/atencion/atencion').then((m) => m.Atencion),
