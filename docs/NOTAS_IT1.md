@@ -10,9 +10,9 @@ Comprobado:
 - **Contra el back-end real (localhost:8080):** login con el usuario `recepcion` del script 15, redirección a `/cambio-clave`, 403 RF82 en lo demás, cookie XSRF y logout con su cabecera. Dejó sus filas de auditoría; la clave temporal no se cambió.
 - **En el navegador, con respuestas simuladas:** inicio, usuarios, matriz y catálogo a 1440; recursos a 1440, 834 y 390; agenda a 1440, 834 y 390; Atención en curso a 1440; clientas a 390. Mi agenda y el modal de clientas se recorrieron a 1440 leyendo su contenido, sin revisar la imagen. El login, sin simular, a 1440 y 390. Cobros (con QR) a 1440 y 390; atención sin cita a 834; el arqueo de caja y el adelanto con enlace a 1440.
 
-**Sin comprobar contra el back-end real:** las escrituras de CUS52, CUS53, CUS57 y CUS61, ni el cambio de clave completo; tampoco ninguna operación de `IGU_Clientas`, `IGU_Agenda`, `IGU_Atencion`, `IGU_Cobro`, `IGU_VentaRapida` ni `IGU_Caja`, porque los usuarios de prueba reciben 403 RF82 hasta cambiar su clave temporal. Hacerlo deja datos en la base local y gasta esa clave.
+**Contra el back-end real, de punta a punta:** los 20 CUS, con la prueba `e2e/recorrido.e2e.ts` (perfil `dev` y base recién instalada). Resultados y límites en `docs/pruebas_it1.md`. No se probó contra Izipay, APISPERU ni SUNAT reales: el perfil `dev` usa sus simuladores.
 
-**Sin comprobar en un navegador real:** el diálogo de impresión del PDF (CUS20) y de la proforma (CUS21), y el escaneo del QR con una aplicación de pago. Las pruebas solo verifican que se pide el PDF y se llama a imprimir.
+**Sin comprobar:** el diálogo de impresión del navegador y el escaneo del QR con una aplicación de pago. La espera de un cobro digital en `IGU_Cobro` tampoco se recorrió de punta a punta, porque en `dev` Izipay aprueba al instante.
 
 ## Dudas
 
@@ -45,6 +45,8 @@ Comprobado:
 11. **Medios de pago.** `core/api/medios-pago.ts` copia el script 12 y **supone los ids 1 a 4 por orden de inserción**, igual que los tipos de documento (Duda 5).
 12. **Estado SUNAT pendiente.** No hay `GET` del comprobante: la pantalla muestra el estado del cierre y no se entera del reenvío posterior (RN46). Solo el arqueo avisa cuántos quedan pendientes.
 13. **Pago digital en CUS13.** El contrato dice que, con Izipay real, un pago digital aún no se puede cerrar en `/ventas/rapidas` (DF-51). La pantalla lo ofrece, porque el draw.io lee `canal`, con un aviso. ¿Se quita hasta resolver DF-51?
+14. **Especialista libre tras terminar antes.** En el recorrido e2e, con una cita a las 16:30 ya FINALIZADA antes de esa hora, `GET /ventas/rapidas/libres` respondió vacío para un servicio de 30 min de esa especialista. La causa probable es que la franja de la cita sigue contando como ocupada; no se revisó más. ¿Es lo esperado o debería liberarse?
+15. **DNI verificado en dev.** `ConsultaDocumentoFalsa` siempre responde ERROR, así que en este perfil ninguna ficha queda VERIFICADO. ¿Se le agrega una respuesta exitosa, como a la pasarela?
 
 ## Diferencias encontradas
 
@@ -92,6 +94,7 @@ Comprobado:
 | 40 | Figma y draw.io (caja) | «Cerrar caja y arquear» frente a «Clic en Cerrar caja». La aprobación de la diferencia, «Último cierre» y la caja de ayer son de CUS46 o no tienen lectura. | Manda el draw.io; lo demás no se construyó. |
 | 41 | Prototipo frente al contrato (observación) | El prototipo pide una observación por cierre; `Medio.observacion` es por medio de pago. | Una por cada medio con diferencia. |
 | 42 | `openapi.yaml` frente al back-end (permisos) | El adelanto pide `AGENDA:EDITAR`; la consulta de RUC, los libres y la entrega del comprobante piden `VENTAS:VER`. Nada de esto está en el contrato (Duda 1). | Se agregaron a `PERMISOS` y esos botones se ocultan sin el permiso. |
+| 44 | Encargo frente al alcance (e2e) | El recorrido pide «DNI consultado» y un área nueva con su servicio, pero el simulador responde ERROR y asignar personal a un área es de CUS36. | La consulta se hace y la ficha queda MANUAL. El servicio se registra en un área con especialista; el área nueva queda sin uso. |
 | 43 | Contrato (RN08) | El umbral de la boleta (`UMBRAL_BOLETA_DOC`) no se expone. | S/ 700 solo decide el aviso; quien exige los datos es el back-end. |
 
 ## Decisiones tomadas
@@ -124,3 +127,8 @@ Comprobado:
 26. **Esperado del efectivo.** En el arqueo se le restan los egresos escritos, que es lo que hará Oracle al cerrar (ejemplo del contrato: 160 esperado, 10 de egreso, 150 al cerrar).
 27. **Imprimir el comprobante.** El PDF se abre en un `iframe` oculto: `window.open` después de la petición lo bloquearían las ventanas emergentes.
 28. **Plan de commits de cobro y caja.** Para no pasar de 8 commits, la prueba de `IGU_Agenda` y `IGU_Atencion` va en el commit de `agenda`.
+29. **Entorno propio del e2e.** Contenedor `cautiva-e2e-oracle` y puertos 1523, 8081 y 4300: el recorrido cambia claves temporales y deja datos, y así no toca `oracle-local` ni el back-end de desarrollo. Las claves del contenedor se generan en cada instalación y quedan en `e2e/.entorno.json`, que no se sube.
+30. **Playwright.** Es una herramienta de prueba, no una librería de interfaz: va en `devDependencies` y no entra al paquete.
+31. **Código de la atención.** Al finalizar, `IGU_Atencion` ahora muestra el código de la atención. Sin `GET` de atenciones por cobrar, la recepcionista no tenía de dónde sacarlo si no vio esa pantalla (Duda 2).
+32. **`./mvnw -q verify` en el e2e.** Tampoco aplica: este encargo no modificó el back-end, solo lo ejecuta. Su repositorio tiene cambios sin confirmar en `docs/openapi.yaml` y dos pruebas, que no son de este trabajo.
+33. **Plan de commits del e2e.** `atencion.html` va solo, porque es el único cambio de `agenda`; la prueba y el informe van aparte de la configuración.

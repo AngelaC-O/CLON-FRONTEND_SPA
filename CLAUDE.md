@@ -64,6 +64,8 @@ npm start                      # ng serve con proxy.conf.json: /api va a http://
 npm run modelos                # regenera los modelos desde docs/openapi.yaml
 npm run build
 npm test -- --watch=false
+npm run e2e:bd                 # crea la base de la prueba e2e (borra solo su propio contenedor)
+npm run e2e                    # recorrido de los 20 CUS; ver docs/pruebas_it1.md
 ```
 
 ## Git
