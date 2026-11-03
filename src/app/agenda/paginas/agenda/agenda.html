@@ -4,6 +4,9 @@
       <h1 class="h1">Agenda</h1>
       <div class="mut">{{ fechaLarga() }} · Sede {{ sesion.sesion()?.idSede }}</div>
     </div>
+    @if (puedeCobrarAdelanto()) {
+      <button class="btn sec" type="button" (click)="citaAdelanto.set(null)">Adelanto</button>
+    }
     @if (puedeCrear()) {
       <button class="btn sec" type="button" (click)="abrirEspera()">
         Lista de espera ({{ esperas().length }})
@@ -11,6 +14,19 @@
       <button class="btn lg" type="button" (click)="modalCita.set(true)">+ Nueva cita</button>
     }
   </div>
+
+  @if (citaNueva(); as cita) {
+    @if (puedeCobrarAdelanto()) {
+      <div class="alert info" role="status">
+        <span class="sp">
+          Cita {{ cita.idCita }} agendada. Sin adelanto, la reserva no queda asegurada (RN04).
+        </span>
+        <button class="btn sm" type="button" (click)="citaAdelanto.set(cita.idCita ?? null)">
+          Registrar adelanto
+        </button>
+      </div>
+    }
+  }
 
   <form class="card row filtros" [formGroup]="filtros" (ngSubmit)="verAgenda()">
     <div class="fld">
@@ -93,6 +109,16 @@
                       Especialista {{ bloque.idPersonal }}
                     }
                   </div>
+                  @if (puedeCobrarAdelanto() && tieneAdelanto(bloque)) {
+                    <button
+                      class="btn ghost sm"
+                      type="button"
+                      [attr.aria-label]="'Adelanto de la cita ' + bloque.idOrigen"
+                      (click)="citaAdelanto.set(bloque.idOrigen ?? null)"
+                    >
+                      Adelanto
+                    </button>
+                  }
                 </div>
               }
             </div>
@@ -115,6 +141,16 @@
           <span class="chip" [class]="claseEstado(bloque.estado)">
             {{ etiquetaEstado(bloque.estado) }}
           </span>
+          @if (puedeCobrarAdelanto() && tieneAdelanto(bloque)) {
+            <button
+              class="btn sec sm"
+              type="button"
+              [attr.aria-label]="'Adelanto de la cita ' + bloque.idOrigen"
+              (click)="citaAdelanto.set(bloque.idOrigen ?? null)"
+            >
+              Adelanto
+            </button>
+          }
         </div>
       } @empty {
         <div class="card vacio">No hay citas este día.</div>
@@ -162,5 +198,13 @@
     [pedido]="pedido"
     (cerrar)="pedidoEspera.set(null)"
     (anotada)="esperaAnotada($event)"
+  />
+}
+
+@if (citaAdelanto() !== undefined) {
+  <app-adelanto-cita
+    [idCita]="citaAdelanto() ?? null"
+    (cerrar)="citaAdelanto.set(undefined)"
+    (registrado)="adelantoRegistrado($event)"
   />
 }

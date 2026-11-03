@@ -85,6 +85,15 @@ describe('Atencion', () => {
     expect(raiz.textContent).toContain('Se descontó una sesión');
   });
 
+  it('CUS18: con VENTAS:CREAR lleva al cobro de la atención finalizada', async () => {
+    sessionStorage.setItem('cautiva.sesion', JSON.stringify({ permisos: ['VENTAS:CREAR'] }));
+    await montar({ ...ATENCION, horaInicio: '2026-11-03T10:00:00' });
+    finalizar().click();
+    http.expectOne('/api/v1/atenciones/60/fin').flush({ ...ATENCION, estado: 'FINALIZADA' });
+    await estable();
+    expect(raiz.querySelector('a[href="/ventas/cobros?idAtencion=60"]')).not.toBeNull();
+  });
+
   it('muestra el 404 y conserva la atención', async () => {
     await montar({ ...ATENCION, horaInicio: '2026-11-03T10:00:00' });
     finalizar().click();
