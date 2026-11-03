@@ -8,7 +8,8 @@
     <div class="card col" style="text-align: center; padding: 40px">
       <div class="h2">Atención finalizada</div>
       <p class="mut" style="margin: 0">
-        Cita {{ atencion.idCita }} · fin {{ horaDe(atencion.horaFin) }}. Queda lista para cobro.
+        Atención {{ atencion.idAtencion }} · cita {{ atencion.idCita }} · fin
+        {{ horaDe(atencion.horaFin) }}. Queda lista para cobro.
       </p>
       <div class="alert info" style="text-align: left">
         @if (atencion.idClientePaquete) {
