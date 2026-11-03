@@ -7,6 +7,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "e2e:bd": "node e2e/preparar-bd.mjs",
+    "e2e": "playwright test",
     "modelos": "npx --yes -p typescript@5.9.3 -p openapi-typescript@7.13.0 openapi-typescript docs/openapi.yaml -o src/app/core/api/modelos.generados.ts --root-types --root-types-no-schema-prefix --root-types-keep-casing && prettier --write src/app/core/api/modelos.generados.ts"
   },
   "private": true,
@@ -27,6 +29,7 @@
     "@angular/build": "^22.2.5",
     "@angular/cli": "^22.2.5",
     "@angular/compiler-cli": "^22.2.0",
+    "@playwright/test": "^1.64.1",
     "jsdom": "^30.0.0",
     "prettier": "^3.8.1",
     "typescript": "~6.0.2",
