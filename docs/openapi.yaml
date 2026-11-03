@@ -1,0 +1,4014 @@
+openapi: 3.1.0
+info:
+  description: "Contrato del back-end de la Iteración 1 (CS-BO-01). Los errores salen\
+    \ como ProblemDetail, con la propiedad regla."
+  title: Cautiva Spa · BackOffice · Iteración 1
+  version: "1.0"
+servers:
+- url: /
+paths:
+  /api/v1/areas:
+    get:
+      operationId: listarAreas
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+              - idArea: 1
+                linea: SALON
+                nombreArea: Peluquería y Estilismo
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AreaDTO"
+          description: Áreas
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+      security:
+      - sesion: []
+      summary: Listar las áreas
+      tags:
+      - controlador-catalogo
+      x-cus: CUS57
+    post:
+      operationId: registrarArea
+      requestBody:
+        content:
+          application/json:
+            example:
+              linea: SPA
+              nombreArea: Masajes
+            schema:
+              $ref: "#/components/schemas/AreaDTO"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              example:
+                idArea: 6
+                linea: SPA
+                nombreArea: Masajes
+              schema:
+                $ref: "#/components/schemas/AreaDTO"
+          description: Área creada
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+        "409":
+          content:
+            application/problem+json:
+              example:
+                detail: Ya existe un área con ese nombre
+                regla: UQ_AREA_NOMBRE
+                status: 409
+                title: Conflict
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Ya existe un área con ese nombre
+      security:
+      - csrf: []
+        sesion: []
+      summary: Registrar un área
+      tags:
+      - controlador-catalogo
+      x-cus: CUS57
+  /api/v1/atenciones:
+    post:
+      operationId: iniciar
+      requestBody:
+        content:
+          application/json:
+            example:
+              idCita: 950
+              tiempoDeclaradoMin: 45
+            schema:
+              $ref: "#/components/schemas/InicioAtencionDTO"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              example:
+                estado: EN_CURSO
+                horaInicio: 2026-11-09T10:02:00
+                idAtencion: 1532
+                idCita: 950
+                idCliente: 407
+                idPersonal: 4
+                idRecurso: 1
+                idVariante: 2
+                tiempoDeclaradoMin: 45
+              schema:
+                $ref: "#/components/schemas/AtencionDTO"
+          description: Atención EN_CURSO y cita EN_ATENCION
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+        "404":
+          content:
+            application/problem+json:
+              example:
+                detail: La cita no existe
+                regla: RF13
+                status: 404
+                title: Not Found
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: La cita no existe
+        "409":
+          content:
+            application/problem+json:
+              example:
+                detail: El tiempo declarado choca con otra cita
+                regla: RN02
+                status: 409
+                title: Conflict
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: El tiempo declarado choca con otra cita
+        "422":
+          content:
+            application/problem+json:
+              example:
+                detail: Solo se atiende una cita PENDIENTE
+                regla: RF13
+                status: 422
+                title: Unprocessable Content
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Solo se atiende una cita PENDIENTE
+      security:
+      - csrf: []
+        sesion: []
+      summary: Iniciar la atención de una cita
+      tags:
+      - controlador-atencion
+      x-cus: CUS11
+  /api/v1/atenciones/{idAtencion}/fin:
+    patch:
+      operationId: finalizar
+      parameters:
+      - in: path
+        name: idAtencion
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            example:
+              observaciones: Sin novedad
+            schema:
+              $ref: "#/components/schemas/DetalleAtencionDTO"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                estado: FINALIZADA
+                horaFin: 2026-11-09T10:45:00
+                horaInicio: 2026-11-09T10:02:00
+                idAtencion: 1532
+                idCita: 950
+                idCliente: 407
+                idPersonal: 4
+                idRecurso: 1
+                idVariante: 2
+                observaciones: Sin novedad
+                tiempoDeclaradoMin: 45
+              schema:
+                $ref: "#/components/schemas/AtencionDTO"
+          description: "Atención y cita FINALIZADAS; con un paquete activo, la sesió\
+            n se descuenta"
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+        "404":
+          content:
+            application/problem+json:
+              example:
+                detail: La atención no existe
+                regla: RF13
+                status: 404
+                title: Not Found
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: La atención no existe
+        "422":
+          content:
+            application/problem+json:
+              example:
+                detail: Solo se finaliza una atención EN_CURSO
+                regla: RF13
+                status: 422
+                title: Unprocessable Content
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Solo se finaliza una atención EN_CURSO
+      security:
+      - csrf: []
+        sesion: []
+      summary: Finalizar la atención
+      tags:
+      - controlador-atencion
+      x-cus: CUS11
+  /api/v1/auth/cambio-clave:
+    post:
+      operationId: cambiarClave
+      requestBody:
+        content:
+          application/json:
+            example:
+              claveActual: ClaveDeEjemplo2026
+              claveNueva: ClaveNueva2026
+            schema:
+              $ref: "#/components/schemas/CambioClaveDTO"
+        required: true
+      responses:
+        "200":
+          description: Clave cambiada
+        "400":
+          content:
+            application/problem+json:
+              example:
+                detail: La clave nueva no tiene de 8 a 72 caracteres
+                regla: VALIDACION
+                status: 400
+                title: Bad Request
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: La clave nueva no tiene de 8 a 72 caracteres
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+        "422":
+          content:
+            application/problem+json:
+              example:
+                detail: La clave actual no coincide
+                regla: RF82
+                status: 422
+                title: Unprocessable Content
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: La clave actual no coincide
+      security:
+      - csrf: []
+        sesion: []
+      summary: "Cambiar la clave propia (no está en el draw.io, DF-18)"
+      tags:
+      - controlador-autenticacion
+      x-cus: CUS50
+  /api/v1/auth/login:
+    post:
+      operationId: iniciarSesion
+      requestBody:
+        content:
+          application/json:
+            example:
+              clave: ClaveDeEjemplo2026
+              nombreUsuario: recepcion
+            schema:
+              $ref: "#/components/schemas/CredencialesDTO"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                debeCambiarClave: false
+                idSede: 1
+                idUsuario: 2
+                nombreUsuario: recepcion
+                permisos:
+                - AGENDA:VER
+                - CLIENTAS:CREAR
+                - VENTAS:CREAR
+              schema:
+                $ref: "#/components/schemas/SesionDTO"
+          description: "Sesión creada, con las cookies de sesión y XSRF-TOKEN"
+        "400":
+          content:
+            application/problem+json:
+              example:
+                detail: Faltan el usuario o la clave
+                regla: VALIDACION
+                status: 400
+                title: Bad Request
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Faltan el usuario o la clave
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Usuario o clave incorrectos
+                regla: RF77
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Usuario o clave incorrectos
+        "423":
+          content:
+            application/problem+json:
+              example:
+                detail: La cuenta está bloqueada por intentos fallidos o inactiva
+                regla: RF77
+                status: 423
+                title: Locked
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: La cuenta está bloqueada por intentos fallidos o inactiva
+      security: []
+      summary: Iniciar sesión
+      tags:
+      - controlador-autenticacion
+      x-cus: CUS50
+  /api/v1/auth/logout:
+    post:
+      operationId: cerrarSesion
+      responses:
+        "200":
+          description: Sesión cerrada y auditada
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+      security:
+      - csrf: []
+        sesion: []
+      summary: Cerrar sesión
+      tags:
+      - controlador-autenticacion
+      x-cus: CUS51
+  /api/v1/cajas:
+    post:
+      operationId: abrir
+      requestBody:
+        content:
+          application/json:
+            example:
+              montoInicial: 100.0
+            schema:
+              $ref: "#/components/schemas/AperturaCajaDTO"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              example:
+                arqueos: []
+                estado: ABIERTA
+                fechaApertura: 2026-10-22T08:55:00
+                idCaja: 214
+                idSede: 1
+                idUsuarioApertura: 2
+                montoInicial: 100.0
+              schema:
+                $ref: "#/components/schemas/CajaDTO"
+          description: Caja ABIERTA
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+        "409":
+          content:
+            application/problem+json:
+              example:
+                detail: La sede ya tiene una caja abierta
+                regla: RN30
+                status: 409
+                title: Conflict
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: La sede ya tiene una caja abierta
+      security:
+      - csrf: []
+        sesion: []
+      summary: Abrir la caja de la sede
+      tags:
+      - controlador-caja
+      x-cus: CUS44
+  /api/v1/cajas/{idCaja}/cierre:
+    post:
+      operationId: cerrar_1
+      parameters:
+      - in: path
+        name: idCaja
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            example:
+              arqueos:
+              - idMedioPago: 1
+                montoContado: 145.0
+                observacion: Faltan cinco soles
+              - idMedioPago: 2
+                montoContado: 40.0
+              egresos:
+              - concepto: Compra menor
+                monto: 10.0
+            schema:
+              $ref: "#/components/schemas/ArqueoDTO"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                arqueos:
+                - diferencia: -5.0
+                  idMedioPago: 1
+                  montoContado: 145.0
+                  montoEsperado: 150.0
+                  observacion: Faltan cinco soles
+                estado: CERRADA
+                fechaCierre: 2026-10-22T20:05:00
+                idCaja: 214
+                idSede: 1
+                idUsuarioApertura: 2
+                idUsuarioCierre: 2
+                montoInicial: 100.0
+              schema:
+                $ref: "#/components/schemas/CajaDTO"
+          description: Caja CERRADA; Oracle calcula lo esperado y la diferencia
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+        "404":
+          content:
+            application/problem+json:
+              example:
+                detail: La caja no existe
+                regla: RN30
+                status: 404
+                title: Not Found
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: La caja no existe
+        "422":
+          content:
+            application/problem+json:
+              example:
+                detail: Diferencia sin observación
+                regla: RN30
+                status: 422
+                title: Unprocessable Content
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Diferencia sin observación
+      security:
+      - csrf: []
+        sesion: []
+      summary: Cerrar la caja con egresos y arqueo
+      tags:
+      - controlador-caja
+      x-cus: CUS45
+  /api/v1/cajas/{idCaja}/esperado:
+    get:
+      operationId: calcularEsperado
+      parameters:
+      - in: path
+        name: idCaja
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                comprobantesPendientes:
+                - estadoSunat: PENDIENTE
+                  fechaLimite: 2026-10-25
+                  idComprobante: 7121
+                  numero: "00000420"
+                  serie: B001
+                  tipo: BOLETA
+                estado: ABIERTA
+                idCaja: 214
+                medios:
+                - aprobadoPasarela: 0
+                  esperado: 160.0
+                  idMedioPago: 1
+                  medioPago: EFECTIVO
+                - aprobadoPasarela: 40.0
+                  esperado: 40.0
+                  idMedioPago: 2
+                  medioPago: YAPE
+                montoInicial: 100.0
+              schema:
+                $ref: "#/components/schemas/EsperadoDTO"
+          description: Esperado de V_CAJA_ESPERADO y aprobados de la pasarela
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+        "404":
+          content:
+            application/problem+json:
+              example:
+                detail: La caja no existe
+                regla: RN30
+                status: 404
+                title: Not Found
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: La caja no existe
+      security:
+      - sesion: []
+      summary: "Lo esperado por medio de pago, lo aprobado y los comprobantes pendientes"
+      tags:
+      - controlador-caja
+      x-cus: CUS45
+  /api/v1/citas:
+    post:
+      operationId: agendar
+      requestBody:
+        content:
+          application/json:
+            example:
+              duracionMin: 30
+              fechaHoraInicio: 2026-11-09T10:00:00
+              idCliente: 407
+              idPersonal: 4
+              idRecurso: 1
+              idVariante: 2
+            schema:
+              $ref: "#/components/schemas/CitaDTO"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              example:
+                adelantoMonto: 0.0
+                duracionMin: 30
+                estado: PENDIENTE
+                fechaHoraFin: 2026-11-09T11:00:00
+                fechaHoraInicio: 2026-11-09T10:00:00
+                idCita: 950
+                idCliente: 407
+                idPersonal: 4
+                idRecurso: 1
+                idSede: 1
+                idUsuario: 2
+                idVariante: 2
+              schema:
+                $ref: "#/components/schemas/CitaDTO"
+          description: Cita creada; Oracle calcula el fin con la limpieza del recurso
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+        "409":
+          content:
+            application/problem+json:
+              example:
+                detail: Cruce de horario de la especialista o del recurso
+                regla: RN02
+                status: 409
+                title: Conflict
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Cruce de horario de la especialista o del recurso
+        "422":
+          content:
+            application/problem+json:
+              example:
+                detail: La especialista no tiene el área del servicio (-20012) o la
+                  clienta no existe
+                regla: RF83
+                status: 422
+                title: Unprocessable Content
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: La especialista no tiene el área del servicio (-20012) o la
+            clienta no existe
+      security:
+      - csrf: []
+        sesion: []
+      summary: Agendar una cita
+      tags:
+      - controlador-cita
+      x-cus: CUS05
+  /api/v1/citas/agenda:
+    get:
+      operationId: consultarAgenda
+      parameters:
+      - in: query
+        name: fecha
+        required: true
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: idPersonal
+        required: false
+        schema:
+          type: integer
+          format: int64
+      - in: query
+        name: idRecurso
+        required: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+              - estado: PENDIENTE
+                fin: 2026-11-09T11:00:00
+                franja: OCUPADA
+                idOrigen: 950
+                idPersonal: 4
+                idRecurso: 1
+                idVariante: 2
+                inicio: 2026-11-09T10:00:00
+                origen: CITA
+              - fin: 2026-11-09T19:00:00
+                franja: LIBRE
+                idPersonal: 4
+                inicio: 2026-11-09T11:00:00
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BloqueAgendaDTO"
+          description: Franjas ocupadas (con limpieza) y libres; LIBRE es de una especialista
+            o de un recurso
+        "400":
+          content:
+            application/problem+json:
+              example:
+                detail: Falta la fecha
+                regla: VALIDACION
+                status: 400
+                title: Bad Request
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Falta la fecha
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+      security:
+      - sesion: []
+      summary: Consultar la agenda del día
+      tags:
+      - controlador-cita
+      x-cus: CUS08
+  /api/v1/citas/disponibilidad:
+    get:
+      operationId: consultarDisponibilidad
+      parameters:
+      - in: query
+        name: idVariante
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: query
+        name: fecha
+        required: true
+        schema:
+          type: string
+          format: date
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+              - duracionMin: 30
+                idsPersonal:
+                - 4
+                idsRecurso:
+                - 1
+                - 2
+                - 3
+                inicio: 2026-11-09T09:00:00
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/HoraLibre"
+          description: Horas con las especialistas y recursos libres; la limpieza
+            ya está descontada
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+        "404":
+          content:
+            application/problem+json:
+              example:
+                detail: La variante no existe
+                regla: RN40
+                status: 404
+                title: Not Found
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: La variante no existe
+      security:
+      - sesion: []
+      summary: Horas libres de una variante en un día
+      tags:
+      - controlador-cita
+      x-cus: CUS05
+  /api/v1/citas/lista-espera:
+    post:
+      operationId: registrarEspera
+      requestBody:
+        content:
+          application/json:
+            example:
+              fechaDeseada: 2026-11-09
+              horaDesde: 15:00
+              horaHasta: 18:00
+              idCliente: 407
+              idVariante: 2
+            schema:
+              $ref: "#/components/schemas/ListaEsperaDTO"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              example:
+                estado: PENDIENTE
+                fechaDeseada: 2026-11-09
+                horaDesde: 15:00
+                horaHasta: 18:00
+                horasLibres:
+                - duracionMin: 30
+                  idsPersonal:
+                  - 4
+                  idsRecurso:
+                  - 1
+                  inicio: 2026-11-09T09:00:00
+                idCliente: 407
+                idEspera: 31
+                idSede: 1
+                idUsuario: 2
+                idVariante: 2
+              schema:
+                $ref: "#/components/schemas/ListaEsperaDTO"
+          description: Anotada; trae otras horas libres para ofrecer antes de dejarla
+            en espera
+        "400":
+          content:
+            application/problem+json:
+              example:
+                detail: Una hora no tiene el formato HH:MM
+                regla: VALIDACION
+                status: 400
+                title: Bad Request
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Una hora no tiene el formato HH:MM
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+        "422":
+          content:
+            application/problem+json:
+              example:
+                detail: La clienta no existe
+                regla: FK_LISTA_ESPERA_CLIENTE
+                status: 422
+                title: Unprocessable Content
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: La clienta no existe
+      security:
+      - csrf: []
+        sesion: []
+      summary: Anotar en la lista de espera
+      tags:
+      - controlador-cita
+      x-cus: CUS06
+  /api/v1/citas/{idCita}/adelanto:
+    post:
+      operationId: registrarAdelantoEfectivo
+      parameters:
+      - in: path
+        name: idCita
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            example:
+              adelantoMonto: 50.0
+              idMedioPago: 1
+            schema:
+              $ref: "#/components/schemas/AdelantoDTO"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                adelantoMonto: 50.0
+                duracionMin: 30
+                estado: PENDIENTE
+                fechaAdelanto: 2026-10-22T10:20:00
+                fechaHoraInicio: 2026-11-09T10:00:00
+                idCaja: 214
+                idCita: 950
+                idCliente: 407
+                idMedioPago: 1
+                idPersonal: 4
+                idRecurso: 1
+                idSede: 1
+                idVariante: 2
+              schema:
+                $ref: "#/components/schemas/CitaDTO"
+          description: Adelanto registrado en la caja abierta
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+        "404":
+          content:
+            application/problem+json:
+              example:
+                detail: La cita no existe
+                regla: RF10
+                status: 404
+                title: Not Found
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: La cita no existe
+        "422":
+          content:
+            application/problem+json:
+              example:
+                detail: El medio es digital
+                regla: RN42
+                status: 422
+                title: Unprocessable Content
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: El medio es digital
+      security:
+      - csrf: []
+        sesion: []
+      summary: Registrar el adelanto en efectivo
+      tags:
+      - controlador-cita
+      x-cus: CUS07
+  /api/v1/citas/{idCita}/enlace-adelanto:
+    post:
+      operationId: generarEnlaceAdelanto
+      parameters:
+      - in: path
+        name: idCita
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            example:
+              adelantoMonto: 50.0
+              idMedioPago: 4
+            schema:
+              $ref: "#/components/schemas/AdelantoDTO"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              example:
+                canal: LINK
+                enlacePago: https://enlace-de-izipay.example/abc
+                estado: PENDIENTE
+                fechaExpiracion: 2026-10-23T15:30:00
+                idTransaccion: 5521
+              schema:
+                $ref: "#/components/schemas/EnlacePagoDTO"
+          description: Enlace creado; el adelanto se registra cuando el webhook lo
+            aprueba (RN04)
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+        "404":
+          content:
+            application/problem+json:
+              example:
+                detail: La cita no existe
+                regla: RF10
+                status: 404
+                title: Not Found
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: La cita no existe
+        "422":
+          content:
+            application/problem+json:
+              example:
+                detail: El medio no se cobra por la pasarela o Izipay rechazó el enlace
+                regla: RN42
+                status: 422
+                title: Unprocessable Content
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: El medio no se cobra por la pasarela o Izipay rechazó el enlace
+        "503":
+          content:
+            application/problem+json:
+              example:
+                detail: Izipay no respondió
+                regla: RF104
+                status: 503
+                title: Service Unavailable
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Izipay no respondió
+      security:
+      - csrf: []
+        sesion: []
+      summary: Generar el enlace de pago del adelanto
+      tags:
+      - controlador-cita
+      x-cus: CUS07
+  /api/v1/clientes:
+    get:
+      operationId: buscar
+      parameters:
+      - in: query
+        name: nombres
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: telefono
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+              - aceptaComunicaciones: true
+                apellidos: Quispe
+                estado: ACTIVO
+                idCliente: 407
+                nombres: Marisol
+                origenDatos: MANUAL
+                telefono: "987654321"
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ClienteDTO"
+          description: Clientas encontradas; una persona que no es clienta no aparece
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+      security:
+      - sesion: []
+      summary: Buscar clientas por nombre o teléfono
+      tags:
+      - controlador-cliente
+      x-cus: CUS01
+    post:
+      operationId: registrar_1
+      requestBody:
+        content:
+          application/json:
+            example:
+              aceptaComunicaciones: true
+              apellidos: Quispe
+              fechaCumpleanos: 1990-05-20
+              nombres: Marisol
+              observaciones: Alergia al tinte
+              telefono: "987654321"
+            schema:
+              $ref: "#/components/schemas/ClienteDTO"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              example:
+                aceptaComunicaciones: true
+                apellidos: Quispe
+                estado: ACTIVO
+                fechaConsentimiento: 2026-10-22T10:15:00
+                fechaCumpleanos: 1990-05-20
+                idCliente: 407
+                nombres: Marisol
+                observaciones: Alergia al tinte
+                origenDatos: MANUAL
+                telefono: "987654321"
+              schema:
+                $ref: "#/components/schemas/ClienteDTO"
+          description: Clienta creada
+        "400":
+          content:
+            application/problem+json:
+              example:
+                detail: Faltan el nombre
+                regla: VALIDACION
+                status: 400
+                title: Bad Request
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Faltan el nombre
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+        "409":
+          content:
+            application/problem+json:
+              example:
+                detail: El teléfono o el documento ya pertenecen a otra ficha
+                regla: RF05
+                status: 409
+                title: Conflict
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: El teléfono o el documento ya pertenecen a otra ficha
+      security:
+      - csrf: []
+        sesion: []
+      summary: Registrar una clienta (PERSONA y CLIENTE en una transacción)
+      tags:
+      - controlador-cliente
+      x-cus: CUS02
+  /api/v1/clientes/consulta-documento:
+    get:
+      operationId: consultarDocumento
+      parameters:
+      - in: query
+        name: idTipoDocumento
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: query
+        name: numeroDocumento
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                apellidos: QUISPE ROJAS
+                fechaVerificacion: 2026-10-22T10:15:00
+                idTipoDocumento: 1
+                nombres: ANA
+                resultado: ENCONTRADO
+              schema:
+                $ref: "#/components/schemas/ResultadoConsulta"
+          description: Encontrado; fechaVerificacion vuelve al registrar para que
+            la ficha quede VERIFICADO
+        "202":
+          content:
+            application/json:
+              example:
+                idTipoDocumento: 1
+                resultado: ERROR
+              schema:
+                $ref: "#/components/schemas/ResultadoConsulta"
+          description: NO_ENCONTRADO o ERROR; los datos se ingresan a mano y la ficha
+            queda MANUAL (RN45)
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+        "422":
+          content:
+            application/problem+json:
+              example:
+                detail: El número no cumple su TIPO_DOCUMENTO o ese tipo no se consulta
+                regla: RN45
+                status: 422
+                title: Unprocessable Content
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: El número no cumple su TIPO_DOCUMENTO o ese tipo no se consulta
+      security:
+      - sesion: []
+      summary: Consultar un DNI o RUC en APISPERU
+      tags:
+      - controlador-cliente
+      x-cus: CUS02
+  /api/v1/comprobantes/publico/{idComprobante}:
+    get:
+      operationId: obtenerPublico
+      parameters:
+      - in: path
+        name: idComprobante
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: query
+        name: expira
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: query
+        name: firma
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: byte
+              example: null
+          description: PDF del comprobante
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: El enlace no es válido o ya venció
+                regla: RF102
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: El enlace no es válido o ya venció
+      security: []
+      summary: "Abrir el comprobante desde el enlace firmado (no está en el draw.io,\
+        \ DF-53)"
+      tags:
+      - controlador-comprobante
+      x-cus: CUS20
+  /api/v1/comprobantes/{idComprobante}/enlace:
+    get:
+      operationId: obtenerEnlace
+      parameters:
+      - in: path
+        name: idComprobante
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: query
+        name: canal
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: correo
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                canal: CORREO
+                correo: clienta@ejemplo.com
+                enlace: https://backoffice.example/api/v1/comprobantes/publico/7120?expira=1793000000&firma=ab12
+              schema:
+                $ref: "#/components/schemas/EnlaceComprobanteDTO"
+          description: Enlace para compartir por correo o WhatsApp
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+        "404":
+          content:
+            application/problem+json:
+              example:
+                detail: El comprobante no existe
+                regla: RF102
+                status: 404
+                title: Not Found
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: El comprobante no existe
+        "503":
+          content:
+            application/problem+json:
+              example:
+                detail: Falta configurar la clave de los enlaces
+                regla: RF102
+                status: 503
+                title: Service Unavailable
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Falta configurar la clave de los enlaces
+      security:
+      - sesion: []
+      summary: "Enlace público firmado, con vencimiento"
+      tags:
+      - controlador-comprobante
+      x-cus: CUS20
+  /api/v1/comprobantes/{idComprobante}/representacion:
+    get:
+      operationId: obtenerRepresentacion
+      parameters:
+      - in: path
+        name: idComprobante
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: byte
+              example: null
+          description: PDF del comprobante
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+        "404":
+          content:
+            application/problem+json:
+              example:
+                detail: El comprobante no existe
+                regla: RF102
+                status: 404
+                title: Not Found
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: El comprobante no existe
+      security:
+      - sesion: []
+      summary: Representación impresa en PDF con QR y hash
+      tags:
+      - controlador-comprobante
+      x-cus: CUS20
+  /api/v1/pagos/notificaciones:
+    post:
+      operationId: recibir
+      parameters:
+      - in: header
+        name: X-Firma-Hmac
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            example: kr-answer=%7B%22orderCycle%22%3A%22CLOSED%22%2C%22orderStatus%22%3A%22PAID%22%2C%22orderDetails%22%3A%7B%22orderId%22%3A%22CS-1%22%7D%7D&kr-hash=ab12&kr-hash-algorithm=sha256_hmac
+            schema:
+              type: string
+        required: true
+      responses:
+        "200":
+          description: Procesada; si ya estaba registrada
+        "400":
+          content:
+            application/problem+json:
+              example:
+                detail: El cuerpo no se puede leer
+                regla: RN42
+                status: 400
+                title: Bad Request
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: El cuerpo no se puede leer
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: La firma HMAC no es válida
+                regla: RN42
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: La firma HMAC no es válida
+        "404":
+          content:
+            application/problem+json:
+              example:
+                detail: No hay una transacción con ese código de operación
+                regla: RN42
+                status: 404
+                title: Not Found
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No hay una transacción con ese código de operación
+      security: []
+      summary: Webhook de Izipay
+      tags:
+      - controlador-notificacion-pasarela
+      x-cus: CUS07
+  /api/v1/proformas:
+    post:
+      operationId: armarProforma
+      requestBody:
+        content:
+          application/json:
+            example:
+              fechaValidez: 2026-11-30
+              items:
+              - cantidad: 2
+                idVariante: 2
+                tipoItem: SERVICIO
+              nombreCliente: Novia
+            schema:
+              $ref: "#/components/schemas/ProformaDTO"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                fechaValidez: 2026-11-30
+                items:
+                - cantidad: 2
+                  idVariante: 2
+                  precioUnitario: 35.0
+                  subtotal: 70.0
+                  tipoItem: SERVICIO
+                nombreCliente: Novia
+                total: 70.0
+              schema:
+                $ref: "#/components/schemas/ProformaDTO"
+          description: Cotización sin valor tributario (RN09)
+        "400":
+          content:
+            application/problem+json:
+              example:
+                detail: No trae ítems
+                regla: VALIDACION
+                status: 400
+                title: Bad Request
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No trae ítems
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+        "404":
+          content:
+            application/problem+json:
+              example:
+                detail: La variante no existe
+                regla: RN40
+                status: 404
+                title: Not Found
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: La variante no existe
+      security:
+      - csrf: []
+        sesion: []
+      summary: Armar una proforma (no se guarda)
+      tags:
+      - controlador-venta
+      x-cus: CUS21
+  /api/v1/recursos:
+    post:
+      operationId: registrarRecurso
+      requestBody:
+        content:
+          application/json:
+            example:
+              idSede: 1
+              minutosLimpieza: 15
+              nombre: Sillón 11
+              tipo: SILLON
+            schema:
+              $ref: "#/components/schemas/RecursoDTO"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              example:
+                estado: DISPONIBLE
+                idRecurso: 21
+                idSede: 1
+                minutosLimpieza: 15
+                nombre: Sillón 11
+                tipo: SILLON
+              schema:
+                $ref: "#/components/schemas/RecursoDTO"
+          description: Recurso creado
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+        "422":
+          content:
+            application/problem+json:
+              example:
+                detail: El tiempo de limpieza va de 0 a LIMPIEZA_MAX_MIN minutos
+                regla: RN03
+                status: 422
+                title: Unprocessable Content
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: El tiempo de limpieza va de 0 a LIMPIEZA_MAX_MIN minutos
+      security:
+      - csrf: []
+        sesion: []
+      summary: Registrar un recurso con su limpieza
+      tags:
+      - controlador-recurso
+      x-cus: CUS61
+  /api/v1/roles:
+    get:
+      operationId: listarRoles
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+              - descripcion: "Clientas, agenda, cobros y caja."
+                estado: ACTIVO
+                idRol: 2
+                nombre: RECEPCIONISTA
+                permisos:
+                - accion: VER
+                  modulo: AGENDA
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RolDTO"
+          description: Roles
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+      security:
+      - sesion: []
+      summary: Listar los roles con sus permisos
+      tags:
+      - controlador-usuario
+      x-cus: CUS52
+  /api/v1/roles/{idRol}/permisos:
+    put:
+      operationId: configurarPermisos
+      parameters:
+      - in: path
+        name: idRol
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            example:
+              estado: ACTIVO
+              nombre: RECEPCIONISTA
+              permisos:
+              - accion: VER
+                modulo: AGENDA
+              - accion: CREAR
+                modulo: VENTAS
+            schema:
+              $ref: "#/components/schemas/RolDTO"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                descripcion: "Clientas, agenda, cobros y caja."
+                estado: ACTIVO
+                idRol: 2
+                nombre: RECEPCIONISTA
+                permisos:
+                - accion: VER
+                  modulo: AGENDA
+                - accion: CREAR
+                  modulo: VENTAS
+              schema:
+                $ref: "#/components/schemas/RolDTO"
+          description: Permisos reemplazados
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+        "404":
+          content:
+            application/problem+json:
+              example:
+                detail: El rol no existe
+                regla: RF53
+                status: 404
+                title: Not Found
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: El rol no existe
+      security:
+      - csrf: []
+        sesion: []
+      summary: Reemplazar los permisos de un rol (vale desde el siguiente ingreso)
+      tags:
+      - controlador-usuario
+      x-cus: CUS53
+  /api/v1/servicios:
+    post:
+      operationId: registrarServicio
+      requestBody:
+        content:
+          application/json:
+            example:
+              duracionRefMin: 60
+              idArea: 1
+              nombre: Corte de novia
+              tipoRecurso: SILLON
+              variantes:
+              - insumos:
+                - cantidadEstimada: 1.5
+                  idProducto: 4
+                nombreVariante: Estándar
+                precio: 80.0
+            schema:
+              $ref: "#/components/schemas/ServicioDTO"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              example:
+                duracionRefMin: 60
+                estado: ACTIVO
+                idArea: 1
+                idServicio: 21
+                nombre: Corte de novia
+                tipoRecurso: SILLON
+                variantes:
+                - idVariante: 30
+                  nombreVariante: Estándar
+                  precio: 80.0
+              schema:
+                $ref: "#/components/schemas/ServicioDTO"
+          description: Servicio creado
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+        "422":
+          content:
+            application/problem+json:
+              example:
+                detail: Cada variante tiene un precio fijo mayor o igual a 0
+                regla: RN40
+                status: 422
+                title: Unprocessable Content
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Cada variante tiene un precio fijo mayor o igual a 0
+      security:
+      - csrf: []
+        sesion: []
+      summary: Registrar un servicio con sus variantes e insumos
+      tags:
+      - controlador-catalogo
+      x-cus: CUS57
+  /api/v1/usuarios:
+    post:
+      operationId: registrar
+      requestBody:
+        content:
+          application/json:
+            example:
+              clave: ClaveTemporal2026
+              idPersonal: 3
+              idRol: 2
+              nombreUsuario: recepcion2
+            schema:
+              $ref: "#/components/schemas/UsuarioDTO"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              example:
+                debeCambiarClave: true
+                estado: ACTIVO
+                idPersonal: 3
+                idRol: 2
+                idUsuario: 5
+                nombreUsuario: recepcion2
+              schema:
+                $ref: "#/components/schemas/UsuarioDTO"
+          description: Usuario creado; debe cambiar su clave al entrar
+        "400":
+          content:
+            application/problem+json:
+              example:
+                detail: Datos incompletos
+                regla: VALIDACION
+                status: 400
+                title: Bad Request
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Datos incompletos
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+        "409":
+          content:
+            application/problem+json:
+              example:
+                detail: Ese nombre de usuario ya existe
+                regla: UQ_USUARIO_NOMBRE_USUARIO
+                status: 409
+                title: Conflict
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Ese nombre de usuario ya existe
+      security:
+      - csrf: []
+        sesion: []
+      summary: Registrar un usuario
+      tags:
+      - controlador-usuario
+      x-cus: CUS52
+  /api/v1/usuarios/{idUsuario}/rol:
+    patch:
+      operationId: asignarRol
+      parameters:
+      - in: path
+        name: idUsuario
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            example:
+              idRol: 3
+            schema:
+              $ref: "#/components/schemas/AsignarRolDTO"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                debeCambiarClave: false
+                estado: ACTIVO
+                idPersonal: 3
+                idRol: 3
+                idUsuario: 5
+                nombreUsuario: recepcion2
+              schema:
+                $ref: "#/components/schemas/UsuarioDTO"
+          description: Rol asignado
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+        "404":
+          content:
+            application/problem+json:
+              example:
+                detail: El usuario o el rol no existen
+                regla: RF53
+                status: 404
+                title: Not Found
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: El usuario o el rol no existen
+      security:
+      - csrf: []
+        sesion: []
+      summary: Asignar un rol
+      tags:
+      - controlador-usuario
+      x-cus: CUS53
+  /api/v1/ventas:
+    post:
+      operationId: crearDesdeAtencion
+      requestBody:
+        content:
+          application/json:
+            example:
+              idAtencion: 1532
+            schema:
+              $ref: "#/components/schemas/CrearVentaDTO"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              example:
+                adelantoAplicado: 0.0
+                cobrosPendientes: []
+                descuento: 0.0
+                detalles:
+                - cantidad: 1
+                  descuento: 0.0
+                  idAtencion: 1532
+                  idDetalle: 20311
+                  idPersonal: 9
+                  precioUnitario: 60.0
+                  subtotal: 60.0
+                  tipoItem: SERVICIO
+                estado: ABIERTA
+                idCaja: 214
+                idCliente: 407
+                idSede: 1
+                idVenta: 8812
+                igv: 0.0
+                pagado: 0
+                pagos: []
+                pendiente: 60.0
+                saldoFavorAplicado: 0.0
+                subtotal: 60.0
+                total: 60.0
+              schema:
+                $ref: "#/components/schemas/VentaDTO"
+          description: Venta ABIERTA en la caja abierta
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+        "404":
+          content:
+            application/problem+json:
+              example:
+                detail: La atención no existe
+                regla: RF13
+                status: 404
+                title: Not Found
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: La atención no existe
+        "409":
+          content:
+            application/problem+json:
+              example:
+                detail: La atención ya está COBRADA
+                regla: RF21
+                status: 409
+                title: Conflict
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: La atención ya está COBRADA
+        "422":
+          content:
+            application/problem+json:
+              example:
+                detail: No hay caja abierta o la atención no está FINALIZADA
+                regla: RN30
+                status: 422
+                title: Unprocessable Content
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No hay caja abierta o la atención no está FINALIZADA
+      security:
+      - csrf: []
+        sesion: []
+      summary: Crear la venta desde una atención
+      tags:
+      - controlador-venta
+      x-cus: CUS18
+  /api/v1/ventas/consulta-ruc/{ruc}:
+    get:
+      operationId: consultarRuc
+      parameters:
+      - in: path
+        name: ruc
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                fechaVerificacion: 2026-10-22T10:15:00
+                idTipoDocumento: 3
+                razonSocial: EMPRESA DEMO S.A.C.
+                resultado: ENCONTRADO
+              schema:
+                $ref: "#/components/schemas/ResultadoConsulta"
+          description: Encontrado
+        "202":
+          content:
+            application/json:
+              example:
+                idTipoDocumento: 3
+                resultado: ERROR
+              schema:
+                $ref: "#/components/schemas/ResultadoConsulta"
+          description: NO_ENCONTRADO o ERROR; el comprador se ingresa a mano (RN45)
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+        "422":
+          content:
+            application/problem+json:
+              example:
+                detail: El número no cumple el formato de RUC
+                regla: RN45
+                status: 422
+                title: Unprocessable Content
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: El número no cumple el formato de RUC
+      security:
+      - sesion: []
+      summary: Consultar el RUC del comprador
+      tags:
+      - controlador-venta
+      x-cus: CUS19
+  /api/v1/ventas/rapidas:
+    post:
+      operationId: registrarYCobrar
+      requestBody:
+        content:
+          application/json:
+            example:
+              idMedioPago: 1
+              idPersonal: 4
+              idRecurso: 1
+              idVariante: 2
+              monto: 35.0
+              nombreClientePaso: De paso
+              tiempoDeclaradoMin: 30
+              tipo: BOLETA
+            schema:
+              $ref: "#/components/schemas/VentaRapidaDTO"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              example:
+                comprobante:
+                  estadoSunat: PENDIENTE
+                  fechaEmision: 2026-10-22
+                  idComprobante: 7121
+                  numero: "00000420"
+                  serie: B001
+                  tipo: BOLETA
+                estado: CERRADA
+                idCaja: 214
+                idSede: 1
+                idVenta: 8813
+                pagado: 35.0
+                pendiente: 0.0
+                total: 35.0
+              schema:
+                $ref: "#/components/schemas/VentaDTO"
+          description: "Venta CERRADA; con Izipay real, un pago digital aún no se\
+            \ puede cerrar aquí (DF-51)"
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+        "409":
+          content:
+            application/problem+json:
+              example:
+                detail: La especialista o el recurso están ocupados
+                regla: RN34
+                status: 409
+                title: Conflict
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: La especialista o el recurso están ocupados
+        "422":
+          content:
+            application/problem+json:
+              example:
+                detail: El monto no coincide con el total; no queda atención huérfana
+                regla: RN11
+                status: 422
+                title: Unprocessable Content
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: El monto no coincide con el total; no queda atención huérfana
+      security:
+      - csrf: []
+        sesion: []
+      summary: "Atención sin cita, cobro y comprobante en una transacción"
+      tags:
+      - controlador-venta-rapida
+      x-cus: CUS13
+  /api/v1/ventas/rapidas/libres:
+    get:
+      operationId: libresAhora
+      parameters:
+      - in: query
+        name: idVariante
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+              - duracionMin: 30
+                idsPersonal:
+                - 4
+                idsRecurso:
+                - 1
+                - 2
+                inicio: 2026-10-22T10:15:00
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/HoraLibre"
+          description: Vacía si no hay especialista o recurso libres
+        "400":
+          content:
+            application/problem+json:
+              example:
+                detail: Falta la variante
+                regla: VALIDACION
+                status: 400
+                title: Bad Request
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Falta la variante
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+      security:
+      - sesion: []
+      summary: Especialistas y recursos libres ahora
+      tags:
+      - controlador-venta-rapida
+      x-cus: CUS13
+  /api/v1/ventas/{idVenta}/cierre:
+    post:
+      operationId: cerrar
+      parameters:
+      - in: path
+        name: idVenta
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            example:
+              idTipoDocComprador: 3
+              nombreComprador: EMPRESA DEMO S.A.C.
+              nroDocComprador: "20601234567"
+              tipo: FACTURA
+            schema:
+              $ref: "#/components/schemas/CierreVentaDTO"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                comprobante:
+                  codigoRespuesta: "0"
+                  estadoSunat: ACEPTADO
+                  fechaEmision: 2026-10-22
+                  idComprobante: 7120
+                  numero: "00000125"
+                  serie: F001
+                  tipo: FACTURA
+                estado: CERRADA
+                idVenta: 8812
+                total: 60.0
+              schema:
+                $ref: "#/components/schemas/VentaDTO"
+          description: Venta CERRADA con su estado SUNAT; si el proveedor no responde
+            queda PENDIENTE (RN46)
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+        "404":
+          content:
+            application/problem+json:
+              example:
+                detail: La venta no existe
+                regla: RF21
+                status: 404
+                title: Not Found
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: La venta no existe
+        "422":
+          content:
+            application/problem+json:
+              example:
+                detail: Los pagos no suman el total (RN11) o falta el comprador (RN08)
+                regla: RN11
+                status: 422
+                title: Unprocessable Content
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Los pagos no suman el total (RN11) o falta el comprador (RN08)
+      security:
+      - csrf: []
+        sesion: []
+      summary: Cerrar la venta y emitir el comprobante
+      tags:
+      - controlador-venta
+      x-cus: "CUS18, CUS19"
+  /api/v1/ventas/{idVenta}/descuentos:
+    patch:
+      operationId: aplicarDescuentos
+      parameters:
+      - in: path
+        name: idVenta
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            example:
+              idPromocion: 3
+              saldoFavorAplicado: 5.0
+            schema:
+              $ref: "#/components/schemas/DescuentosDTO"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                adelantoAplicado: 10.0
+                cobrosPendientes: []
+                descuento: 0.0
+                estado: ABIERTA
+                idCaja: 214
+                idCliente: 407
+                idSede: 1
+                idVenta: 8812
+                igv: 0.0
+                pagado: 0
+                pagos: []
+                pendiente: 45.0
+                saldoFavorAplicado: 5.0
+                subtotal: 60.0
+                total: 45.0
+              schema:
+                $ref: "#/components/schemas/VentaDTO"
+          description: Totales recalculados
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+        "404":
+          content:
+            application/problem+json:
+              example:
+                detail: La venta no existe
+                regla: RF21
+                status: 404
+                title: Not Found
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: La venta no existe
+        "422":
+          content:
+            application/problem+json:
+              example:
+                detail: La promoción no aplica (-20047) o el saldo no alcanza (-20064)
+                regla: ORA-20064
+                status: 422
+                title: Unprocessable Content
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: La promoción no aplica (-20047) o el saldo no alcanza (-20064)
+      security:
+      - csrf: []
+        sesion: []
+      summary: "Aplicar promoción, adelanto de la cita y saldo a favor"
+      tags:
+      - controlador-venta
+      x-cus: CUS18
+  /api/v1/ventas/{idVenta}/pagos:
+    post:
+      operationId: registrarPagos
+      parameters:
+      - in: path
+        name: idVenta
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            example:
+              pagos:
+              - canal: QR
+                idMedioPago: 2
+                monto: 40.0
+              - idMedioPago: 1
+                monto: 20.0
+            schema:
+              $ref: "#/components/schemas/PagosDTO"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                cobrosPendientes: []
+                estado: ABIERTA
+                idVenta: 8812
+                pagado: 60.0
+                pagos:
+                - idMedioPago: 2
+                  idPago: 9901
+                  idTransaccion: 5510
+                  monto: 40.0
+                  referencia: IZ-000184322
+                - idMedioPago: 1
+                  idPago: 9902
+                  monto: 20.0
+                pendiente: 0.0
+                total: 60.0
+              schema:
+                $ref: "#/components/schemas/VentaDTO"
+          description: Pagos registrados
+        "202":
+          content:
+            application/json:
+              example:
+                cobrosPendientes:
+                - enlacePago: https://enlace-de-izipay.example/abc
+                  idTransaccion: 5510
+                estado: ABIERTA
+                idVenta: 8812
+                pagado: 0
+                pagos: []
+                pendiente: 60.0
+                total: 60.0
+              schema:
+                $ref: "#/components/schemas/VentaDTO"
+          description: Un cobro quedó PENDIENTE en Izipay y no suma; con el webhook
+            aprobado se reenvía con idTransaccion (RN42)
+        "401":
+          content:
+            application/problem+json:
+              example:
+                detail: Inicie sesión para continuar.
+                regla: SIN_SESION
+                status: 401
+                title: Unauthorized
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: Inicie sesión para continuar.
+        "403":
+          content:
+            application/problem+json:
+              example:
+                detail: No tiene permiso para esta operación.
+                regla: ACCESO_DENEGADO
+                status: 403
+                title: Forbidden
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: No tiene permiso para esta operación.
+        "404":
+          content:
+            application/problem+json:
+              example:
+                detail: La venta no existe
+                regla: RF21
+                status: 404
+                title: Not Found
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: La venta no existe
+        "422":
+          content:
+            application/problem+json:
+              example:
+                detail: La pasarela rechazó el cobro o la transacción aún no está
+                  APROBADA
+                regla: RF103
+                status: 422
+                title: Unprocessable Content
+                type: about:blank
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+          description: La pasarela rechazó el cobro o la transacción aún no está APROBADA
+      security:
+      - csrf: []
+        sesion: []
+      summary: Registrar pagos
+      tags:
+      - controlador-venta
+      x-cus: CUS18
+components:
+  schemas:
+    AdelantoDTO:
+      type: object
+      properties:
+        adelantoMonto:
+          type: number
+          exclusiveMinimum: 0
+        idMedioPago:
+          type: integer
+          format: int64
+      required:
+      - adelantoMonto
+      - idMedioPago
+    AperturaCajaDTO:
+      type: object
+      properties:
+        montoInicial:
+          type: number
+          minimum: 0
+      required:
+      - montoInicial
+    AreaDTO:
+      type: object
+      properties:
+        idArea:
+          type: integer
+          format: int64
+        linea:
+          type: string
+          enum:
+          - SALON
+          - SPA
+        nombreArea:
+          type: string
+          maxLength: 60
+          minLength: 0
+      required:
+      - linea
+      - nombreArea
+    ArqueoCalculadoDTO:
+      type: object
+      properties:
+        diferencia:
+          type: number
+        idMedioPago:
+          type: integer
+          format: int64
+        montoContado:
+          type: number
+        montoEsperado:
+          type: number
+        observacion:
+          type: string
+    ArqueoDTO:
+      type: object
+      properties:
+        arqueos:
+          type: array
+          items:
+            $ref: "#/components/schemas/Medio"
+          minItems: 1
+        egresos:
+          type: array
+          items:
+            $ref: "#/components/schemas/Egreso"
+      required:
+      - arqueos
+    AsignarRolDTO:
+      type: object
+      properties:
+        idRol:
+          type: integer
+          format: int64
+      required:
+      - idRol
+    AtencionDTO:
+      type: object
+      properties:
+        estado:
+          type: string
+          enum:
+          - EN_CURSO
+          - FINALIZADA
+          - COBRADA
+        horaFin:
+          type: string
+          format: date-time
+        horaInicio:
+          type: string
+          format: date-time
+        idAtencion:
+          type: integer
+          format: int64
+        idCita:
+          type: integer
+          format: int64
+        idCliente:
+          type: integer
+          format: int64
+        idClientePaquete:
+          type: integer
+          format: int64
+        idPersonal:
+          type: integer
+          format: int64
+        idRecurso:
+          type: integer
+          format: int64
+        idVariante:
+          type: integer
+          format: int64
+        observaciones:
+          type: string
+        tiempoDeclaradoMin:
+          type: integer
+          format: int32
+    BloqueAgendaDTO:
+      type: object
+      properties:
+        estado:
+          type: string
+        fin:
+          type: string
+          format: date-time
+        franja:
+          type: string
+        idOrigen:
+          type: integer
+          format: int64
+        idPersonal:
+          type: integer
+          format: int64
+        idRecurso:
+          type: integer
+          format: int64
+        idVariante:
+          type: integer
+          format: int64
+        inicio:
+          type: string
+          format: date-time
+        origen:
+          type: string
+    CajaDTO:
+      type: object
+      properties:
+        arqueos:
+          type: array
+          items:
+            $ref: "#/components/schemas/ArqueoCalculadoDTO"
+        estado:
+          type: string
+          enum:
+          - ABIERTA
+          - CERRADA
+        fechaApertura:
+          type: string
+          format: date-time
+        fechaCierre:
+          type: string
+          format: date-time
+        idCaja:
+          type: integer
+          format: int64
+        idSede:
+          type: integer
+          format: int64
+        idUsuarioApertura:
+          type: integer
+          format: int64
+        idUsuarioCierre:
+          type: integer
+          format: int64
+        montoInicial:
+          type: number
+    CambioClaveDTO:
+      type: object
+      properties:
+        claveActual:
+          type: string
+          minLength: 1
+        claveNueva:
+          type: string
+          maxLength: 72
+          minLength: 8
+      required:
+      - claveActual
+      - claveNueva
+    CierreVentaDTO:
+      type: object
+      properties:
+        idTipoDocComprador:
+          type: integer
+          format: int64
+        nombreComprador:
+          type: string
+          maxLength: 150
+          minLength: 0
+        nroDocComprador:
+          type: string
+          maxLength: 15
+          minLength: 0
+        tipo:
+          type: string
+          enum:
+          - BOLETA
+          - FACTURA
+          - NC_BOLETA
+          - NC_FACTURA
+      required:
+      - tipo
+    CitaDTO:
+      type: object
+      properties:
+        adelantoMonto:
+          type: number
+        duracionMin:
+          type: integer
+          format: int32
+          exclusiveMinimum: 0
+        estado:
+          type: string
+          enum:
+          - PENDIENTE
+          - EN_ATENCION
+          - FINALIZADA
+          - CANCELADA
+          - REPROGRAMADA
+        fechaAdelanto:
+          type: string
+          format: date-time
+        fechaHoraFin:
+          type: string
+          format: date-time
+        fechaHoraInicio:
+          type: string
+          format: date-time
+        idCaja:
+          type: integer
+          format: int64
+        idCita:
+          type: integer
+          format: int64
+        idCliente:
+          type: integer
+          format: int64
+        idMedioPago:
+          type: integer
+          format: int64
+        idPersonal:
+          type: integer
+          format: int64
+        idRecurso:
+          type: integer
+          format: int64
+        idSede:
+          type: integer
+          format: int64
+        idUsuario:
+          type: integer
+          format: int64
+        idVariante:
+          type: integer
+          format: int64
+      required:
+      - duracionMin
+      - fechaHoraInicio
+      - idCliente
+      - idPersonal
+      - idRecurso
+      - idVariante
+    ClienteDTO:
+      type: object
+      properties:
+        aceptaComunicaciones:
+          type: boolean
+        apellidos:
+          type: string
+          maxLength: 80
+          minLength: 0
+        correo:
+          type: string
+          format: email
+          maxLength: 100
+          minLength: 0
+        estado:
+          type: string
+          enum:
+          - ACTIVO
+          - INACTIVO
+        fechaConsentimiento:
+          type: string
+          format: date-time
+        fechaCumpleanos:
+          type: string
+          format: date
+        fechaVerificacion:
+          type: string
+          format: date-time
+        idCliente:
+          type: integer
+          format: int64
+        idTipoDocumento:
+          type: integer
+          format: int64
+        nombres:
+          type: string
+          maxLength: 80
+          minLength: 0
+        numeroDocumento:
+          type: string
+          maxLength: 15
+          minLength: 0
+        observaciones:
+          type: string
+          maxLength: 300
+          minLength: 0
+        origenDatos:
+          type: string
+        telefono:
+          type: string
+          maxLength: 15
+          minLength: 0
+      required:
+      - aceptaComunicaciones
+      - nombres
+      - telefono
+    CobroPendienteDTO:
+      type: object
+      properties:
+        enlacePago:
+          type: string
+        idTransaccion:
+          type: integer
+          format: int64
+    ComprobanteDTO:
+      type: object
+      properties:
+        codigoRespuesta:
+          type: string
+        estadoSunat:
+          type: string
+          enum:
+          - PENDIENTE
+          - ENVIADO
+          - ACEPTADO
+          - OBSERVADO
+          - RECHAZADO
+        fechaEmision:
+          type: string
+          format: date
+        idComprobante:
+          type: integer
+          format: int64
+        numero:
+          type: string
+        serie:
+          type: string
+        tipo:
+          type: string
+          enum:
+          - BOLETA
+          - FACTURA
+          - NC_BOLETA
+          - NC_FACTURA
+    ComprobantePendiente:
+      type: object
+      properties:
+        estadoSunat:
+          type: string
+        fechaLimite:
+          type: string
+          format: date
+        idComprobante:
+          type: integer
+          format: int64
+        numero:
+          type: string
+        serie:
+          type: string
+        tipo:
+          type: string
+    CrearVentaDTO:
+      type: object
+      properties:
+        idAtencion:
+          type: integer
+          format: int64
+      required:
+      - idAtencion
+    CredencialesDTO:
+      type: object
+      properties:
+        clave:
+          type: string
+          minLength: 1
+        nombreUsuario:
+          type: string
+          minLength: 1
+      required:
+      - clave
+      - nombreUsuario
+    DescuentosDTO:
+      type: object
+      properties:
+        idPromocion:
+          type: integer
+          format: int64
+        saldoFavorAplicado:
+          type: number
+          minimum: 0
+    DetalleAtencionDTO:
+      type: object
+      properties:
+        observaciones:
+          type: string
+          maxLength: 300
+          minLength: 0
+    DetalleVentaDTO:
+      type: object
+      properties:
+        cantidad:
+          type: integer
+          format: int32
+        descuento:
+          type: number
+        idAtencion:
+          type: integer
+          format: int64
+        idDetalle:
+          type: integer
+          format: int64
+        idPersonal:
+          type: integer
+          format: int64
+        idPromocion:
+          type: integer
+          format: int64
+        precioUnitario:
+          type: number
+        subtotal:
+          type: number
+        tipoItem:
+          type: string
+          enum:
+          - SERVICIO
+          - PRODUCTO
+          - PAQUETE
+    Egreso:
+      type: object
+      properties:
+        concepto:
+          type: string
+          maxLength: 120
+          minLength: 0
+        monto:
+          type: number
+          exclusiveMinimum: 0
+      required:
+      - concepto
+      - monto
+    EnlaceComprobanteDTO:
+      type: object
+      properties:
+        canal:
+          type: string
+        correo:
+          type: string
+        enlace:
+          type: string
+    EnlacePagoDTO:
+      type: object
+      properties:
+        canal:
+          type: string
+        enlacePago:
+          type: string
+        estado:
+          type: string
+        fechaExpiracion:
+          type: string
+          format: date-time
+        idTransaccion:
+          type: integer
+          format: int64
+    EsperadoDTO:
+      type: object
+      properties:
+        comprobantesPendientes:
+          type: array
+          items:
+            $ref: "#/components/schemas/ComprobantePendiente"
+        estado:
+          type: string
+          enum:
+          - ABIERTA
+          - CERRADA
+        idCaja:
+          type: integer
+          format: int64
+        medios:
+          type: array
+          items:
+            $ref: "#/components/schemas/EsperadoMedioDTO"
+        montoInicial:
+          type: number
+    EsperadoMedioDTO:
+      type: object
+      properties:
+        aprobadoPasarela:
+          type: number
+        esperado:
+          type: number
+        idMedioPago:
+          type: integer
+          format: int64
+        medioPago:
+          type: string
+    HoraLibre:
+      type: object
+      properties:
+        duracionMin:
+          type: integer
+          format: int32
+        idsPersonal:
+          type: array
+          items:
+            type: integer
+            format: int64
+        idsRecurso:
+          type: array
+          items:
+            type: integer
+            format: int64
+        inicio:
+          type: string
+          format: date-time
+    InicioAtencionDTO:
+      type: object
+      properties:
+        idCita:
+          type: integer
+          format: int64
+        tiempoDeclaradoMin:
+          type: integer
+          format: int32
+          exclusiveMinimum: 0
+      required:
+      - idCita
+      - tiempoDeclaradoMin
+    InsumoDTO:
+      type: object
+      properties:
+        cantidadEstimada:
+          type: number
+        idProducto:
+          type: integer
+          format: int64
+      required:
+      - cantidadEstimada
+      - idProducto
+    Item:
+      type: object
+      properties:
+        cantidad:
+          type: integer
+          format: int32
+          exclusiveMinimum: 0
+        idPaquete:
+          type: integer
+          format: int64
+        idPromocion:
+          type: integer
+          format: int64
+        idVariante:
+          type: integer
+          format: int64
+        precioUnitario:
+          type: number
+        subtotal:
+          type: number
+        tipoItem:
+          type: string
+          enum:
+          - SERVICIO
+          - PRODUCTO
+          - PAQUETE
+      required:
+      - cantidad
+      - tipoItem
+    ListaEsperaDTO:
+      type: object
+      properties:
+        estado:
+          type: string
+          enum:
+          - PENDIENTE
+          - ASIGNADA
+          - DESCARTADA
+        fechaDeseada:
+          type: string
+          format: date
+        horaDesde:
+          type: string
+          pattern: "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+        horaHasta:
+          type: string
+          pattern: "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+        horasLibres:
+          type: array
+          items:
+            $ref: "#/components/schemas/HoraLibre"
+        idCita:
+          type: integer
+          format: int64
+        idCliente:
+          type: integer
+          format: int64
+        idEspera:
+          type: integer
+          format: int64
+        idSede:
+          type: integer
+          format: int64
+        idUsuario:
+          type: integer
+          format: int64
+        idVariante:
+          type: integer
+          format: int64
+      required:
+      - fechaDeseada
+      - idCliente
+      - idVariante
+    Medio:
+      type: object
+      properties:
+        idMedioPago:
+          type: integer
+          format: int64
+        montoContado:
+          type: number
+          minimum: 0
+        observacion:
+          type: string
+          maxLength: 300
+          minLength: 0
+      required:
+      - idMedioPago
+      - montoContado
+    Pago:
+      type: object
+      properties:
+        canal:
+          type: string
+          pattern: POS|QR|LINK|API
+        idMedioPago:
+          type: integer
+          format: int64
+        idTransaccion:
+          type: integer
+          format: int64
+        monto:
+          type: number
+          exclusiveMinimum: 0
+      required:
+      - idMedioPago
+      - monto
+    PagoVentaDTO:
+      type: object
+      properties:
+        idMedioPago:
+          type: integer
+          format: int64
+        idPago:
+          type: integer
+          format: int64
+        idTransaccion:
+          type: integer
+          format: int64
+        monto:
+          type: number
+        referencia:
+          type: string
+    PagosDTO:
+      type: object
+      properties:
+        pagos:
+          type: array
+          items:
+            $ref: "#/components/schemas/Pago"
+          minItems: 1
+      required:
+      - pagos
+    PermisoDTO:
+      type: object
+      properties:
+        accion:
+          type: string
+          maxLength: 30
+          minLength: 0
+        modulo:
+          type: string
+          maxLength: 40
+          minLength: 0
+      required:
+      - accion
+      - modulo
+    ProblemDetail:
+      properties:
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri
+        properties:
+          type: object
+          additionalProperties:
+            type: object
+        status:
+          type: integer
+          format: int32
+        title:
+          type: string
+        type:
+          type: string
+          format: uri
+    ProformaDTO:
+      type: object
+      properties:
+        fechaValidez:
+          type: string
+          format: date
+        idCliente:
+          type: integer
+          format: int64
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Item"
+          minItems: 1
+        nombreCliente:
+          type: string
+        total:
+          type: number
+      required:
+      - items
+    RecursoDTO:
+      type: object
+      properties:
+        estado:
+          type: string
+          enum:
+          - DISPONIBLE
+          - MANTENIMIENTO
+          - INACTIVO
+        idRecurso:
+          type: integer
+          format: int64
+        idSede:
+          type: integer
+          format: int64
+        minutosLimpieza:
+          type: integer
+          format: int32
+        nombre:
+          type: string
+          maxLength: 60
+          minLength: 0
+        tipo:
+          type: string
+          enum:
+          - SILLON
+          - ESTACION
+          - CAMILLA
+          - CABINA
+          - MESA_MANICURA
+          - LAVACABEZAS
+          - HIDROTERAPIA
+      required:
+      - idSede
+      - minutosLimpieza
+      - nombre
+      - tipo
+    ResultadoConsulta:
+      type: object
+      properties:
+        apellidos:
+          type: string
+        fechaVerificacion:
+          type: string
+          format: date-time
+        idTipoDocumento:
+          type: integer
+          format: int64
+        nombres:
+          type: string
+        razonSocial:
+          type: string
+        resultado:
+          type: string
+    RolDTO:
+      type: object
+      properties:
+        descripcion:
+          type: string
+          maxLength: 150
+          minLength: 0
+        estado:
+          type: string
+          enum:
+          - ACTIVO
+          - INACTIVO
+        idRol:
+          type: integer
+          format: int64
+        nombre:
+          type: string
+        permisos:
+          type: array
+          items:
+            $ref: "#/components/schemas/PermisoDTO"
+      required:
+      - estado
+      - permisos
+    ServicioDTO:
+      type: object
+      properties:
+        duracionRefMin:
+          type: integer
+          format: int32
+        estado:
+          type: string
+          enum:
+          - ACTIVO
+          - INACTIVO
+        idArea:
+          type: integer
+          format: int64
+        idServicio:
+          type: integer
+          format: int64
+        nombre:
+          type: string
+          maxLength: 80
+          minLength: 0
+        tipoRecurso:
+          type: string
+          enum:
+          - SILLON
+          - ESTACION
+          - CAMILLA
+          - CABINA
+          - MESA_MANICURA
+          - LAVACABEZAS
+          - HIDROTERAPIA
+        variantes:
+          type: array
+          items:
+            $ref: "#/components/schemas/VarianteDTO"
+          minItems: 1
+      required:
+      - duracionRefMin
+      - idArea
+      - nombre
+      - tipoRecurso
+      - variantes
+    SesionDTO:
+      type: object
+      properties:
+        debeCambiarClave:
+          type: boolean
+        idSede:
+          type: integer
+          format: int64
+        idUsuario:
+          type: integer
+          format: int64
+        nombreUsuario:
+          type: string
+        permisos:
+          type: array
+          items:
+            type: string
+    UsuarioDTO:
+      type: object
+      properties:
+        clave:
+          type: string
+          maxLength: 72
+          minLength: 8
+          writeOnly: true
+        debeCambiarClave:
+          type: boolean
+        estado:
+          type: string
+          enum:
+          - ACTIVO
+          - INACTIVO
+          - BLOQUEADO
+        idPersonal:
+          type: integer
+          format: int64
+        idRol:
+          type: integer
+          format: int64
+        idUsuario:
+          type: integer
+          format: int64
+        nombreUsuario:
+          type: string
+          maxLength: 50
+          minLength: 0
+      required:
+      - clave
+      - idPersonal
+      - idRol
+      - nombreUsuario
+    VarianteDTO:
+      type: object
+      properties:
+        idVariante:
+          type: integer
+          format: int64
+        insumos:
+          type: array
+          items:
+            $ref: "#/components/schemas/InsumoDTO"
+        nombreVariante:
+          type: string
+          maxLength: 60
+          minLength: 0
+        precio:
+          type: number
+      required:
+      - nombreVariante
+      - precio
+    VentaDTO:
+      type: object
+      properties:
+        adelantoAplicado:
+          type: number
+        cobrosPendientes:
+          type: array
+          items:
+            $ref: "#/components/schemas/CobroPendienteDTO"
+        comprobante:
+          $ref: "#/components/schemas/ComprobanteDTO"
+        descuento:
+          type: number
+        detalles:
+          type: array
+          items:
+            $ref: "#/components/schemas/DetalleVentaDTO"
+        estado:
+          type: string
+          enum:
+          - ABIERTA
+          - CERRADA
+          - ANULADA
+        idCaja:
+          type: integer
+          format: int64
+        idCliente:
+          type: integer
+          format: int64
+        idSede:
+          type: integer
+          format: int64
+        idVenta:
+          type: integer
+          format: int64
+        igv:
+          type: number
+        pagado:
+          type: number
+        pagos:
+          type: array
+          items:
+            $ref: "#/components/schemas/PagoVentaDTO"
+        pendiente:
+          type: number
+        saldoFavorAplicado:
+          type: number
+        subtotal:
+          type: number
+        total:
+          type: number
+    VentaRapidaDTO:
+      type: object
+      properties:
+        canal:
+          type: string
+          pattern: POS|QR|LINK|API
+        idCliente:
+          type: integer
+          format: int64
+        idMedioPago:
+          type: integer
+          format: int64
+        idPersonal:
+          type: integer
+          format: int64
+        idRecurso:
+          type: integer
+          format: int64
+        idTipoDocComprador:
+          type: integer
+          format: int64
+        idVariante:
+          type: integer
+          format: int64
+        monto:
+          type: number
+          exclusiveMinimum: 0
+        nombreClientePaso:
+          type: string
+          maxLength: 80
+          minLength: 0
+        nombreComprador:
+          type: string
+          maxLength: 150
+          minLength: 0
+        nroDocComprador:
+          type: string
+          maxLength: 15
+          minLength: 0
+        tiempoDeclaradoMin:
+          type: integer
+          format: int32
+          exclusiveMinimum: 0
+        tipo:
+          type: string
+          enum:
+          - BOLETA
+          - FACTURA
+          - NC_BOLETA
+          - NC_FACTURA
+      required:
+      - idMedioPago
+      - idPersonal
+      - idRecurso
+      - idVariante
+      - monto
+      - tiempoDeclaradoMin
+      - tipo
+  securitySchemes:
+    csrf:
+      in: header
+      name: X-XSRF-TOKEN
+      type: apiKey
+    sesion:
+      in: cookie
+      name: JSESSIONID
+      type: apiKey

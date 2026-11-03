@@ -1,0 +1,232 @@
+.app {
+  display: grid;
+  grid-template-columns: var(--ancho-menu) minmax(0, 1fr);
+  min-height: 100vh;
+}
+.side {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: auto;
+  background: var(--sup);
+  border-right: 1px solid var(--line);
+  padding: var(--e-18) var(--e-12);
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-2);
+}
+.brand {
+  padding: var(--e-4) var(--e-8) var(--e-10);
+}
+.nv {
+  display: flex;
+  align-items: center;
+  gap: var(--e-12);
+  min-height: var(--alto-control);
+  padding: 0 var(--e-12);
+  border-radius: var(--r-10);
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: 500 var(--texto) var(--fuente);
+  cursor: pointer;
+  text-align: left;
+  text-decoration: none;
+  width: 100%;
+}
+.nv:hover {
+  background: var(--relleno-hover);
+  color: var(--ink);
+}
+.nv.on,
+.nv.on:hover {
+  background: var(--pri);
+  color: var(--sup);
+}
+.grp {
+  font: 600 10.5px var(--fuente);
+  color: var(--mut);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding: var(--e-16) var(--e-12) var(--e-6);
+}
+.main {
+  padding: var(--e-22) var(--e-32) var(--e-48);
+  min-width: 0;
+}
+.top {
+  display: flex;
+  align-items: center;
+  gap: var(--e-10);
+  margin-bottom: var(--e-22);
+  flex-wrap: wrap;
+  position: relative;
+}
+.usuario {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  gap: var(--e-10);
+  padding: 0;
+  min-height: var(--alto-control);
+  text-align: left;
+  line-height: 1.2;
+  color: inherit;
+}
+.bnav {
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--sup);
+  border-top: 1px solid var(--line);
+  z-index: 40;
+  padding: var(--e-4) var(--e-4) calc(var(--e-4) + env(safe-area-inset-bottom));
+  justify-content: space-around;
+}
+.bn {
+  flex: 1;
+  min-height: 56px;
+  border: 0;
+  background: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-2);
+  font: 600 10.5px var(--fuente);
+  color: var(--mut);
+  cursor: pointer;
+  border-radius: var(--r-10);
+  min-width: 0;
+  text-decoration: none;
+}
+.bn.on {
+  color: var(--salon-d);
+}
+.mbrand {
+  display: none;
+}
+.menu {
+  background: var(--sup);
+  border: 1px solid var(--line);
+  border-radius: var(--r-14);
+  box-shadow: var(--sombra-menu);
+  width: 280px;
+  padding: var(--e-10);
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-2);
+}
+.mi {
+  display: flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 var(--e-12);
+  border-radius: var(--r-8);
+  border: 0;
+  background: none;
+  font: 500 var(--texto) var(--fuente);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  color: var(--ink);
+}
+.mi:hover {
+  background: var(--relleno-hover);
+}
+.mi.bad {
+  color: var(--bad);
+}
+.login {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  min-height: 100vh;
+}
+.login .hero {
+  background: var(--hero);
+  padding: var(--e-48);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.login .forma {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--e-28);
+}
+.login .forma > * {
+  width: 100%;
+  max-width: 400px;
+}
+.login .marca-login {
+  font-size: var(--texto-marca);
+}
+.login .lema {
+  font-size: var(--texto-hero);
+}
+.login .foto {
+  height: 340px;
+  background: rgba(255, 255, 255, 0.45);
+  border-radius: var(--r-22);
+}
+@media (max-width: 1099px) {
+  .app {
+    grid-template-columns: var(--ancho-menu-iconos) minmax(0, 1fr);
+  }
+  .side {
+    padding: var(--e-14) var(--e-10);
+    align-items: center;
+  }
+  .nvl,
+  .grp,
+  .brandt {
+    display: none;
+  }
+  .nv {
+    justify-content: center;
+    width: 52px;
+    padding: 0;
+  }
+  .main {
+    padding: var(--e-20) var(--e-22) var(--e-48);
+  }
+}
+@media (max-width: 699px) {
+  .app {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .side {
+    display: none;
+  }
+  .bnav {
+    display: flex;
+  }
+  .main {
+    padding: var(--e-14) var(--e-14) 100px;
+  }
+  .mbrand {
+    display: flex;
+  }
+  .menu {
+    width: calc(100vw - 24px);
+  }
+  .login {
+    grid-template-columns: 1fr;
+  }
+}
+/* En el diálogo «Más» sí se ven las etiquetas y los grupos del menú. */
+.modal .nv {
+  justify-content: flex-start;
+  width: 100%;
+  padding: 0 var(--e-12);
+}
+.modal .nvl {
+  display: inline;
+}
+.modal .grp {
+  display: block;
+  padding-left: 0;
+}

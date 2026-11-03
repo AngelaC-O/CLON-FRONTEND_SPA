@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div class="col" style="gap:16px;max-width:1100px">
+<div class="row"><div class="sp"><h1 class="h1">{{ title }}</h1><div class="mut">{{ sub }}</div></div>
+<sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}"><select class="inp" style="width:auto;min-width:220px" value="{{ eid }}" onChange="{{ setEid }}"><sc-for list="{{ espOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.v }}">{{ o.t }}</option></sc-for></select></sc-if></div>
+<sc-if value="{{ isAgenda }}" hint-placeholder-val="{{ true }}">
+<div class="col"><sc-for list="{{ mine }}" as="c" hint-placeholder-count="3"><div class="card" style="{{ c.st }}"><div class="row nw" style="align-items:flex-start"><div style="width:62px;flex:none"><div class="kpi num" style="font-size:26px">{{ c.ini }}</div><div class="xs mut">{{ c.dur }} min</div></div>
+<div class="sp"><div class="b" style="font-size:16px">{{ c.cli }}</div><div class="mut">{{ c.srv }} · {{ c.v }}</div><div class="row xs" style="gap:6px;margin-top:6px"><span class="chip {{ c.l }}">{{ c.lname }}</span><span class="chip">{{ c.rec }}</span><span class="chip {{ c.chip }}">{{ c.estTxt }}</span></div></div></div>
+<sc-if value="{{ c.canStart }}"><button class="btn lg blk" style="margin-top:12px" onClick="{{ c.start }}">Iniciar atención</button></sc-if>
+<sc-if value="{{ c.isAt }}"><button class="btn lg blk salon" style="margin-top:12px" onClick="{{ c.cont }}">Continuar atención</button></sc-if></div></sc-for>
+<sc-if value="{{ noMine }}"><div class="card mut" style="text-align:center">No tienes citas hoy.</div></sc-if></div>
+</sc-if>
+<sc-if value="{{ isCurso }}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{ noCur }}" hint-placeholder-val="{{ false }}"><div class="card" style="text-align:center;padding:40px"><div class="h2">No hay atención en curso</div><p class="mut">Inicia una desde «Mi agenda».</p><button class="btn" onClick="{{ goAgenda }}">Ir a Mi agenda</button></div></sc-if>
+<sc-if value="{{ hasCur }}" hint-placeholder-val="{{ false }}">
+<div class="gs"><div class="col" style="gap:16px">
+<div class="card" style="text-align:center;background:var(--pri);color:#fff;border:0"><div class="xs b" style="letter-spacing:.1em;opacity:.8">EN ATENCIÓN · INICIO {{ cur.inicioReal }}</div><div class="num" style="font:400 68px/1.1 'Instrument Serif',serif">{{ clock }}</div><div style="opacity:.85">{{ cur.cli }}</div></div>
+<div class="card col"><div class="gf1" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+<div class="fld"><label class="lbl">SERVICIO</label><select class="inp" value="{{ f.sid }}" onChange="{{ setSid }}"><sc-for list="{{ srvOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.t }}</option></sc-for></select></div>
+<div class="fld"><label class="lbl">VARIANTE · PRECIO FIJO</label><select class="inp" value="{{ f.vi }}" onChange="{{ setVi }}"><sc-for list="{{ varOpts }}" as="o" hint-placeholder-count="2"><option value="{{ o.v }}">{{ o.t }}</option></sc-for></select></div>
+<div class="fld"><label class="lbl">TIEMPO EXACTO (MIN)</label><input class="inp" type="number" min="10" step="5" value="{{ f.dur }}" onInput="{{ setDur }}"></div></div>
+<sc-if value="{{ varChanged }}" hint-placeholder-val="{{ false }}"><div class="alert info"><span>Cambió la variante: el precio fijo de la nueva variante es <b>S/ {{ f.price }}</b>.</span></div></sc-if>
+<sc-if value="{{ cruce }}" hint-placeholder-val="{{ false }}"><div class="alert bad"><span class="sp">El tiempo declarado cruza con la cita de las <b>{{ cruceHora }}</b>. El sistema no lo permite: ajusta el tiempo o pide a recepción que reprograme esa cita primero (RN41).</span><button class="btn sm sec" onClick="{{ avisar }}">Avisar a recepción</button></div></sc-if>
+<div class="fld"><label class="lbl">OBSERVACIONES</label><textarea class="inp" value="{{ f.obs }}" onInput="{{ setObs }}" placeholder="Producto usado, preferencias, indicaciones…"></textarea></div></div>
+<div class="card col"><div class="h3">Paquete o membresía</div>
+<sc-if value="{{ hasPaq }}" hint-placeholder-val="{{ false }}"><div class="row"><span class="sp">{{ paqName }}</span><span class="chip spa">{{ paqLeft }} sesiones disponibles</span></div><div class="xs mut">Se descontará 1 sesión al finalizar la atención.</div></sc-if>
+<sc-if value="{{ noPaq }}" hint-placeholder-val="{{ false }}"><div class="alert info">La clienta no tiene sesiones disponibles para este servicio: la atención se cobra como servicio individual.</div></sc-if></div>
+<div class="card col"><div class="row"><div class="h3 sp">Recomendar producto</div><span class="chip">CUS12</span></div><div class="xs mut">La recomendación llega a recepción; si la clienta compra, la venta queda ligada a ti (no genera comisión).</div>
+<div class="gf1" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))"><div class="fld"><label class="lbl">PRODUCTO DE VENTA</label><select class="inp" value="{{ rp }}" onChange="{{ setRp }}"><sc-for list="{{ prodOpts }}" as="o" hint-placeholder-count="4"><option value="{{ o.v }}">{{ o.t }}</option></sc-for></select></div><div class="fld"><label class="lbl">INDICACIÓN</label><input class="inp" value="{{ ro }}" onInput="{{ setRo }}" placeholder="Ej. usar 2 veces por semana"></div></div>
+<div class="row"><button class="btn sec" onClick="{{ addRec }}">Registrar recomendación</button><sc-for list="{{ recList }}" as="r" hint-placeholder-count="0"><span class="chip ok">{{ r }}</span></sc-for></div></div>
+</div>
+<div class="card col" style="position:sticky;top:16px"><h2 class="h2">Resumen</h2><div class="row"><span class="sp">{{ f.sname }} · {{ f.vname }}</span><b class="num">S/ {{ f.price }}</b></div><div class="xs mut">{{ cur.rec }} · {{ espName }}</div><div class="xs mut">Duración declarada: {{ f.dur }} min</div>
+<div class="xs mut">{{ comTxt }}</div><button class="btn lg blk" disabled="{{ cruce }}" onClick="{{ finish }}">Finalizar atención</button><div class="xs mut" style="text-align:center">Registra la hora de fin y deja la atención lista para cobro.</div></div>
+</div>
+</sc-if>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { eid:'e1', f:null, tick:0, selId:null, rp:'p1', ro:'' };
+  componentDidMount(){ this._i=setInterval(()=>this.setState(s=>({tick:s.tick+1})),1000); }
+  componentWillUnmount(){ clearInterval(this._i); }
+  m(t){ const [h,mm]=t.split(':').map(Number); return h*60+mm; }
+  hhmm(ms){ const d=new Date(ms); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+  renderVals() {
+    const a = this.props.app, d = a.data, s = this.state, set=(o)=>this.setState(o), mode = this.props.mode;
+    const isAdmin = a.role==='D', eid = isAdmin ? s.eid : 'e1';
+    const esp = d.esp.find(e=>e.id===eid);
+    const chip={pendiente:'warn',atencion:'dk',finalizada:'ok',cancelada:'bad'}, txt={pendiente:'Pendiente',atencion:'En atención',finalizada:'Finalizada',cancelada:'Cancelada'};
+    const startC = (c)=>{ const t0=Date.now()-(c.est==='atencion'?0:0); a.setCitas(cs=>cs.map(x=>x.id===c.id?{...x,est:'atencion',t0}:x)); set({f:null,selId:c.id}); a.go('atencion',{id:c.id}); };
+    const mine = a.citas.filter(c=>c.e===eid && c.est!=='cancelada').sort((x,y)=>x.ini.localeCompare(y.ini)).map(c=>({...c,lname:c.l==='salon'?'Salón':'Spa',chip:chip[c.est],estTxt:txt[c.est],
+      st:c.est==='finalizada'?'opacity:.6':(c.est==='atencion'?'border-color:var(--pri);border-width:2px':''), canStart:c.est==='pendiente', isAt:c.est==='atencion',
+      start:()=>startC(c), cont:()=>{ set({f:null,selId:c.id}); a.go('atencion',{id:c.id}); }}));
+    const pid = (a.params&&a.params.id)||s.selId;
+    const cur = a.citas.find(c=>c.id===pid&&c.est==='atencion') || a.citas.find(c=>c.e===eid&&c.est==='atencion');
+    let out = {isAdmin, eid, setEid:(e)=>set({eid:e.target.value,f:null,selId:null}), espOpts:d.esp.map(e=>({v:e.id,t:e.n})), espName:esp.n,
+      isAgenda:mode==='agenda', isCurso:mode==='curso', mine, noMine:mine.length===0,
+      title:mode==='agenda'?'Mi agenda':'Atención en curso', sub:mode==='agenda'?'Lunes 12 de octubre · '+esp.n+' · '+esp.area:'Cronómetro, servicio y variante, sesiones del paquete.',
+      goAgenda:()=>a.go('miagenda'), noCur:!cur, hasCur:!!cur };
+    if (mode==='curso' && cur) {
+      if (!this._seed) this._seed={};
+      const t0 = cur.t0 || (this._seed[cur.id] = this._seed[cur.id] || Date.now()-(this.m('10:47')-this.m(cur.ini))*60000);
+      const el = Math.max(0,Math.floor((Date.now()-t0)/1000)), pad=(n)=>String(n).padStart(2,'0');
+      let f = s.f && s.f.id===cur.id ? s.f : null;
+      const srv0 = d.srv.find(x=>x.n===cur.srv)||d.srv[0];
+      if (!f) f = {id:cur.id,sid:srv0.id,vi:Math.max(0,srv0.v.findIndex(v=>v[0]===cur.v)),dur:cur.dur,obs:'',orig:cur.v};
+      const upd=(o)=>set({f:{...f,...o}});
+      const srv = d.srv.find(x=>x.id===f.sid), vr = srv.v[f.vi]||srv.v[0];
+      const next = a.citas.filter(c=>c.e===cur.e&&c.id!==cur.id&&(c.est==='pendiente')&&this.m(c.ini)>=this.m(cur.ini)).sort((x,y)=>x.ini.localeCompare(y.ini))[0];
+      const cruce = !!next && this.m(cur.ini)+(+f.dur||0) > this.m(next.ini);
+      const cli = a.clientas.find(c=>c.id===cur.cid), paq = cli&&cli.paq.find(p=>p.t-p.u>0&&(p.n.includes(srv.n)||(p.n.includes('Spa')&&srv.l==='spa')));
+      const myRecs = (d.recs||[]).filter(r=>r.cid===cur.id);
+      out = {...out, cur:{...cur,inicioReal:this.hhmm(t0)}, clock:pad(Math.floor(el/3600))+':'+pad(Math.floor(el%3600/60))+':'+pad(el%60),
+        f:{...f,price:vr[1],sname:srv.n,vname:vr[0]},
+        srvOpts:d.srv.map(x=>({v:x.id,t:x.n})), varOpts:srv.v.map((v,i)=>({v:i,t:v[0]+' · S/ '+v[1]})),
+        setSid:(e)=>upd({sid:e.target.value,vi:0,dur:d.srv.find(x=>x.id===e.target.value).dur}), setVi:(e)=>upd({vi:+e.target.value}), setDur:(e)=>upd({dur:e.target.value}), setObs:(e)=>upd({obs:e.target.value}),
+        varChanged:vr[0]!==f.orig, cruce, avisar:()=>a.toast('Recepción avisada: reprogramar la cita de las '+next.ini+' antes de extender la atención'),
+        comTxt:paq?'Sesión de paquete o membresía: no genera comisión (RN38).':'Genera comisión para '+esp.n+' al cobrarse.',
+        rp:s.rp, setRp:(e)=>set({rp:e.target.value}), ro:s.ro, setRo:(e)=>set({ro:e.target.value}), prodOpts:d.prod.filter(p=>p.uso==='VENTA').map(p=>({v:p.id,t:p.n+' · S/ '+p.pv+(p.st<=0?' (agotado)':'')})), recList:myRecs.map(r=>r.prod),
+        addRec:()=>{ const p=d.prod.find(x=>x.id===s.rp); if(!d.recs) d.recs=[]; if(myRecs.some(r=>r.pid===p.id)) return; d.recs.push({cid:cur.id,cli:cur.cli,pid:p.id,prod:p.n,esp:esp.n,eid:cur.e,obs:s.ro.trim()}); set({ro:''}); a.toast('Recomendación registrada: '+p.n+' para '+cur.cli); }, cruceHora:next?next.ini:'', hasPaq:!!paq, noPaq:!paq, paqName:paq?paq.n:'', paqLeft:paq?paq.t-paq.u:0,
+        finish:()=>{ a.setCitas(cs=>cs.map(c=>c.id===cur.id?{...c,est:'finalizada',srv:srv.n,v:vr[0],p:vr[1],dur:+f.dur}:c));
+          a.setCobros(cb=>[...cb,{id:'a'+Date.now(),cli:cur.cli,cid:cur.cid,esp:esp.n,eid:cur.e,l:srv.l,lin:[{t:srv.n+' · '+vr[0],p:vr[1],tipo:'srv'}],adel:cur.adel||0,saldo:0,hora:this.hhmm(Date.now()),paq:!!paq}]);
+          if (paq) a.setClientas(cl=>cl.map(c=>c.id===cli.id?{...c,paq:c.paq.map(p=>p===paq?{...p,u:p.u+1}:p)}:c));
+          set({f:null,selId:null}); a.toast('Atención finalizada · lista para cobro'+(cruce?' · recepción avisada del cruce':'')); a.go('miagenda'); } };
+    }
+    return out;
+  }
+}
+</script>
+</body>
+</html>

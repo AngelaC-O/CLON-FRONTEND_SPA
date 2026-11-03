@@ -1,0 +1,15 @@
+export type {
+  CierreVentaDTO,
+  ComprobanteDTO,
+  CrearVentaDTO,
+  DescuentosDTO,
+  DetalleVentaDTO,
+  EnlaceComprobanteDTO,
+  HoraLibre,
+  Item,
+  PagosDTO,
+  ProformaDTO,
+  ResultadoConsulta,
+  VentaDTO,
+  VentaRapidaDTO,
+} from '../../core/api/modelos.generados';

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div class="col" style="gap:16px">
+<sc-if value="{{ listView }}" hint-placeholder-val="{{ true }}">
+<div class="row"><div class="sp"><h1 class="h1">Clientas</h1><div class="mut">Un registro único para agendar, cobrar y fidelizar (CUS01–CUS04). Datos tratados con consentimiento según la Ley N° 29733.</div></div><button class="btn lg" onClick="{{ openNew }}">+ Registrar clienta</button></div>
+<div class="card"><label class="lbl">BUSCAR POR NOMBRE, APELLIDO O TELÉFONO</label><input class="inp" style="min-height:52px;font-size:16px" value="{{ q }}" onInput="{{ setQ }}" placeholder="Ej. Lucía, Paredes o 964…"></div>
+<div class="card cp0"><div class="tw"><table class="tbl"><thead><tr><th>Clienta</th><th>Teléfono</th><th class="no-m">Datos</th><th class="no-m">Última visita</th><th class="r">Saldo a favor</th></tr></thead><tbody>
+<sc-for list="{{ rows }}" as="c" hint-placeholder-count="5"><tr class="clk" onClick="{{ c.open }}"><td><div class="row nw"><span class="avatar">{{ c.ini }}</span><div><div class="b">{{ c.n }}</div><sc-if value="{{ c.noCom }}"><span class="xs mut">No desea comunicaciones</span></sc-if></div></div></td><td class="num">{{ c.tel }}</td><td class="no-m"><span class="chip {{ c.oChip }}">{{ c.oTxt }}</span></td><td class="no-m">{{ c.ult }}</td><td class="r b num">{{ c.saldoTxt }}</td></tr></sc-for>
+</tbody></table></div>
+<sc-if value="{{ empty }}" hint-placeholder-val="{{ false }}"><div style="padding:36px;text-align:center"><div class="h2">Sin coincidencias para «{{ q }}»</div><p class="mut">¿Es una clienta nueva?</p><button class="btn" onClick="{{ openNew }}">Registrar clienta</button></div></sc-if></div>
+</sc-if>
+<sc-if value="{{ fichaView }}" hint-placeholder-val="{{ false }}">
+<div class="row"><button class="btn ghost sm" onClick="{{ back }}">← Clientas</button></div>
+<div class="card"><div class="row"><span class="avatar" style="width:64px;height:64px;font-size:22px">{{ s.ini }}</span><div class="sp"><h1 class="h1">{{ s.n }}</h1><div class="mut">{{ s.tel }} · última visita {{ s.ult }}</div><div class="row" style="gap:6px;margin-top:6px"><span class="chip {{ s.oChip }}">{{ s.oTxt }}</span><span class="chip">Consentimiento {{ s.cons }}</span></div></div>
+<div class="row"><div style="text-align:right"><div class="xs mut b">SALDO A FAVOR</div><div class="kpi num">S/ {{ s.saldo }}</div></div><button class="btn" onClick="{{ agendar }}">Agendar cita</button></div></div></div>
+<div class="tabs"><sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4"><button class="tab {{ t.cls }}" onClick="{{ t.pick }}">{{ t.n }}</button></sc-for></div>
+<sc-if value="{{ tDatos }}"><div class="card col"><div class="gf"><sc-for list="{{ fields }}" as="x" hint-placeholder-count="6"><div class="fld"><label class="lbl">{{ x.l }}</label><input class="inp" value="{{ x.v }}" onInput="{{ x.set }}"></div></sc-for></div>
+<div class="fld"><label class="lbl">OBSERVACIONES</label><textarea class="inp" value="{{ e.obs }}" onInput="{{ setObs }}"></textarea></div>
+<div class="row nw" style="align-items:flex-end;gap:8px"><span class="sp xs mut">Al cambiar el DNI, vuelve a consultarlo; si no se consulta, la ficha queda MANUAL (no verificada).</span><button class="btn sec sm" disabled="{{ cantEDni }}" onClick="{{ consultaEDni }}">Consultar DNI</button></div>
+<label class="row" style="gap:10px"><input type="checkbox" checked="{{ e.noCom }}" onChange="{{ setNoCom }}"><span>La clienta pidió <b>no recibir comunicaciones</b> (los recordatorios la omitirán)</span></label>
+<div class="row"><button class="btn" onClick="{{ saveEdit }}">Guardar cambios</button><span class="xs mut">Se registra en auditoría: usuario, fecha y hora.</span></div></div></sc-if>
+<sc-if value="{{ tHist }}"><div class="gf2"><div class="card cp0"><div style="padding:14px 18px" class="h3">Citas</div><div class="tw"><table class="tbl"><tbody><sc-for list="{{ histCitas }}" as="h" hint-placeholder-count="3"><tr><td class="num">{{ h.f }}</td><td>{{ h.t }}</td><td><span class="chip {{ h.c }}">{{ h.e }}</span></td></tr></sc-for></tbody></table></div></div>
+<div class="card cp0"><div style="padding:14px 18px" class="h3">Compras</div><div class="tw"><table class="tbl"><tbody><sc-for list="{{ histVentas }}" as="h" hint-placeholder-count="3"><tr><td class="num">{{ h.f }}</td><td>{{ h.comp }}</td><td class="r b num">S/ {{ h.tot }}</td></tr></sc-for></tbody></table></div></div></div></sc-if>
+<sc-if value="{{ tPaq }}"><div class="gf2"><sc-for list="{{ paqs }}" as="p" hint-placeholder-count="1"><div class="card"><div class="row"><span class="h3 sp">{{ p.n }}</span><span class="chip spa">{{ p.left }} disponibles</span></div><div class="bar" style="margin:12px 0 6px"><i style="{{ p.w }};background:var(--spa)"></i></div><div class="xs mut">{{ p.u }} de {{ p.t }} sesiones usadas · se descuenta una al finalizar cada atención</div></div></sc-for>
+<sc-if value="{{ noPaq }}"><div class="card mut">Sin paquetes ni membresías activas.</div></sc-if></div></sc-if>
+<sc-if value="{{ tSaldo }}"><div class="card col"><div class="row"><div class="kpi num">S/ {{ s.saldo }}</div><span class="mut sm">Se genera al cancelar una cita con adelanto o al anular una venta si la clienta lo elige (RN05, RN44). No vence.</span></div><div class="tw"><table class="tbl"><thead><tr><th>Fecha</th><th>Movimiento</th><th class="r">Monto</th></tr></thead><tbody><sc-for list="{{ movs }}" as="m" hint-placeholder-count="2"><tr><td class="num sm">{{ m.f }}</td><td class="sm">{{ m.t }}</td><td class="r num {{ m.c }}">{{ m.m }}</td></tr></sc-for></tbody></table></div><div class="alert info">El saldo a favor se puede aplicar como adelanto al agendar o al cobrar la venta.</div></div></sc-if>
+</sc-if>
+<sc-if value="{{ modalNew }}" hint-placeholder-val="{{ false }}">
+<div class="modal-bg" onClick="{{ closeModal }}"><div class="modal" onClick="{{ stop }}">
+<div class="mh"><div class="sp"><h2 class="h2">Registrar clienta</h2><div class="mut sm">Nombre y teléfono son obligatorios; el DNI es opcional y se consulta en APISPERU (RN45).</div></div></div>
+<div class="mb"><div class="row nw" style="align-items:flex-end;gap:8px"><div class="fld sp"><label class="lbl">DNI (OPCIONAL)</label><input class="inp" value="{{ nw.dni }}" onInput="{{ setNDni }}" placeholder="8 dígitos"></div><button class="btn sec" style="min-height:44px" disabled="{{ cantNDni }}" onClick="{{ consultaNDni }}">Consultar DNI</button><span class="chip {{ nOChip }}">{{ nOTxt }}</span></div>
+<sc-if value="{{ docMsg }}"><div class="alert {{ docCls }}">{{ docMsg }}</div></sc-if>
+<div class="gf1" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+<sc-for list="{{ nfields }}" as="x" hint-placeholder-count="6"><div class="fld"><label class="lbl">{{ x.l }}</label><input class="inp" value="{{ x.v }}" onInput="{{ x.set }}" placeholder="{{ x.ph }}"></div></sc-for></div>
+<div class="fld"><label class="lbl">OBSERVACIONES</label><textarea class="inp" value="{{ nw.obs }}" onInput="{{ setNObs }}"></textarea></div>
+<sc-if value="{{ dup }}" hint-placeholder-val="{{ false }}"><div class="alert warn"><span class="sp">Ya existe <b>{{ dupName }}</b> con ese teléfono.</span><button class="btn sm" onClick="{{ openDup }}">Abrir ficha existente</button></div></sc-if>
+<label class="row nw" style="gap:10px;align-items:flex-start"><input type="checkbox" style="margin-top:4px" checked="{{ nw.cons }}" onChange="{{ setNCons }}"><span><b>Consentimiento (obligatorio).</b> La clienta autoriza el tratamiento de sus datos personales para gestionar sus citas, ventas e historial (Ley N° 29733, RN27). Se guarda la fecha.</span></label>
+<label class="row" style="gap:10px"><input type="checkbox" checked="{{ nw.com }}" onChange="{{ setNCom }}"><span>Acepta recibir recordatorios y comunicaciones por WhatsApp</span></label>
+<div class="xs mut">¿Cliente de paso? Atiéndelo en <a href="#" onClick="{{ goSin }}">Atención sin cita</a>, sin registro completo.</div></div>
+<div class="mf"><button class="btn sec" onClick="{{ closeModal }}">Cancelar</button><button class="btn" disabled="{{ cantNew }}" onClick="{{ saveNew }}">Guardar clienta</button></div>
+</div></div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  NW = {n:'',tel:'',dni:'',ruc:'',email:'',cumple:'',obs:'',orig:'MANUAL',cons:false,com:true};
+  state = { q:'', sel:null, tab:'datos', modal:false, nw:{...this.NW}, e:null, docMsg:'', docCls:'' };
+  componentDidMount(){ const p=this.props.app.params; if(p&&p.tab==='nueva') this.setState({modal:true}); }
+  look(dni){ return dni.endsWith('0')?null:'Gabriela Inés Rojas Torres'; }
+  renderVals() {
+    const a = this.props.app, s = this.state, set = (o)=>this.setState(o);
+    const ini = (n)=>n.split(' ').map(w=>w[0]).slice(0,2).join('');
+    const norm = (t)=>t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    const q = norm(s.q.trim()), qd = s.q.replace(/\s/g,'');
+    const list = a.clientas.filter(c=>!q || norm(c.n).includes(q) || (qd && c.tel.replace(/\s/g,'').includes(qd)));
+    const cur = a.clientas.find(c=>c.id===s.sel);
+    const open = (c)=>()=>set({sel:c.id,tab:'datos',e:{...c}});
+    const e = s.e||{}, setE = (k)=>(ev)=>set(st=>({e:{...st.e,[k]:ev.target.value}}));
+    const nw = s.nw, setN = (k)=>(ev)=>set(st=>({nw:{...st.nw,[k]:ev.target.value}}));
+    const dupC = a.clientas.find(c=>nw.tel.trim() && c.tel.replace(/\s/g,'')===nw.tel.replace(/\s/g,''));
+    const tabs = [['datos','Datos'],['hist','Historial'],['paq','Paquetes y membresías'],['saldo','Saldo a favor']];
+    const citas = cur ? a.citas.filter(c=>c.cid===cur.id) : [];
+    const chip = {pendiente:'warn',atencion:'dk',finalizada:'ok',cancelada:'bad'}, txt={pendiente:'Pendiente',atencion:'En atención',finalizada:'Finalizada',cancelada:'Cancelada'};
+    return {
+      listView:!cur, fichaView:!!cur, q:s.q, setQ:(ev)=>set({q:ev.target.value}),
+      rows:list.map(c=>({...c,oTxt:c.orig==='VERIFICADO'?'DNI verificado':'Manual',oChip:c.orig==='VERIFICADO'?'ok':'',ini:ini(c.n),noCom:!c.com,saldoTxt:c.saldo?'S/ '+c.saldo:'—',open:open(c)})), empty:list.length===0,
+      openNew:()=>set({modal:true,docMsg:'',nw:{...this.NW,n:s.q&&isNaN(+s.q.replace(/\s/g,''))?s.q:''}}),
+      s:cur?{...cur,ini:ini(cur.n),oTxt:cur.orig==='VERIFICADO'?'DNI verificado':'Datos manuales',oChip:cur.orig==='VERIFICADO'?'ok':'',cons:cur.cons||'—'}:{}, back:()=>set({sel:null}),
+      agendar:()=>a.go('agenda'),
+      tabs:tabs.map(t=>({n:t[1],cls:s.tab===t[0]?'on':'',pick:()=>set({tab:t[0]})})),
+      tDatos:s.tab==='datos', tHist:s.tab==='hist', tPaq:s.tab==='paq', tSaldo:s.tab==='saldo',
+      fields:[['NOMBRES Y APELLIDOS','n'],['TELÉFONO','tel'],['DNI','dni'],['RUC (PARA FACTURA)','ruc'],['CORREO','email'],['CUMPLEAÑOS','cumple']].map(x=>({l:x[0],v:e[x[1]]||'',set:setE(x[1])})),
+      e, setObs:setE('obs'), setNoCom:(ev)=>set(st=>({e:{...st.e,com:!ev.target.checked}})),
+      saveEdit:()=>{ if(!e.n||!e.tel){a.toast('Nombre y teléfono son obligatorios');return;} const o=a.clientas.find(c=>c.id!==cur.id&&c.tel.replace(/\s/g,'')===e.tel.replace(/\s/g,'')); if(e.dni&&!/^\d{8}$/.test(e.dni)){a.toast('El DNI debe tener 8 dígitos');return;} const orig=cur.dni===e.dni?e.orig:(e.orig==='VERIFICADO'&&e._v===e.dni?'VERIFICADO':'MANUAL'); if(o){a.toast('Ya existe una clienta con ese teléfono: '+o.n);return;} a.setClientas(cl=>cl.map(c=>c.id===cur.id?{...c,...e,orig}:c)); a.toast('Cambios guardados · auditoría registrada (usuario y fecha)'); },
+      cantEDni:!/^\d{8}$/.test(e.dni||''), consultaEDni:()=>{ const n=this.look(e.dni); if(n){ set(st=>({e:{...st.e,orig:'VERIFICADO',_v:st.e.dni}})); a.toast('DNI verificado en APISPERU · guarda los cambios'); } else { set(st=>({e:{...st.e,orig:'MANUAL'}})); a.toast('APISPERU no encontró el DNI · la ficha quedará MANUAL'); } },
+      movs:cur?(cur.saldo?[{f:'05 oct',t:'Cita cancelada con adelanto · saldo a favor',m:'+ S/ '+cur.saldo,c:'ok'}]:[{f:'—',t:'Sin movimientos',m:'',c:''}]):[],
+      histCitas:citas.map(c=>({f:'12 oct '+c.ini,t:c.srv+' · '+c.v,e:txt[c.est],c:chip[c.est]})).concat([{f:'10 oct',t:'Corte de cabello · Normal',e:'Finalizada',c:'ok'},{f:'21 sep',t:'Manicura · Clásica',e:'Finalizada',c:'ok'}]),
+      histVentas:[{f:'10 oct',comp:'B001-00224',tot:150},{f:'21 sep',comp:'B001-00188',tot:60}],
+      paqs:(cur?cur.paq:[]).map(p=>({...p,left:p.t-p.u,w:'width:'+Math.round(p.u/p.t*100)+'%'})), noPaq:cur&&cur.paq.length===0,
+      modalNew:s.modal, closeModal:()=>set({modal:false}), stop:(ev)=>ev.stopPropagation(),
+      nfields:[['NOMBRES Y APELLIDOS *','n','Se completa con la consulta o a mano'],['TELÉFONO * (ÚNICO)','tel','9XX XXX XXX'],['RUC (PARA FACTURA)','ruc','Opcional'],['CORREO','email',''],['CUMPLEAÑOS','cumple','Ej. 14 mar']].map(x=>({l:x[0],v:nw[x[1]],set:setN(x[1]),ph:x[2]})),
+      nw, setNObs:setN('obs'), setNCons:(ev)=>set(st=>({nw:{...st.nw,cons:ev.target.checked}})), setNCom:(ev)=>set(st=>({nw:{...st.nw,com:ev.target.checked}})),
+      setNDni:(ev)=>set(st=>({nw:{...st.nw,dni:ev.target.value.replace(/\D/g,'').slice(0,8),orig:'MANUAL'},docMsg:''})), cantNDni:!/^\d{8}$/.test(nw.dni), nOTxt:nw.orig==='VERIFICADO'?'Verificado':'Manual', nOChip:nw.orig==='VERIFICADO'?'ok':'', docMsg:s.docMsg, docCls:s.docCls,
+      consultaNDni:()=>{ const n=this.look(nw.dni); if(n) set(st=>({nw:{...st.nw,n:n,orig:'VERIFICADO'},docMsg:'DNI encontrado en APISPERU: nombres completados.',docCls:'ok'})); else set(st=>({nw:{...st.nw,orig:'MANUAL'},docMsg:'APISPERU no encontró el DNI o no respondió (p. ej. clienta extranjera). Escribe los nombres a mano; quedará como no verificada.',docCls:'warn'})); }, dup:!!dupC, dupName:dupC?dupC.n:'', openDup:()=>set({modal:false,sel:dupC.id,tab:'datos',e:{...dupC}}),
+      cantNew:!nw.n.trim()||!nw.tel.trim()||!!dupC||!nw.cons||(nw.dni&&!/^\d{8}$/.test(nw.dni)),
+      saveNew:()=>{ const c={id:'c'+Date.now(),n:nw.n.trim(),tel:nw.tel.trim(),dni:nw.dni,ruc:nw.ruc,email:nw.email,cumple:nw.cumple,obs:nw.obs,ult:'—',saldo:0,com:nw.com,orig:nw.orig,cons:'12 oct 2026',paq:[]}; a.setClientas(cl=>[c,...cl]); set({modal:false,q:'',sel:c.id,tab:'datos',e:{...c}}); a.toast('Clienta registrada'+(nw.orig==='VERIFICADO'?' con DNI verificado':'')+' · consentimiento guardado 12 oct 2026'); },
+      goSin:(ev)=>{ev.preventDefault(); a.go('sincita');}
+    };
+  }
+}
+</script>
+</body>
+</html>

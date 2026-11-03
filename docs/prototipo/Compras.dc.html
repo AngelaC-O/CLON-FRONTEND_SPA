@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div class="col" style="gap:16px">
+<div class="row"><div class="sp"><h1 class="h1">Compras y proveedores</h1><div class="mut">Alertas de stock mínimo, requerimientos de compra que aprueba la Administradora, proveedores con consulta de RUC y registro de la compra con su factura (CUS28–CUS31).</div></div>
+<button class="btn sec" onClick="{{ openProv }}">+ Proveedor</button><button class="btn lg" onClick="{{ openReq }}">+ Requerimiento</button></div>
+<div class="tabs"><sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4"><button class="tab {{ t.cls }}" onClick="{{ t.pick }}">{{ t.n }}</button></sc-for></div>
+
+<sc-if value="{{ tAl }}" hint-placeholder-val="{{ true }}"><div class="gf2"><sc-for list="{{ low }}" as="p" hint-placeholder-count="2"><div class="card col" style="gap:10px"><div class="row"><div class="sp"><div class="b" style="font-size:16px">{{ p.n }}</div><div class="xs mut">{{ p.cod }} · {{ p.cat }} · {{ p.usoTxt }}</div></div><span class="chip {{ p.chip }}">{{ p.est }}</span></div><div class="row"><div class="kpi num">{{ p.st }}</div><div class="mut sm sp">{{ p.u }} · mínimo {{ p.min }}</div></div><div class="bar"><i style="{{ p.w }};background:var(--bad)"></i></div><sc-if value="{{ p.enReq }}"><div class="xs mut">Ya está en el requerimiento {{ p.enReq }}.</div></sc-if><sc-if value="{{ p.libre }}"><button class="btn" onClick="{{ p.solic }}">Incluir en un requerimiento</button></sc-if></div></sc-for></div>
+<sc-if value="{{ noLow }}"><div class="card mut" style="text-align:center">Todos los productos están sobre su stock mínimo.</div></sc-if></sc-if>
+
+<sc-if value="{{ tReq }}"><div class="col"><sc-for list="{{ reqs }}" as="r" hint-placeholder-count="2"><div class="card col" style="gap:10px">
+<div class="row"><span class="b num">{{ r.num }}</span><span class="chip {{ r.chip }}">{{ r.est }}</span><span class="chip {{ r.pChip }}">Prioridad {{ r.prio }}</span><span class="chip">{{ r.tipo }}</span><span class="sp"></span><span class="sm mut">{{ r.f }} · {{ r.sol }}</span></div>
+<div class="xs mut">Área: {{ r.area }} · Línea: {{ r.linea }}</div>
+<div class="tw"><table class="tbl"><thead><tr><th>Producto</th><th class="no-m">Proveedor sugerido</th><th class="r">Cantidad</th></tr></thead><tbody><sc-for list="{{ r.items }}" as="i" hint-placeholder-count="1"><tr><td class="b">{{ i.prod }}</td><td class="no-m sm">{{ i.prov }}</td><td class="r num">{{ i.q }}</td></tr></sc-for></tbody></table></div>
+<sc-if value="{{ r.motivo }}"><div class="alert bad">Rechazado: {{ r.motivo }}</div></sc-if>
+<div class="row"><sc-if value="{{ r.canAprob }}"><button class="btn" onClick="{{ r.aprobar }}">Aprobar</button><button class="btn sec" onClick="{{ r.rechazar }}">Rechazar</button></sc-if>
+<sc-if value="{{ r.waiting }}"><span class="xs mut">Espera la aprobación de la Administradora (RN19).</span></sc-if>
+<sc-if value="{{ r.canComprar }}"><button class="btn salon" onClick="{{ r.comprar }}">Registrar compra</button></sc-if></div></div></sc-for></div></sc-if>
+
+<sc-if value="{{ tProv }}"><div class="card cp0"><div class="tw"><table class="tbl"><thead><tr><th>Razón social</th><th>RUC</th><th class="no-m">Datos</th><th class="no-m">Teléfono</th><th class="no-m">Correo</th><th>Estado</th></tr></thead><tbody>
+<sc-for list="{{ provs }}" as="p" hint-placeholder-count="3"><tr><td class="b">{{ p.rs }}</td><td class="num">{{ p.ruc }}</td><td class="no-m"><span class="chip {{ p.oChip }}">{{ p.oTxt }}</span></td><td class="no-m num sm">{{ p.tel }}</td><td class="no-m sm">{{ p.mail }}</td><td><span class="chip ok">Activo</span></td></tr></sc-for></tbody></table></div></div></sc-if>
+
+<sc-if value="{{ tCom }}"><div class="card cp0"><div class="tw"><table class="tbl"><thead><tr><th>Fecha</th><th>Factura</th><th>Proveedor</th><th class="no-m">Requerimiento</th><th class="no-m">Registró</th><sc-if value="{{ isAdm }}"><th class="r">Total</th></sc-if></tr></thead><tbody>
+<sc-for list="{{ compras }}" as="c" hint-placeholder-count="2"><tr><td class="num sm">{{ c.f }}</td><td class="num b">{{ c.doc }}</td><td>{{ c.prov }}</td><td class="no-m num">{{ c.req }}</td><td class="no-m sm mut">{{ c.u }}</td><sc-if value="{{ c.showTot }}"><td class="r num">S/ {{ c.tot }}</td></sc-if></tr></sc-for></tbody></table></div></div></sc-if>
+
+<sc-if value="{{ mReq }}" hint-placeholder-val="{{ false }}"><div class="modal-bg" onClick="{{ closeM }}"><div class="modal" onClick="{{ stop }}"><div class="mh"><div class="sp"><h2 class="h2">Requerimiento de compra {{ nextNum }}</h2><div class="mut sm">Formato del Anexo A del caso · fecha 12/10/2026 · solicita {{ user }}</div></div></div><div class="mb">
+<div class="gf1" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))"><div class="fld"><label class="lbl">ÁREA SOLICITANTE</label><select class="inp" value="{{ rq.area }}" onChange="{{ setRqArea }}"><option>Almacén</option><option>Administración</option></select></div><div class="fld"><label class="lbl">LÍNEA DE PRODUCCIÓN</label><select class="inp" value="{{ rq.linea }}" onChange="{{ setRqLinea }}"><option>Servicios de belleza</option><option>Salón</option><option>Spa</option></select></div><div class="fld"><label class="lbl">TIPO DE ADQUISICIÓN</label><select class="inp" value="{{ rq.tipo }}" onChange="{{ setRqTipo }}"><option>INSUMO</option><option>PRODUCTO</option><option>EQUIPO</option></select></div><div class="fld"><label class="lbl">PRIORIDAD</label><select class="inp" value="{{ rq.prio }}" onChange="{{ setRqPrio }}"><option>BAJA</option><option>NORMAL</option><option>ALTA</option><option>URGENTE</option></select></div></div>
+<div class="h3">Productos solicitados</div>
+<sc-for list="{{ rqItems }}" as="i" hint-placeholder-count="1"><div class="row nw" style="gap:8px"><span class="sp b sm">{{ i.prod }}</span><span class="sm mut">{{ i.prov }}</span><b class="num">{{ i.q }}</b><button class="btn sm ghost" onClick="{{ i.quitar }}">Quitar</button></div></sc-for>
+<div class="gf1" style="grid-template-columns:2fr 2fr 1fr auto;align-items:end"><div class="fld"><label class="lbl">PRODUCTO</label><select class="inp" value="{{ it.pid }}" onChange="{{ setItP }}"><sc-for list="{{ pOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.t }}</option></sc-for></select></div><div class="fld"><label class="lbl">PROVEEDOR SUGERIDO</label><select class="inp" value="{{ it.prov }}" onChange="{{ setItProv }}"><sc-for list="{{ provOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.t }}</option></sc-for></select></div><div class="fld"><label class="lbl">CANTIDAD</label><input class="inp" type="number" min="1" value="{{ it.q }}" onInput="{{ setItQ }}"></div><button class="btn sec" style="min-height:44px" disabled="{{ cantIt }}" onClick="{{ addIt }}">Agregar</button></div></div>
+<div class="mf"><button class="btn sec" onClick="{{ closeM }}">Cancelar</button><button class="btn" disabled="{{ cantReq }}" onClick="{{ saveReq }}">{{ reqBtn }}</button></div></div></div></sc-if>
+
+<sc-if value="{{ mRech }}" hint-placeholder-val="{{ false }}"><div class="modal-bg" onClick="{{ closeM }}"><div class="modal n" onClick="{{ stop }}"><div class="mh"><h2 class="h2 sp">Rechazar requerimiento</h2></div><div class="mb"><div class="fld"><label class="lbl">MOTIVO DEL RECHAZO (OBLIGATORIO)</label><textarea class="inp" value="{{ motivo }}" onInput="{{ setMotivo }}"></textarea></div></div><div class="mf"><button class="btn sec" onClick="{{ closeM }}">Volver</button><button class="btn bad" disabled="{{ cantRech }}" onClick="{{ doRech }}">Rechazar</button></div></div></div></sc-if>
+
+<sc-if value="{{ mProv }}" hint-placeholder-val="{{ false }}"><div class="modal-bg" onClick="{{ closeM }}"><div class="modal n" onClick="{{ stop }}"><div class="mh"><div class="sp"><h2 class="h2">Registrar proveedor</h2><div class="mut sm">El RUC se consulta en APISPERU y la razón social se completa sola (RN45).</div></div></div><div class="mb">
+<div class="row nw" style="align-items:flex-end;gap:8px"><div class="fld sp"><label class="lbl">RUC (11 DÍGITOS)</label><input class="inp" value="{{ pv.ruc }}" onInput="{{ setPvRuc }}" placeholder="20xxxxxxxxx"></div><button class="btn sec" style="min-height:44px" disabled="{{ cantRuc }}" onClick="{{ consultaRuc }}">Consultar RUC</button><span class="chip {{ pvOChip }}">{{ pvOTxt }}</span></div>
+<sc-if value="{{ docMsg }}"><div class="alert {{ docCls }}">{{ docMsg }}</div></sc-if>
+<div class="fld"><label class="lbl">RAZÓN SOCIAL</label><input class="inp" value="{{ pv.rs }}" onInput="{{ setPvRs }}"></div>
+<div class="g2"><div class="fld"><label class="lbl">TELÉFONO</label><input class="inp" value="{{ pv.tel }}" onInput="{{ setPvTel }}"></div><div class="fld"><label class="lbl">CORREO</label><input class="inp" value="{{ pv.mail }}" onInput="{{ setPvMail }}"></div></div></div>
+<div class="mf"><button class="btn sec" onClick="{{ closeM }}">Cancelar</button><button class="btn" disabled="{{ cantProv }}" onClick="{{ saveProv }}">Guardar proveedor</button></div></div></div></sc-if>
+
+<sc-if value="{{ mCom }}" hint-placeholder-val="{{ false }}"><div class="modal-bg" onClick="{{ closeM }}"><div class="modal" onClick="{{ stop }}"><div class="mh"><div class="sp"><h2 class="h2">Registrar compra</h2><div class="mut sm">Requerimiento {{ cReq.num }} aprobado · la compra se liga solo por el requerimiento</div></div></div><div class="mb">
+<div class="g2"><div class="fld"><label class="lbl">PROVEEDOR</label><select class="inp" value="{{ cf.prov }}" onChange="{{ setCfProv }}"><sc-for list="{{ provOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.t }}</option></sc-for></select></div><div class="fld"><label class="lbl">N° DE FACTURA DEL PROVEEDOR</label><input class="inp" value="{{ cf.doc }}" onInput="{{ setCfDoc }}" placeholder="F001-002301"></div></div>
+<div class="tw"><table class="tbl"><thead><tr><th>Producto</th><th class="r">Aprobado</th><th class="r">Recibido</th><th class="r">Costo unit. (S/)</th></tr></thead><tbody><sc-for list="{{ cLines }}" as="l" hint-placeholder-count="1"><tr><td class="b">{{ l.prod }}</td><td class="r num">{{ l.q }}</td><td class="r"><input class="inp" style="width:84px;text-align:right" type="number" min="0" value="{{ l.rq }}" onInput="{{ l.setQ }}"></td><td class="r"><input class="inp" style="width:96px;text-align:right" type="number" min="0" step="0.1" value="{{ l.c }}" onInput="{{ l.setC }}"></td></tr></sc-for></tbody></table></div>
+<div class="row"><span class="sp mut">Total de la factura (IGV 0 %)</span><b class="num">S/ {{ cTot }}</b></div>
+<div class="xs mut">Cada línea entra al kardex como ENTRADA y actualiza el costo; el precio de venta se recalcula con el margen vigente (RN14).</div></div>
+<div class="mf"><button class="btn sec" onClick="{{ closeM }}">Cancelar</button><button class="btn" disabled="{{ cantCom }}" onClick="{{ saveCom }}">Registrar compra y entrada</button></div></div></div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { tab:'al', modal:null, motivo:'', tgt:null, docMsg:'', docCls:'',
+    rq:{area:'Almacén',linea:'Servicios de belleza',tipo:'INSUMO',prio:'NORMAL',items:[]}, it:{pid:'p2',prov:'pr1',q:'12'},
+    pv:{ruc:'',rs:'',tel:'',mail:'',orig:'MANUAL'}, cf:{prov:'pr1',doc:'',lines:{}},
+    provs:[{id:'pr1',rs:'DISTRIBUIDORA ANDINA S.A.C.',ruc:'20601234561',orig:'VERIFICADO',tel:'064 531 220',mail:'ventas@andina.pe'},{id:'pr2',rs:'BELLEZA SELVA E.I.R.L.',ruc:'20487765432',orig:'VERIFICADO',tel:'964 118 300',mail:'pedidos@bellezaselva.pe'},{id:'pr3',rs:'IMPORTADORA SPA PERÚ S.A.C.',ruc:'20554433221',orig:'MANUAL',tel:'01 445 9900',mail:''}],
+    reqs:[{num:'CS-023',f:'12 oct',sol:'Rocío Medina',area:'Almacén',linea:'Servicios de belleza',tipo:'PRODUCTO',prio:'ALTA',est:'PENDIENTE',items:[{pid:'p2',prod:'Mascarilla capilar 250 g',prov:'pr1',q:12}]},
+      {num:'CS-022',f:'10 oct',sol:'Rocío Medina',area:'Almacén',linea:'Spa',tipo:'PRODUCTO',prio:'NORMAL',est:'APROBADO',items:[{pid:'p5',prod:'Crema corporal hidratante',prov:'pr3',q:10}]},
+      {num:'CS-021',f:'06 oct',sol:'Patricia Vargas',area:'Administración',linea:'Servicios de belleza',tipo:'INSUMO',prio:'NORMAL',est:'ATENDIDO',items:[{pid:'p7',prod:'Cera depilatoria 1 kg',prov:'pr2',q:4}]}],
+    compras:[{f:'07 oct',doc:'F001-002287',prov:'BELLEZA SELVA E.I.R.L.',req:'CS-021',u:'Rocío Medina',tot:192}] };
+  componentDidMount(){ const p=this.props.app.params; if(p&&p.tab) this.setState({tab:p.tab==='prov'?'prov':(p.tab==='req'?'req':p.tab)}); }
+  renderVals() {
+    const a = this.props.app, s = this.state, set=(o)=>this.setState(o), P = a.data.prod, isAdm = a.role==='D';
+    const pvN = (id)=>(s.provs.find(p=>p.id===id)||{}).rs||'—';
+    const enReq = (pid)=>{ const r=s.reqs.find(r=>(r.est==='PENDIENTE'||r.est==='APROBADO')&&r.items.some(i=>i.pid===pid)); return r?r.num:''; };
+    const nextNum = 'CS-'+String(21+s.reqs.length).padStart(3,'0');
+    const low = P.filter(p=>p.st<=p.min).map(p=>({...p,usoTxt:p.uso==='VENTA'?'venta':'insumo',est:p.st<=0?'Agotado':'Stock bajo',chip:p.st<=0?'bad':'warn',w:'width:'+Math.min(100,Math.round(p.st/p.min*100))+'%',enReq:enReq(p.id),libre:!enReq(p.id),
+      solic:()=>set({modal:'req',rq:{area:isAdm?'Administración':'Almacén',linea:'Servicios de belleza',tipo:p.uso==='VENTA'?'PRODUCTO':'INSUMO',prio:p.st<=0?'URGENTE':'NORMAL',items:[{pid:p.id,prod:p.n,prov:'pr1',q:Math.max(p.min*2-p.st,1)}]},it:{pid:p.id,prov:'pr1',q:''}})}));
+    const chip = {PENDIENTE:'warn',APROBADO:'info',RECHAZADO:'bad',ATENDIDO:'ok'}, pchip={BAJA:'',NORMAL:'',ALTA:'warn',URGENTE:'bad'};
+    const upd = (num,o)=>set(st=>({reqs:st.reqs.map(r=>r.num===num?{...r,...o}:r)}));
+    const reqs = s.reqs.map(r=>({...r,chip:chip[r.est],pChip:pchip[r.prio],motivo:r.motivo||'',items:r.items.map(i=>({...i,prov:pvN(i.prov)})),
+      canAprob:isAdm&&r.est==='PENDIENTE', waiting:!isAdm&&r.est==='PENDIENTE', canComprar:r.est==='APROBADO',
+      aprobar:()=>{ upd(r.num,{est:'APROBADO'}); a.toast(r.num+' aprobado · ya se puede registrar la compra'); },
+      rechazar:()=>set({modal:'rech',tgt:r.num,motivo:''}),
+      comprar:()=>{ const lines={}; r.items.forEach(i=>{ const p=P.find(x=>x.id===i.pid); lines[i.pid]={q:String(i.q),c:String(p?p.cost:'')}; }); set({modal:'com',tgt:r.num,cf:{prov:r.items[0].prov,doc:'',lines}}); }}));
+    const closeM = ()=>set({modal:null,docMsg:''});
+    const rq=s.rq, it=s.it, pv=s.pv, cf=s.cf, cReq=s.reqs.find(r=>r.num===s.tgt)||{items:[]};
+    const cLines = cReq.items.map(i=>{ const L=cf.lines[i.pid]||{q:'',c:''}; const setL=(k)=>(e)=>set({cf:{...cf,lines:{...cf.lines,[i.pid]:{...L,[k]:e.target.value}}}}); return {prod:i.prod,q:i.q,rq:L.q,c:L.c,setQ:setL('q'),setC:setL('c'),tot:(+L.q||0)*(+L.c||0)}; });
+    const cTot = cLines.reduce((t,l)=>t+l.tot,0);
+    const provOpts = s.provs.map(p=>({v:p.id,t:p.rs}));
+    return {
+      tabs:[['al','Alertas de stock ('+low.length+')'],['req','Requerimientos ('+s.reqs.filter(r=>r.est==='PENDIENTE').length+' por aprobar)'],['prov','Proveedores ('+s.provs.length+')'],['com','Compras']].map(t=>({n:t[1],cls:s.tab===t[0]?'on':'',pick:()=>set({tab:t[0]})})),
+      tAl:s.tab==='al', tReq:s.tab==='req', tProv:s.tab==='prov', tCom:s.tab==='com', isAdm, user:a.user,
+      low, noLow:low.length===0, reqs, closeM, stop:(e)=>e.stopPropagation(),
+      provs:s.provs.map(p=>({...p,oTxt:p.orig==='VERIFICADO'?'RUC verificado':'Manual',oChip:p.orig==='VERIFICADO'?'ok':''})),
+      compras:s.compras.map(c=>({...c,showTot:isAdm,tot:Number(c.tot).toFixed(2)})),
+      // requerimiento
+      mReq:s.modal==='req', nextNum, rq, openReq:()=>set({modal:'req',rq:{area:isAdm?'Administración':'Almacén',linea:'Servicios de belleza',tipo:'INSUMO',prio:'NORMAL',items:[]},it:{pid:P[0].id,prov:'pr1',q:''}}),
+      setRqArea:(e)=>set({rq:{...rq,area:e.target.value}}), setRqLinea:(e)=>set({rq:{...rq,linea:e.target.value}}), setRqTipo:(e)=>set({rq:{...rq,tipo:e.target.value}}), setRqPrio:(e)=>set({rq:{...rq,prio:e.target.value}}),
+      rqItems:rq.items.map((i,k)=>({...i,prov:pvN(i.prov),quitar:()=>set({rq:{...rq,items:rq.items.filter((_,j)=>j!==k)}})})),
+      it, setItP:(e)=>set({it:{...it,pid:e.target.value}}), setItProv:(e)=>set({it:{...it,prov:e.target.value}}), setItQ:(e)=>set({it:{...it,q:e.target.value}}),
+      pOpts:P.map(p=>({v:p.id,t:p.cod+' · '+p.n+' (stock '+p.st+')'})), provOpts, cantIt:!(+it.q>0)||rq.items.some(i=>i.pid===it.pid),
+      addIt:()=>{ const p=P.find(x=>x.id===it.pid); set({rq:{...rq,items:[...rq.items,{pid:p.id,prod:p.n,prov:it.prov,q:+it.q}]},it:{...it,q:''}}); },
+      cantReq:rq.items.length===0, reqBtn:isAdm?'Registrar y aprobar':'Enviar a aprobación',
+      saveReq:()=>{ set(st=>({reqs:[{num:nextNum,f:'12 oct',sol:a.user,area:rq.area,linea:rq.linea,tipo:rq.tipo,prio:rq.prio,est:isAdm?'APROBADO':'PENDIENTE',items:rq.items},...st.reqs],modal:null,tab:'req'})); a.toast('Requerimiento '+nextNum+(isAdm?' registrado y aprobado':' enviado a la Administradora')); },
+      motivo:s.motivo, setMotivo:(e)=>set({motivo:e.target.value}), mRech:s.modal==='rech', cantRech:!s.motivo.trim(),
+      doRech:()=>{ upd(s.tgt,{est:'RECHAZADO',motivo:s.motivo.trim()}); closeM(); a.toast('Requerimiento rechazado con motivo'); },
+      // proveedor
+      mProv:s.modal==='prov', pv, openProv:()=>set({modal:'prov',docMsg:'',pv:{ruc:'',rs:'',tel:'',mail:'',orig:'MANUAL'}}),
+      setPvRuc:(e)=>set({pv:{...pv,ruc:e.target.value.replace(/\D/g,'').slice(0,11),orig:'MANUAL'},docMsg:''}), setPvRs:(e)=>set({pv:{...pv,rs:e.target.value}}), setPvTel:(e)=>set({pv:{...pv,tel:e.target.value}}), setPvMail:(e)=>set({pv:{...pv,mail:e.target.value}}),
+      cantRuc:!/^(10|15|17|20)\d{9}$/.test(pv.ruc), pvOTxt:pv.orig==='VERIFICADO'?'Verificado':'Manual', pvOChip:pv.orig==='VERIFICADO'?'ok':'', docMsg:s.docMsg, docCls:s.docCls,
+      consultaRuc:()=>{ if(s.provs.some(p=>p.ruc===pv.ruc)){ set({docMsg:'Ese RUC ya está registrado (RUC único).',docCls:'bad'}); return; } if(pv.ruc.endsWith('0')) set({docMsg:'APISPERU no respondió o no encontró el RUC. Escribe la razón social a mano; quedará como no verificado.',docCls:'warn'}); else set({pv:{...pv,rs:'COSMÉTICOS DEL CENTRO S.A.C.',orig:'VERIFICADO'},docMsg:'RUC ACTIVO y HABIDO según APISPERU: razón social completada.',docCls:'ok'}); },
+      cantProv:!/^(10|15|17|20)\d{9}$/.test(pv.ruc)||!pv.rs.trim()||s.provs.some(p=>p.ruc===pv.ruc),
+      saveProv:()=>{ set(st=>({provs:[...st.provs,{id:'pr'+Date.now(),rs:pv.rs.trim().toUpperCase(),ruc:pv.ruc,orig:pv.orig,tel:pv.tel,mail:pv.mail}],modal:null,tab:'prov'})); a.toast('Proveedor registrado'); },
+      // compra
+      mCom:s.modal==='com', cReq, cf, cLines, cTot:cTot.toFixed(2), setCfProv:(e)=>set({cf:{...cf,prov:e.target.value}}), setCfDoc:(e)=>set({cf:{...cf,doc:e.target.value}}),
+      cantCom:!cf.doc.trim()||cLines.some(l=>l.rq===''||!(+l.c>0)),
+      saveCom:()=>{ const hh=new Date().toTimeString().slice(0,5);
+        cReq.items.forEach(i=>{ const p=P.find(x=>x.id===i.pid), L=cf.lines[i.pid], q=+L.q; p.st+=q; p.cost=+L.c; if(p.uso==='VENTA') p.pv=Math.round(p.cost*(1+a.param(p.prem?'MARGEN_PREMIUM':'MARGEN_PRODUCTO')/100)*100)/100;
+          a.data.kmov.unshift({f:'12 oct '+hh,pid:p.id,prod:p.n,tipo:'Entrada',mot:'Compra '+cf.doc.trim()+' · '+cReq.num,q,delta:q,saldo:p.st,u:a.user}); });
+        upd(cReq.num,{est:'ATENDIDO'}); set(st=>({compras:[{f:'12 oct',doc:cf.doc.trim(),prov:pvN(cf.prov),req:cReq.num,u:a.user,tot:cTot},...st.compras],modal:null,tab:'com'}));
+        a.toast('Compra '+cf.doc.trim()+' registrada · stock y kardex actualizados · '+cReq.num+' ATENDIDO'); }
+    };
+  }
+}
+</script>
+</body>
+</html>

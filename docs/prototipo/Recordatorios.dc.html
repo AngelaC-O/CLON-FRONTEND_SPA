@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div class="col" style="gap:16px">
+<div class="row"><div class="sp"><h1 class="h1">Recordatorios y membresías</h1><div class="mut">Recordatorios de cita por WhatsApp (CUS14), clientas inactivas según su ciclo de visita (CUS15) y membresías de spa por sesiones (CUS16). Solo se escribe a quien autorizó comunicaciones.</div></div></div>
+<div class="tabs"><sc-for list="{{ tabs }}" as="t" hint-placeholder-count="2"><button class="tab {{ t.cls }}" onClick="{{ t.pick }}">{{ t.n }}</button></sc-for></div>
+<sc-if value="{{ tR }}" hint-placeholder-val="{{ true }}"><div class="gs"><div class="card cp0"><div class="row" style="padding:14px 18px"><h2 class="h2 sp">Citas de mañana · martes 13 de octubre</h2><select class="inp" style="width:auto" value="{{ canal }}" onChange="{{ setCanal }}"><option>WHATSAPP</option><option>SMS</option><option>LLAMADA</option></select><button class="btn sm" onClick="{{ sendAll }}">Enviar todos</button></div><div class="tw"><table class="tbl"><tbody>
+<sc-for list="{{ rows }}" as="r" hint-placeholder-count="5"><tr><td class="b num" style="width:64px">{{ r.h }}</td><td><div class="b">{{ r.cli }}</div><div class="xs mut">{{ r.srv }} · {{ r.tel }}</div></td><td class="r"><sc-if value="{{ r.can }}"><button class="btn sm sec" onClick="{{ r.send }}">Enviar</button></sc-if><sc-if value="{{ r.sent }}"><span class="chip {{ r.sChip }}">{{ r.sTxt }}</span></sc-if><sc-if value="{{ r.fail }}"><button class="btn sm ghost" onClick="{{ r.send }}">Reintentar</button></sc-if><sc-if value="{{ r.blocked }}"><span class="chip bad">No autorizó comunicaciones</span></sc-if></td></tr></sc-for></tbody></table></div></div>
+<div class="card col"><h2 class="h2">Plantilla del mensaje</h2><textarea class="inp" style="min-height:140px" value="{{ tpl }}" onInput="{{ setTpl }}"></textarea><div class="xs mut">{nombre}, {hora} y {servicio} se completan por cada clienta. Cada envío queda registrado con canal, fecha y estado (ENVIADO o FALLIDO).</div><label class="row xs mut" style="gap:8px"><input type="checkbox" checked="{{ simFail }}" onChange="{{ setSimFail }}">Demo: simular que el servicio de WhatsApp no responde</label></div></div></sc-if>
+<sc-if value="{{ tI }}"><div class="row"><span class="mut sm">Sin visitar hace más de</span><div class="seg"><sc-for list="{{ umbrales }}" as="u" hint-placeholder-count="3"><button class="{{ u.cls }}" onClick="{{ u.pick }}">{{ u.n }}</button></sc-for></div><span class="sp"></span><button class="btn sec" onClick="{{ expInact }}">Exportar lista</button></div>
+<div class="card cp0"><div class="tw"><table class="tbl"><thead><tr><th>Clienta</th><th class="no-m">Última visita</th><th class="r">Días</th><th class="no-m">Ciclo habitual</th><th></th></tr></thead><tbody><sc-for list="{{ inact }}" as="c" hint-placeholder-count="3"><tr><td><div class="b">{{ c.n }}</div><div class="xs mut">{{ c.tel }}</div></td><td class="no-m num">{{ c.ult }}</td><td class="r b num">{{ c.d }}</td><td class="no-m sm mut">{{ c.ciclo }}</td><td class="r"><sc-if value="{{ c.canMsg }}"><button class="btn sm sec" onClick="{{ c.msg }}">{{ c.msgTxt }}</button></sc-if><sc-if value="{{ c.noCom }}"><span class="chip bad">No autorizó comunicaciones</span></sc-if></td></tr></sc-for></tbody></table></div><sc-if value="{{ noInact }}"><div class="mut sm" style="padding:24px;text-align:center">No hay clientas inactivas con ese umbral.</div></sc-if></div>
+<div class="xs mut">Ciclos de retorno del caso: servicios rápidos cada 3 a 4 semanas; servicios de relajación cada 5 a 6 semanas.</div></sc-if>
+<sc-if value="{{ tM }}"><div class="row"><span class="sp"></span><button class="btn lg" onClick="{{ openNew }}">+ Registrar membresía</button></div>
+<div class="gf2"><sc-for list="{{ mems }}" as="m" hint-placeholder-count="3"><div class="card col" style="gap:10px"><div class="row"><div class="sp"><div class="b" style="font-size:16px">{{ m.cli }}</div><div class="sm mut">{{ m.n }}</div></div><span class="chip {{ m.chip }}">{{ m.left }} sesiones</span></div><div class="bar"><i style="{{ m.w }};background:var(--spa)"></i></div><div class="xs mut">{{ m.u }} de {{ m.t }} usadas</div>
+<sc-if value="{{ m.zero }}"><div class="alert warn"><span class="sp">Membresía sin sesiones.</span><button class="btn sm" onClick="{{ m.renew }}">Renovar</button></div></sc-if></div></sc-for></div></sc-if>
+<sc-if value="{{ modal }}" hint-placeholder-val="{{ false }}"><div class="modal-bg" onClick="{{ closeM }}"><div class="modal n" onClick="{{ stop }}"><div class="mh"><h2 class="h2 sp">Registrar membresía o paquete</h2></div><div class="mb"><div class="fld"><label class="lbl">CLIENTA</label><select class="inp" value="{{ nf.cid }}" onChange="{{ setC }}"><sc-for list="{{ cliOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.t }}</option></sc-for></select></div><div class="fld"><label class="lbl">PLAN DE SESIONES (DEL CATÁLOGO)</label><select class="inp" value="{{ nf.plan }}" onChange="{{ setPlan }}"><sc-for list="{{ planOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.t }}</option></sc-for></select></div><div class="alert info">Se cobra en «Cobros» con su comprobante; al cerrar la venta la membresía queda ACTIVA con sus sesiones y su fecha de vencimiento.</div></div><div class="mf"><button class="btn sec" onClick="{{ closeM }}">Cancelar</button><button class="btn" onClick="{{ save }}">Ir a cobrar S/ {{ price }}</button></div></div></div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  PLANS = [{n:'Membresía Spa · 6 sesiones',t:6,p:420,l:'spa'},{n:'Paquete Manicura · 4 sesiones',t:4,p:120,l:'salon'},{n:'Cabina Relax · 3 sesiones',t:3,p:270,l:'spa'}];
+  componentDidMount(){ const p=this.props.app.params; if(p&&p.tab) this.setState({tab:p.tab}); }
+  state = { tab:'r', sent:{}, fail:{}, canal:'WHATSAPP', simFail:false, um:45, msgd:{}, tpl:'Hola {nombre}, te esperamos mañana a las {hora} en Cautiva Spa para tu {servicio}. Si no puedes asistir, avísanos con anticipación. ¡Gracias!', modal:false, nf:{cid:'c2',plan:0},
+    tomorrow:[{id:1,h:'09:00',cid:'c1',srv:'Corte de cabello'},{id:2,h:'10:30',cid:'c3',srv:'Manicura semipermanente'},{id:3,h:'11:00',cid:'c4',srv:'Masaje descontracturante'},{id:4,h:'15:00',cid:'c5',srv:'Limpieza facial'},{id:5,h:'16:30',cid:'c7',srv:'Peinado'}],
+    extra:[{cli:'Elena Gómez',n:'Pedicura Spa · 3 sesiones',u:3,t:3}] };
+  renderVals() {
+    const a = this.props.app, s = this.state, set=(o)=>this.setState(o), now=()=>new Date().toTimeString().slice(0,5);
+    const cl = (id)=>a.clientas.find(c=>c.id===id)||{};
+    const rows = s.tomorrow.map(r=>{ const c=cl(r.cid), ok=c.com!==false, sent=s.sent[r.id], f=s.fail[r.id];
+      return {...r,cli:c.n,tel:c.tel,can:ok&&!sent,sent:!!sent,fail:!!sent&&!!f,sChip:f?'bad':'ok',sTxt:(f?'FALLIDO ':'ENVIADO ')+(sent||'')+' · '+s.canal,blocked:!ok,send:()=>{ set({sent:{...s.sent,[r.id]:now()},fail:{...s.fail,[r.id]:s.simFail}}); a.toast(s.simFail?'No se pudo enviar a '+c.n+': quedó FALLIDO para reintentar':'Recordatorio enviado a '+c.n+' por '+s.canal); }}; });
+    const M={ene:0,feb:31,mar:59,abr:90,may:120,jun:151,jul:181,ago:212,sep:243,oct:273,nov:304,dic:334}; const days=(t)=>{ const [d,m]=String(t).split(' '); return M[m]===undefined?null:(273+12)-(M[m]+(+d)); };
+    const inact = a.clientas.map(c=>({...c,d:days(c.ult)})).filter(c=>c.d!==null&&c.d>s.um).sort((x,y)=>y.d-x.d).map(c=>({...c,ciclo:c.paq.some(p=>/Spa|Relax/.test(p.n))?'Relajación · 5 a 6 semanas':'Rápido · 3 a 4 semanas',canMsg:c.com!==false,noCom:c.com===false,msgTxt:s.msgd[c.id]?'Mensaje enviado':'Invitar a volver',msg:()=>{ set({msgd:{...s.msgd,[c.id]:true}}); a.toast('Mensaje de reactivación enviado a '+c.n+' por WhatsApp'); }}));
+    const all = a.clientas.flatMap(c=>c.paq.map(p=>({cli:c.n,cid:c.id,n:p.n,u:p.u,t:p.t}))).concat(s.extra.map(x=>({...x})));
+    const closeM=()=>set({modal:false}), nf=s.nf, plan=this.PLANS[nf.plan];
+    return {
+      tabs:[['r','Recordatorios del día'],['i','Clientas inactivas'],['m','Membresías']].filter(t=>t[0]!=='i'||a.role==='D').map(t=>({n:t[1],cls:s.tab===t[0]?'on':'',pick:()=>set({tab:t[0]})})), tR:s.tab==='r', tM:s.tab==='m', tI:s.tab==='i'&&a.role==='D',
+      canal:s.canal, setCanal:(e)=>set({canal:e.target.value}), simFail:s.simFail, setSimFail:(e)=>set({simFail:e.target.checked}),
+      umbrales:[21,30,45].map(n=>({n:n+' días',cls:s.um===n?'on':'',pick:()=>set({um:n})})), inact, noInact:inact.length===0, expInact:()=>a.toast('Lista de '+inact.length+' clientas inactivas exportada a Excel'),
+      rows, sendAll:()=>{ const n={...s.sent}; let k=0; const fl={...s.fail}; rows.forEach(r=>{ if(r.can){n[r.id]=now();fl[r.id]=s.simFail;k++;} }); set({sent:n,fail:fl}); a.toast(s.simFail?k+' recordatorios quedaron FALLIDOS: reintenta cuando el servicio responda':k+' recordatorios enviados por '+s.canal+' · omitidas las clientas sin autorización'); },
+      tpl:s.tpl, setTpl:(e)=>set({tpl:e.target.value}),
+      mems:all.map(m=>({...m,left:m.t-m.u,zero:m.t-m.u===0,chip:m.t-m.u===0?'bad':'spa',w:'width:'+Math.round(m.u/m.t*100)+'%',renew:()=>{ set({modal:true,nf:{cid:m.cid||'c6',plan:0}}); }})),
+      openNew:()=>set({modal:true,nf:{cid:'c2',plan:0}}), modal:s.modal, closeM, stop:(e)=>e.stopPropagation(), nf,
+      cliOpts:a.clientas.map(c=>({v:c.id,t:c.n})), planOpts:this.PLANS.map((p,i)=>({v:i,t:p.n+' · S/ '+p.p})), setC:(e)=>set({nf:{...nf,cid:e.target.value}}), setPlan:(e)=>set({nf:{...nf,plan:+e.target.value}}), price:plan.p,
+      save:()=>{ const c=cl(nf.cid); a.setCobros(cb=>[...cb,{id:'a'+Date.now(),cli:c.n,cid:c.id,esp:'—',l:plan.l,lin:[{t:plan.n,p:plan.p,tipo:'paq'}],adel:0,saldo:0,hora:now()}]); closeM(); a.toast('Membresía lista para cobro'); a.go('cobros'); }
+    };
+  }
+}
+</script>
+</body>
+</html>

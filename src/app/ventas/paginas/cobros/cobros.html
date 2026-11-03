@@ -1,0 +1,276 @@
+<div class="col" style="gap: 16px">
+  <div class="row">
+    <div class="sp">
+      <h1 class="h1">Cobros y comprobantes</h1>
+      <div class="mut">
+        Cobra la atención. El sistema emite la boleta o factura electrónica y la envía a SUNAT.
+      </div>
+    </div>
+    <button class="btn sec" type="button" (click)="proforma.set(true)">Emitir proforma</button>
+  </div>
+
+  @if (error(); as mensaje) {
+    <div class="alert bad" role="alert">{{ mensaje }}</div>
+  }
+
+  @if (venta(); as actual) {
+    <div class="gs">
+      <div class="col" style="gap: 16px">
+        <div class="card cp0">
+          <div class="tw">
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>Detalle</th>
+                  <th>Tipo</th>
+                  <th class="r">Precio</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (detalle of actual.detalles; track detalle.idDetalle) {
+                  <tr>
+                    <td class="b">{{ descripcion(detalle) }}</td>
+                    <td>
+                      <span class="chip info">{{ detalle.tipoItem }}</span>
+                    </td>
+                    <td class="r b num">{{ soles(detalle.subtotal) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <form class="card col" [formGroup]="descuentos" (ngSubmit)="aplicarDescuentos()">
+          <div class="h3">1 · Descuentos y saldo a favor</div>
+          <div class="g2">
+            <div class="fld">
+              <label class="lbl" for="cobroPromocion">CÓDIGO DE PROMOCIÓN</label>
+              <input
+                class="inp"
+                id="cobroPromocion"
+                type="number"
+                min="1"
+                formControlName="idPromocion"
+              />
+            </div>
+            <div class="fld">
+              <label class="lbl" for="cobroSaldo">SALDO A FAVOR QUE SE APLICA (S/)</label>
+              <input
+                class="inp"
+                id="cobroSaldo"
+                type="number"
+                min="0"
+                step="0.01"
+                formControlName="saldoFavorAplicado"
+              />
+            </div>
+          </div>
+          <button
+            class="btn sec"
+            type="submit"
+            style="align-self: flex-start"
+            [disabled]="enviando()"
+          >
+            Aplicar descuentos
+          </button>
+        </form>
+
+        <div class="card col">
+          <div class="row">
+            <div class="h3 sp">2 · Medios de pago</div>
+            @if (motivoSinCierre()) {
+              <span class="chip warn">Falta {{ soles(actual.pendiente) }}</span>
+            } @else {
+              <span class="chip ok">Pagos completos</span>
+            }
+          </div>
+          <div class="xs mut">
+            El efectivo se cobra en caja. Yape, Plin y tarjeta se cobran con QR o enlace de Izipay,
+            y solo cuentan cuando Izipay los aprueba (RN42).
+          </div>
+
+          @for (fila of filas; track fila.medio.id) {
+            <div class="row" style="gap: 8px; align-items: flex-end">
+              <div class="fld" style="flex: 1; min-width: 150px">
+                <label class="lbl" [for]="'pagoMonto' + fila.medio.id">
+                  {{ fila.medio.nombre }} (S/)
+                </label>
+                <input
+                  class="inp"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  [id]="'pagoMonto' + fila.medio.id"
+                  [formControl]="fila.monto"
+                />
+              </div>
+              @if (fila.medio.canal) {
+                <div class="fld" style="width: 110px">
+                  <label class="lbl" [for]="'pagoCanal' + fila.medio.id">CANAL</label>
+                  <select class="inp" [id]="'pagoCanal' + fila.medio.id" [formControl]="fila.canal">
+                    <option value="QR">QR</option>
+                    <option value="LINK">Enlace</option>
+                  </select>
+                </div>
+              }
+              <button
+                class="btn sec sm"
+                type="button"
+                style="min-height: 44px"
+                (click)="completar(fila)"
+              >
+                Todo
+              </button>
+              <button
+                class="btn sm"
+                type="button"
+                style="min-height: 44px"
+                [attr.aria-label]="'Registrar pago en ' + fila.medio.etiqueta"
+                [disabled]="enviando() || esperando(fila)"
+                (click)="registrarPago(fila)"
+              >
+                Registrar pago
+              </button>
+            </div>
+          }
+
+          @for (cobro of enEspera(); track cobro.idTransaccion) {
+            <div class="card col espera">
+              <div class="row">
+                <span class="b sp">
+                  {{ medioPago(cobro.idMedioPago)?.etiqueta }} · {{ soles(cobro.monto) }}
+                </span>
+                <span class="chip warn">Esperando a Izipay…</span>
+              </div>
+              @if (cobro.enlacePago; as enlace) {
+                @if (cobro.canal === 'QR') {
+                  <div class="xs mut">La clienta escanea este QR con su aplicación.</div>
+                  <app-qr-pago [enlace]="enlace" />
+                } @else {
+                  <app-compartir-enlace [enlace]="enlace" asunto="Pago en Cautiva Spa" />
+                }
+              }
+              <div class="row" style="gap: 8px">
+                <button
+                  class="btn sm"
+                  type="button"
+                  [disabled]="enviando()"
+                  (click)="verificar(cobro)"
+                >
+                  Verificar aprobación
+                </button>
+                <button class="btn ghost sm" type="button" (click)="quitar(cobro)">Quitar</button>
+              </div>
+            </div>
+          }
+
+          @for (pago of actual.pagos; track pago.idPago) {
+            <div class="row sm">
+              <span class="sp">
+                {{ medioPago(pago.idMedioPago)?.etiqueta }}
+                @if (pago.referencia) {
+                  · {{ pago.referencia }}
+                }
+              </span>
+              <span class="chip ok">Registrado</span>
+              <b class="num">{{ soles(pago.monto) }}</b>
+            </div>
+          }
+        </div>
+
+        <div class="card col">
+          <div class="row">
+            <div class="h3 sp">3 · Comprobante electrónico</div>
+            <span class="chip info">SUNAT</span>
+          </div>
+          <app-datos-comprador [formulario]="comprador" [importe]="importe()" />
+        </div>
+      </div>
+
+      <div class="card col" style="position: sticky; top: 16px">
+        <h2 class="h2">Resumen</h2>
+        <div class="col" style="gap: 6px">
+          <div class="row sm">
+            <span class="sp mut">Subtotal</span>
+            <span class="num">{{ soles(actual.subtotal) }}</span>
+          </div>
+          <div class="row sm">
+            <span class="sp mut">IGV (Amazonía exonerada)</span>
+            <span class="num">{{ soles(actual.igv) }}</span>
+          </div>
+          @if (actual.descuento) {
+            <div class="row sm">
+              <span class="sp mut">Descuento</span>
+              <span class="num">− {{ soles(actual.descuento) }}</span>
+            </div>
+          }
+          @if (actual.adelantoAplicado) {
+            <div class="row sm">
+              <span class="sp mut">Adelanto aplicado</span>
+              <span class="num">− {{ soles(actual.adelantoAplicado) }}</span>
+            </div>
+          }
+          @if (actual.saldoFavorAplicado) {
+            <div class="row sm">
+              <span class="sp mut">Saldo a favor aplicado</span>
+              <span class="num">− {{ soles(actual.saldoFavorAplicado) }}</span>
+            </div>
+          }
+          <div class="row b">
+            <span class="sp">Total</span>
+            <span class="num">{{ soles(actual.total) }}</span>
+          </div>
+          <hr class="sep" />
+          <div class="row sm">
+            <span class="sp mut">Pagos registrados</span>
+            <span class="num">{{ soles(actual.pagado) }}</span>
+          </div>
+        </div>
+        <div class="row" style="align-items: flex-end">
+          <span class="sp b">A pagar</span>
+          <span class="kpi num">{{ soles(actual.pendiente) }}</span>
+        </div>
+        <button
+          class="btn lg blk"
+          type="button"
+          [disabled]="enviando() || motivoSinCierre()"
+          (click)="cerrar()"
+        >
+          Cerrar venta y emitir comprobante
+        </button>
+        @if (motivoSinCierre(); as motivo) {
+          <div class="xs mut">{{ motivo }}</div>
+        }
+      </div>
+    </div>
+  } @else {
+    <form class="card col" style="max-width: 520px" [formGroup]="atencion" (ngSubmit)="cobrar()">
+      <h2 class="h2">Atención por cobrar</h2>
+      <div class="fld">
+        <label class="lbl" for="cobroIdAtencion">CÓDIGO DE LA ATENCIÓN</label>
+        <input class="inp" id="cobroIdAtencion" type="number" min="1" [formControl]="idAtencion" />
+      </div>
+      <div class="xs mut">
+        La atención debe estar finalizada y la caja, abierta. <a routerLink="/caja">Ir a Caja</a>
+      </div>
+      <button class="btn lg blk" type="submit" [disabled]="enviando()">Cobrar</button>
+    </form>
+  }
+</div>
+
+@if (proforma()) {
+  <app-proforma (cerrar)="proforma.set(false)" />
+}
+
+@if (cerrada(); as venta) {
+  <app-modal titulo="Comprobante" [angosto]="true" (cerrar)="terminar()">
+    <div class="mb">
+      <app-comprobante-emitido [venta]="venta" />
+    </div>
+    <div class="mf">
+      <button class="btn" type="button" (click)="terminar()">Listo</button>
+    </div>
+  </app-modal>
+}

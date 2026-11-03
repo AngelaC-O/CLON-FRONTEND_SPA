@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div class="col" style="gap:16px">
+<div class="row"><div class="sp"><h1 class="h1">Reportes gerenciales</h1><div class="mut">Ventas, márgenes, productos, medios de pago y demanda (CUS48–CUS49). Excluyen las ventas anuladas (RN33). La contadora recibe los reportes exportados; no usa el sistema.</div></div></div>
+<div class="tabs"><button class="tab {{ tabP }}" onClick="{{ setP }}">Panel de indicadores</button><button class="tab {{ tabR }}" onClick="{{ setR }}">Reportes</button></div>
+<sc-if value="{{ isPanel }}" hint-placeholder-val="{{ true }}">
+<div class="gf1"><sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4"><div class="card"><div class="mut sm">{{ k.n }}</div><div class="kpi num">{{ k.v }}</div><div class="xs {{ k.cc }}">{{ k.s }}</div></div></sc-for></div>
+<div class="gs"><div class="card col"><div class="row"><h2 class="h2 sp">Ventas por día · octubre</h2><span class="chip salon"><span class="dot"></span>Salón</span><span class="chip spa"><span class="dot"></span>Spa</span></div>
+<div style="display:flex;align-items:flex-end;gap:6px;height:200px"><sc-for list="{{ days }}" as="d" hint-placeholder-count="12"><div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;height:100%;gap:2px" title="{{ d.t }}"><div style="{{ d.sp }}"></div><div style="{{ d.sa }}"></div></div></sc-for></div>
+<div style="display:flex;gap:6px"><sc-for list="{{ days }}" as="d" hint-placeholder-count="12"><div class="xs mut" style="flex:1;text-align:center">{{ d.n }}</div></sc-for></div></div>
+<div class="card col"><h2 class="h2">Salón vs. Spa</h2><div style="display:flex;justify-content:center"><div style="width:170px;height:170px;border-radius:50%;background:conic-gradient(var(--salon) 0 69%,var(--spa) 69% 100%);display:flex;align-items:center;justify-content:center"><div style="width:110px;height:110px;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center"><b class="num" style="font-size:18px">S/ 18,420</b><span class="xs mut">mes</span></div></div></div>
+<div class="row sm"><span class="chip salon">Salón 69 %</span><span class="chip spa">Spa 31 %</span></div><hr class="sep"><div class="h3">Servicios más vendidos</div><sc-for list="{{ top }}" as="t" hint-placeholder-count="4"><div><div class="row sm"><span class="sp">{{ t.n }}</span><b class="num">{{ t.v }}</b></div><div class="bar"><i style="{{ t.w }}"></i></div></div></sc-for></div></div>
+</sc-if>
+<sc-if value="{{ isRep }}" hint-placeholder-val="{{ false }}">
+<div class="gs" style="grid-template-columns:240px minmax(0,1fr)"><div class="col" style="gap:4px"><sc-for list="{{ list }}" as="r" hint-placeholder-count="9"><button class="nv {{ r.cls }}" style="min-height:42px;font-size:13.5px" onClick="{{ r.pick }}">{{ r.n }}</button></sc-for></div>
+<div class="col"><div class="card"><div class="row"><div class="fld sp" style="min-width:150px"><label class="lbl">PERIODO</label><select class="inp" value="{{ per }}" onChange="{{ setPer }}"><sc-for list="{{ pers }}" as="o" hint-placeholder-count="4"><option>{{ o }}</option></sc-for></select></div><div class="fld sp" style="min-width:150px"><label class="lbl">SEDE</label><select class="inp"><option>Pichanaki Centro</option><option>Todas las sedes</option></select></div><div class="fld sp" style="min-width:150px"><label class="lbl">LÍNEA</label><select class="inp" value="{{ ln }}" onChange="{{ setLn }}"><option value="">Salón y Spa</option><option value="salon">Salón</option><option value="spa">Spa</option></select></div></div></div>
+<sc-if value="{{ noData }}" hint-placeholder-val="{{ false }}"><div class="card" style="text-align:center;padding:40px"><div class="h2">Sin datos en este periodo</div><p class="mut">No hay ventas cerradas entre las fechas elegidas. Prueba otro periodo o sede.</p></div></sc-if>
+<sc-if value="{{ hasData }}" hint-placeholder-val="{{ true }}"><div class="card col"><div class="row"><h2 class="h2 sp">{{ title }}</h2><button class="btn sec sm" onClick="{{ expPdf }}">Exportar PDF</button><button class="btn sec sm" onClick="{{ expXls }}">Exportar Excel</button></div>
+<div class="col" style="gap:8px"><sc-for list="{{ bars }}" as="b" hint-placeholder-count="5"><div class="row nw" style="gap:10px"><span class="sm" style="width:150px;flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ b.n }}</span><div class="bar sp" style="height:14px"><i style="{{ b.w }}"></i></div><b class="num sm" style="width:80px;text-align:right">{{ b.v }}</b></div></sc-for></div>
+<div class="tw"><table class="tbl"><thead><tr><sc-for list="{{ cols }}" as="c" hint-placeholder-count="3"><th class="{{ c.cls }}">{{ c.n }}</th></sc-for></tr></thead><tbody><sc-for list="{{ rows }}" as="r" hint-placeholder-count="5"><tr><sc-for list="{{ r.c }}" as="c" hint-placeholder-count="3"><td class="{{ c.cls }}">{{ c.t }}</td></sc-for></tr></sc-for></tbody></table></div>
+<div class="xs mut">Costos, márgenes y planilla solo se muestran con el rol de Administradora.</div></div></sc-if></div></div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { tab:'p', rid:'linea', per:'Octubre 2026', ln:'' };
+  componentDidMount(){ const p=this.props.app.params; if(p&&p.tab==='r') this.setState({tab:'r'}); }
+  PER = {'Octubre 2026':.55,'Septiembre 2026':1,'Últimos 7 días':.25,'Enero 2026':0};
+  R = {
+    linea:{n:'Ventas por línea (Salón y Spa)',cols:[['Línea','t'],['Ventas','m'],['Servicios','m'],['Productos','m']],rows:[['Salón',12720,11500,1220,'salon'],['Spa',5700,4930,770,'spa']],bar:1},
+    medio:{n:'Ventas por medio de pago',cols:[['Medio','t'],['Ventas','m'],['Operaciones','n'],['Comisión Izipay','m']],rows:[['Efectivo (caja)',7370,104,0],['Yape · QR Izipay',6080,82,209],['Plin · QR Izipay',2210,31,76],['Tarjeta · enlace Izipay',2760,31,95]],bar:1},
+    cpe:{n:'Comprobantes para la contadora',cols:[['Tipo','t'],['Serie','t'],['Emitidos','n'],['Aceptados SUNAT','n'],['Importe','m']],rows:[['Boleta','B001',231,230,15620],['Factura','F001',17,17,2800],['Nota de crédito de boleta','BC01',3,3,-340],['Nota de crédito de factura','FC01',0,0,0]],bar:4},
+    area:{n:'Ventas por área',cols:[['Área','t'],['Ventas','m'],['Atenciones','n']],rows:[['Peluquería y Estilismo',7420,168,'salon'],['Manicura y Pedicura',3820,122,'salon'],['Depilación',1480,64,'salon'],['Cuidado Facial',2310,41,'spa'],['Cabina Spa',3390,52,'spa']],bar:1},
+    servicio:{n:'Ventas por servicio',cols:[['Servicio','t'],['Ventas','m'],['Cantidad','n']],rows:[['Tinte',4300,48,'salon'],['Corte de cabello',3120,121,'salon'],['Masaje',3390,52,'spa'],['Manicura',2200,74,'salon'],['Limpieza facial',2310,41,'spa'],['Pedicura',1620,48,'salon']],bar:1},
+    esp:{n:'Ventas por especialista',cols:[['Especialista','t'],['Ventas','m'],['Atenciones','n']],rows:[['Valeria Ríos',4620,92,'salon'],['Milagros Ayala',3880,88,'salon'],['Yesenia Lazo',3450,101,'salon'],['Daniela Cárdenas',3390,52,'spa'],['Pamela Torres',3080,70,'spa']],bar:1},
+    prod:{n:'Productos más vendidos',cols:[['Producto','t'],['Unidades','n'],['Ventas','m']],rows:[['Shampoo reparador 350 ml',42,1596],['Esmalte semipermanente',60,1080],['Aceite de argán 60 ml',18,936],['Mascarilla capilar 250 g',16,720],['Aceite esencial de lavanda',12,420]],bar:2},
+    ocup:{n:'Ocupación de agenda',cols:[['Especialista','t'],['Horas agendadas','n'],['Ocupación','p']],rows:[['Valeria Ríos',148,78,'salon'],['Milagros Ayala',131,69,'salon'],['Yesenia Lazo',156,82,'salon'],['Daniela Cárdenas',98,52,'spa'],['Pamela Torres',112,59,'spa']],bar:2},
+    rec:{n:'Clientas recurrentes',cols:[['Clienta','t'],['Visitas','n'],['Gasto total','m']],rows:[['Lucía Paredes',7,1120],['Karina Huamán',6,640],['Andrea Salazar',5,890],['Jimena Rojas',4,420],['Marisol Quispe',4,610]],bar:1},
+    rent:{n:'Costo y margen por línea',cols:[['Línea','t'],['Ventas','m'],['Costo (insumos y comisión)','m'],['Margen','p']],rows:[['Salón',12720,4710,63,'salon'],['Spa',5700,1820,68,'spa']],bar:3},
+    margsrv:{n:'Costo y margen por servicio',cols:[['Servicio','t'],['Ventas','m'],['Costo insumos','m'],['Comisión','m'],['Margen','p']],rows:[['Tinte',4300,1080,1290,45,'salon'],['Masaje',3390,240,1360,53,'spa'],['Corte de cabello',3120,90,940,67,'salon'],['Limpieza facial',2310,350,690,55,'spa'],['Depilación con cera',1480,310,440,49,'salon']],bar:4},
+    margprod:{n:'Margen por producto',cols:[['Producto','t'],['Ventas','m'],['Costo','m'],['Margen','p']],rows:[['Shampoo reparador 350 ml',1386,924,33],['Esmalte semipermanente',810,540,33],['Aceite de argán 60 ml (premium)',1080,540,50],['Mascarilla capilar 250 g',624,416,33]],bar:3},
+    demanda:{n:'Demanda y capacidad',cols:[['Franja','t'],['Citas','n'],['Lista de espera','n'],['Ocupación','p']],rows:[['Sábados 15:00–19:00',64,9,96],['Viernes 17:00–20:00',48,5,91],['Lunes a jueves mañana',122,0,54],['Domingos',38,3,77]],bar:3},
+    plan:{n:'Planilla',cols:[['Concepto','t'],['Monto','m']],rows:[['Sueldos base',8760],['Comisiones',2620],['Descuentos',-170],['Adelantos',-2400]],bar:1}
+  };
+  fm(v,t){ return t==='m'?(v<0?'− S/ '+Math.abs(Math.round(v)).toLocaleString('en-US'):'S/ '+Math.round(v).toLocaleString('en-US')):t==='p'?v+' %':t==='n'?String(Math.round(v)):v; }
+  renderVals() {
+    const s = this.state, set=(o)=>this.setState(o), a=this.props.app;
+    const def = this.R[s.rid], f = this.PER[s.per];
+    const rows = def.rows.filter(r=>{ const tag=r[r.length-1]; return !s.ln || (tag!=='salon'&&tag!=='spa') || tag===s.ln; });
+    const money = def.cols.map(c=>c[1]);
+    const scaled = rows.map(r=>r.map((v,i)=>typeof v==='number'&&money[i]!=='p'?v*f:v));
+    const mx = Math.max(1,...scaled.map(r=>Math.abs(r[def.bar])));
+    const PANELX=0, ADM=['rent','margsrv','margprod','plan'];
+    const days = [1180,1420,980,1560,1700,1310,0,1250,1480,1390,1620,1200,1740,1080].map((v,i)=>{ const sa=v*.69/1800*100, sp=v*.31/1800*100;
+      return {n:i+1,t:'Día '+(i+1)+': S/ '+v,sa:`background:var(--salon);border-radius:3px 3px 0 0;height:${sa}%`,sp:`background:var(--spa);height:${sp}%`}; });
+    return {
+      tabP:s.tab==='p'?'on':'', tabR:s.tab==='r'?'on':'', setP:()=>set({tab:'p'}), setR:()=>set({tab:'r'}), isPanel:s.tab==='p', isRep:s.tab==='r',
+      kpis:[{n:'Ventas del mes',v:'S/ 18,420',s:'+12 % vs. septiembre · IGV 0 %',cc:'ok'},{n:'Ticket promedio',v:'S/ 74',s:'248 comprobantes aceptados',cc:'mut'},{n:'Cobro digital por Izipay',v:'60 %',s:'Efectivo 40 % · comisión S/ 380',cc:'mut'},{n:'Clientas recurrentes',v:'41 %',s:'3+ visitas en 90 días',cc:'mut'}],
+      days, top:[['Tinte',4300],['Masaje',3390],['Corte de cabello',3120],['Limpieza facial',2310]].map(t=>({n:t[0],v:'S/ '+t[1].toLocaleString('en-US'),w:'width:'+Math.round(t[1]/4300*100)+'%'})),
+      list:Object.keys(this.R).filter(k=>a.role==='D'||!ADM.includes(k)).map(k=>({n:this.R[k].n,cls:s.rid===k?'on':'',pick:()=>set({rid:k})})), per:s.per, pers:Object.keys(this.PER), setPer:(e)=>set({per:e.target.value}), ln:s.ln, setLn:(e)=>set({ln:e.target.value}),
+      noData:f===0||rows.length===0, hasData:!(f===0||rows.length===0), title:def.n,
+      bars:scaled.map(r=>({n:r[0],v:this.fm(r[def.bar],def.cols[def.bar][1]),w:'width:'+Math.max(2,Math.abs(r[def.bar])/mx*100)+'%;'+(rows[0]&&(def.rows.find(x=>x[0]===r[0])||[]).slice(-1)[0]==='spa'?'background:var(--spa)':'')})),
+      cols:def.cols.map(c=>({n:c[0],cls:c[1]==='t'?'':'r'})), rows:scaled.map(r=>({c:def.cols.map((c,i)=>({t:this.fm(r[i],c[1]),cls:(c[1]==='t'?'b':'r num')}))})),
+      expPdf:()=>a.toast('Reporte exportado a PDF'), expXls:()=>a.toast('Reporte exportado a Excel')
+    };
+  }
+}
+</script>
+</body>
+</html>

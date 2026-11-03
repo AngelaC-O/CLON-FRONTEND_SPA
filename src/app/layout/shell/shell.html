@@ -1,0 +1,87 @@
+<div class="app">
+  <aside class="side">
+    <div class="row nw brand">
+      <span class="avatar marca">C</span><span class="h2 brandt">Cautiva Spa</span>
+    </div>
+    @for (grupo of grupos(); track grupo.nombre) {
+      <div class="grp">{{ grupo.nombre }}</div>
+      @for (item of grupo.items; track item.ruta) {
+        <a
+          class="nv"
+          [routerLink]="item.ruta"
+          routerLinkActive="on"
+          [routerLinkActiveOptions]="{ exact: true }"
+          [title]="item.etiqueta"
+        >
+          <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+            <path [attr.d]="item.icono"></path>
+          </svg>
+          <span class="nvl">{{ item.etiqueta }}</span>
+        </a>
+      }
+    }
+  </aside>
+
+  <div class="main">
+    <header class="top">
+      <div class="mbrand row nw">
+        <span class="avatar marca">C</span><span class="h2">Cautiva Spa</span>
+      </div>
+      <span class="chip alto no-m">
+        <svg class="ic" viewBox="0 0 24 24" style="width: 15px; height: 15px" aria-hidden="true">
+          <path d="M12 21s-7-6-7-11a7 7 0 0114 0c0 5-7 11-7 11z"></path>
+        </svg>
+        Sede {{ sesion.sesion()?.idSede }}
+      </span>
+      <span class="sp"></span>
+      @if (cajaVisible()) {
+        <a class="chip alto" routerLink="/caja">Caja</a>
+      }
+      <button
+        class="row nw usuario"
+        type="button"
+        [cdkMenuTriggerFor]="menuUsuario"
+        aria-label="Menú del usuario"
+      >
+        <span class="avatar">{{ iniciales() }}</span>
+        <span class="no-m b">{{ sesion.sesion()?.nombreUsuario }}</span>
+      </button>
+    </header>
+
+    <main>
+      <router-outlet />
+    </main>
+  </div>
+
+  <nav class="bnav" aria-label="Navegación principal">
+    @for (item of barraInferior(); track item.ruta) {
+      <a
+        class="bn"
+        [routerLink]="item.ruta"
+        routerLinkActive="on"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+          <path [attr.d]="item.icono"></path>
+        </svg>
+        {{ item.corta }}
+      </a>
+    }
+    <button class="bn" type="button" (click)="abrirMas()">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 6h16M4 12h16M4 18h16"></path>
+      </svg>
+      Más
+    </button>
+  </nav>
+</div>
+
+<ng-template #menuUsuario>
+  <div class="menu" cdkMenu>
+    <button class="mi" type="button" cdkMenuItem (cdkMenuItemTriggered)="cambiarClave()">
+      Cambiar clave
+    </button>
+    <hr class="sep" />
+    <button class="mi bad" type="button" cdkMenuItem (cdkMenuItemTriggered)="salir()">Salir</button>
+  </div>
+</ng-template>

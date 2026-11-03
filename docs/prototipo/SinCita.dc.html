@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div class="col" style="gap:16px;max-width:1100px">
+<div><h1 class="h1">Atención sin cita</h1><div class="mut">Para quien llega sin reserva (CUS13): ocupa a la especialista y al recurso igual que una cita (RN34). Son las <b>{{ ahora }}</b>.</div></div>
+<div class="gs">
+<div class="col" style="gap:16px">
+<div class="card col"><div class="h3">1 · Clienta</div>
+<div class="seg"><button class="{{ pasoCls }}" onClick="{{ setPaso }}">Cliente de paso</button><button class="{{ regCls }}" onClick="{{ setReg }}">Clienta registrada</button></div>
+<sc-if value="{{ esReg }}" hint-placeholder-val="{{ false }}"><select class="inp" value="{{ cid }}" onChange="{{ setCid }}"><sc-for list="{{ cliOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.t }}</option></sc-for></select></sc-if>
+<sc-if value="{{ esPaso }}" hint-placeholder-val="{{ true }}"><div class="fld"><label class="lbl">NOMBRE DEL CLIENTE DE PASO *</label><input class="inp" value="{{ paso }}" onInput="{{ setPasoN }}" placeholder="Ej. Jorge (corte de caballero)"></div><div class="xs mut">Solo se pide el nombre (RN35). ¿Quiere registrarse? <a href="#" onClick="{{ goCli }}">Derivar a Clientas</a></div></sc-if></div>
+<div class="card col"><div class="h3">2 · Servicio y variante</div>
+<div class="gf1"><sc-for list="{{ srvs }}" as="x" hint-placeholder-count="8"><button class="btn sec" style="flex-direction:column;align-items:flex-start;gap:2px;min-height:64px;{{ x.st }}" onClick="{{ x.pick }}"><span>{{ x.n }}</span><span class="chip {{ x.l }}">{{ x.lname }}</span></button></sc-for></div>
+<div class="row"><sc-for list="{{ vars }}" as="v" hint-placeholder-count="3"><button class="btn {{ v.cls }}" style="min-height:56px" onClick="{{ v.pick }}">{{ v.n }} · S/ {{ v.p }}</button></sc-for></div>
+<div class="fld" style="max-width:260px"><label class="lbl">DURACIÓN (MIN) · REFERENCIAL {{ durRef }}</label><input class="inp" type="number" min="5" value="{{ dur }}" onInput="{{ setDur }}"></div><div class="xs mut">La especialista indica el tiempo exacto; si choca con una cita agendada, no se permite (RN41).</div></div>
+<div class="card col"><div class="h3">3 · Especialista y recurso disponibles</div><div class="xs mut">Solo especialistas que atienden {{ area }}. El recurso queda bloqueado además por su tiempo de limpieza.</div>
+<div class="col" style="gap:8px"><sc-for list="{{ espList }}" as="e" hint-placeholder-count="5"><button class="card" style="text-align:left;font:inherit;padding:12px 14px;cursor:pointer;{{ e.st }}" disabled="{{ e.busy }}" onClick="{{ e.pick }}"><div class="row nw"><span class="avatar {{ e.l }}">{{ e.ini }}</span><div class="sp"><div class="b">{{ e.n }}</div><div class="xs mut">{{ e.area }}</div></div><span class="chip {{ e.chip }}">{{ e.txt }}</span></div></button></sc-for></div>
+<sc-if value="{{ noEsp }}" hint-placeholder-val="{{ false }}"><div class="alert warn"><span>No hay especialista disponible sin afectar una cita agendada. Próximo espacio libre: <b>{{ nextFree }}</b>. La clienta puede decidir esperar.</span></div></sc-if></div>
+</div>
+<div class="card col" style="position:sticky;top:16px"><h2 class="h2">Resumen</h2>
+<div class="col" style="gap:6px"><div class="row"><span class="sp">{{ resSrv }}</span><b class="num">S/ {{ precio }}</b></div><div class="xs mut">{{ resEsp }}</div><div class="xs mut">{{ resRec }}</div></div>
+<hr class="sep"><div class="row"><span class="sp mut">IGV 0 % · Amazonía exonerada (RN06)</span><span class="num">S/ 0.00</span></div>
+<div class="row"><span class="sp b">Total</span><span class="kpi num" style="font-size:30px">S/ {{ precio }}</span></div>
+<div class="xs mut">Toda venta lleva boleta o factura electrónica (RN07). Una boleta de más de S/ 700 exige los datos del comprador (RN08).</div>
+<button class="btn lg blk" disabled="{{ cant }}" onClick="{{ start }}">Iniciar atención</button>
+<div class="xs mut" style="text-align:center">Al finalizar pasa a Cobros con la venta armada: se cobra y se emite el comprobante en una sola pantalla.</div></div>
+</div></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  NOW = 630; // 10:30 demo
+  state = { pasoReg:false, cid:'c1', sid:'s1', vi:0, eid:'', paso:'', dur:'' };
+  m(t){ const [h,mm]=t.split(':').map(Number); return h*60+mm; }
+  t(n){ return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0'); }
+  renderVals() {
+    const a = this.props.app, d = a.data, s = this.state, set=(o)=>this.setState(o);
+    const srv = d.srv.find(x=>x.id===s.sid), vr = srv.v[s.vi]||srv.v[0], dur = +s.dur>0 ? +s.dur : srv.dur;
+    const L=(r)=>(d.limp||{})[r]||10;
+    const can=(e)=>{ const st=d.staff.find(x=>x.eid===e.id); return st?st.areas.includes(srv.area):e.area===srv.area; };
+    const cs = a.citas.filter(c=>c.est!=='cancelada'&&c.est!=='finalizada'||c.est==='atencion');
+    const live = a.citas.filter(c=>c.est==='pendiente'||c.est==='atencion');
+    const esps = d.esp.filter(can).map(e=>{ const b = live.find(c=>c.e===e.id && this.NOW < this.m(c.ini)+c.dur+L(c.rec) && this.m(c.ini) < this.NOW+dur+L(c.rec));
+      const sameArea = e.area===srv.area;
+      return {...e,b,sameArea}; }).sort((x,y)=>(!!x.b-!!y.b)||(y.sameArea-x.sameArea));
+    const free = esps.filter(e=>!e.b), pick = free.find(e=>e.id===s.eid) || free[0];
+    const recPool = srv.area.startsWith('Peluq')?d.rec.slice(0,3):srv.area.startsWith('Manic')?d.rec.slice(3,5):d.rec.slice(5);
+    const rec = pick && recPool.find(r=>!live.some(c=>c.rec===r && this.NOW < this.m(c.ini)+c.dur+L(r) && this.m(c.ini) < this.NOW+dur+L(r)));
+    const nextFree = (()=>{ let best=1e9; esps.forEach(e=>{ if(e.b) best=Math.min(best,this.m(e.b.ini)+e.b.dur+L(e.b.rec)); }); return best<1e9?this.t(best):'—'; })();
+    const cli = a.clientas.find(c=>c.id===s.cid);
+    return {
+      ahora:'10:30', esPaso:!s.pasoReg, esReg:s.pasoReg, pasoCls:s.pasoReg?'sec':'', regCls:s.pasoReg?'':'sec',
+      setPaso:()=>set({pasoReg:false}), setReg:()=>set({pasoReg:true}), cid:s.cid, setCid:(e)=>set({cid:e.target.value}),
+      cliOpts:a.clientas.map(c=>({v:c.id,t:c.n})), paso:s.paso, setPasoN:(e)=>set({paso:e.target.value}), area:srv.area, durRef:srv.dur, dur:s.dur===''?srv.dur:s.dur, setDur:(e)=>set({dur:e.target.value}), goCli:(e)=>{e.preventDefault();a.go('clientas');},
+      srvs:d.srv.map(x=>({n:x.n,l:x.l,lname:x.l==='salon'?'Salón':'Spa',st:x.id===s.sid?'border-color:var(--pri);background:#F6EFE8':'',pick:()=>set({sid:x.id,vi:0,eid:'',dur:''})})),
+      vars:srv.v.map((v,i)=>({n:v[0],p:v[1],cls:i===s.vi?'':'sec',pick:()=>set({vi:i})})),
+      espList:esps.map(e=>({...e,ini:e.n.split(' ').map(w=>w[0]).join(''),busy:!!e.b,chip:e.b?'bad':(pick&&pick.id===e.id?'ok':''),txt:e.b?'Ocupada hasta '+this.t(this.m(e.b.ini)+e.b.dur):(pick&&pick.id===e.id?'Seleccionada':'Libre'),
+        st:e.b?'opacity:.55;cursor:not-allowed':(pick&&pick.id===e.id?'border-color:var(--pri);background:#F6EFE8':''),pick:()=>set({eid:e.id})})),
+      noEsp:free.length===0, nextFree,
+      resSrv:srv.n+' · '+vr[0], precio:vr[1],
+      resEsp:pick?'Especialista: '+pick.n:'Sin especialista disponible', resRec:rec?'Recurso: '+rec+' · '+dur+' min + '+L(rec)+' min de limpieza':'Sin recurso libre',
+      cant:!pick||!rec||(!s.pasoReg&&!s.paso.trim()),
+      start:()=>{ const id='k'+Date.now(); const name=s.pasoReg?cli.n:s.paso.trim()+' (de paso)';
+        a.setCitas(cs=>[...cs,{id,cli:name,cid:s.pasoReg?cli.id:null,srv:srv.n,v:vr[0],e:pick.id,ini:'10:30',dur,rec,est:'atencion',l:srv.l,p:vr[1],adel:0,t0:Date.now(),sinCita:true}]);
+        a.toast('Atención en curso con '+pick.n+' · al finalizar quedará lista para cobro'); a.go(a.role==='D'?'atencion':'cobros',{id}); }
+    };
+  }
+}
+</script>
+</body>
+</html>
