@@ -12,6 +12,7 @@ export const PERMISOS = {
   cajaVer: 'CAJA:VER',
   catalogoCrear: 'CATALOGO:CREAR',
   catalogoVer: 'CATALOGO:VER',
+  clientasCrear: 'CLIENTAS:CREAR',
   clientasVer: 'CLIENTAS:VER',
   sedesCrear: 'SEDES:CREAR',
   seguridadCrear: 'SEGURIDAD:CREAR',

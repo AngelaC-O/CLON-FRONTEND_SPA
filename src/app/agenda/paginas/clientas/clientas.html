@@ -1,0 +1,179 @@
+<div class="col" style="gap: 16px">
+  <div class="row">
+    <div class="sp">
+      <h1 class="h1">Clientas</h1>
+      <div class="mut">
+        Un registro único para agendar, cobrar y fidelizar. Datos tratados con consentimiento según
+        la Ley N° 29733.
+      </div>
+    </div>
+    @if (puedeRegistrar()) {
+      <button class="btn lg" type="button" (click)="abrirRegistro()">+ Registrar clienta</button>
+    }
+  </div>
+
+  <form class="card" [formGroup]="busqueda" (ngSubmit)="buscar()">
+    <label class="lbl" for="buscarClienta">BUSCAR POR NOMBRE, APELLIDO O TELÉFONO</label>
+    <div class="row nw">
+      <input
+        class="inp"
+        id="buscarClienta"
+        placeholder="Ej. Lucía, Paredes o 964…"
+        formControlName="texto"
+      />
+      <button class="btn sec" type="submit">Buscar</button>
+    </div>
+  </form>
+
+  <div class="card cp0 tw">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Clienta</th>
+          <th>Teléfono</th>
+          <th>Datos</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (clienta of clientas(); track clienta.idCliente) {
+          <tr>
+            <td>
+              <div class="row nw">
+                <span class="avatar">{{ iniciales(clienta) }}</span>
+                <div>
+                  <div class="b">{{ clienta.nombres }} {{ clienta.apellidos }}</div>
+                  @if (!clienta.aceptaComunicaciones) {
+                    <div class="xs mut">No desea comunicaciones</div>
+                  }
+                </div>
+              </div>
+            </td>
+            <td class="num">{{ clienta.telefono }}</td>
+            <td>
+              @if (clienta.origenDatos === 'VERIFICADO') {
+                <span class="chip ok">{{ abreviatura(clienta.idTipoDocumento) }} verificado</span>
+              } @else {
+                <span class="chip">Ingresada a mano</span>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td class="vacio" colspan="3">No se encontraron clientas.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+@if (modalAbierto()) {
+  <app-modal titulo="Registrar clienta" (cerrar)="modalAbierto.set(false)">
+    <form [formGroup]="formulario" (ngSubmit)="registrar()">
+      <div class="mb">
+        <div class="mut sm">Nombre y teléfono son obligatorios; el documento es opcional.</div>
+        @if (errorRegistro(); as mensaje) {
+          <div class="alert bad" role="alert">{{ mensaje }}</div>
+        }
+        <div class="g2">
+          <div class="fld">
+            <label class="lbl" for="idTipoDocumento">TIPO DE DOCUMENTO</label>
+            <select class="inp" id="idTipoDocumento" formControlName="idTipoDocumento">
+              <option [ngValue]="null">Sin documento</option>
+              @for (tipo of tipos; track tipo.id) {
+                <option [ngValue]="tipo.id">{{ tipo.abreviatura }}</option>
+              }
+            </select>
+          </div>
+          <div class="fld">
+            <label class="lbl" for="numeroDocumento">NÚMERO</label>
+            <input
+              class="inp"
+              id="numeroDocumento"
+              maxlength="15"
+              formControlName="numeroDocumento"
+            />
+          </div>
+        </div>
+        <div class="row">
+          @if (tipoElegido()?.consulta) {
+            <button
+              class="btn sec sm"
+              type="button"
+              [disabled]="consultando()"
+              (click)="consultarDocumento()"
+            >
+              Consultar documento
+            </button>
+          }
+          @if (fechaVerificacion()) {
+            <span class="chip ok">Verificada</span>
+          } @else {
+            <span class="chip">Ingresada a mano</span>
+          }
+        </div>
+        @if (avisoConsulta(); as aviso) {
+          <div class="alert" [class.ok]="aviso.ok" [class.warn]="!aviso.ok" role="status">
+            {{ aviso.texto }}
+          </div>
+        } @else if (tipoElegido() && !tipoElegido()?.consulta) {
+          <div class="xs mut">
+            Este tipo de documento no se consulta: la ficha quedará ingresada a mano.
+          </div>
+        }
+        <div class="g2">
+          <div class="fld">
+            <label class="lbl" for="nombres">NOMBRES O RAZÓN SOCIAL</label>
+            <input class="inp" id="nombres" maxlength="80" formControlName="nombres" />
+          </div>
+          <div class="fld">
+            <label class="lbl" for="apellidos">APELLIDOS</label>
+            <input class="inp" id="apellidos" maxlength="80" formControlName="apellidos" />
+          </div>
+          <div class="fld">
+            <label class="lbl" for="telefono">TELÉFONO</label>
+            <input class="inp" id="telefono" type="tel" maxlength="15" formControlName="telefono" />
+          </div>
+          <div class="fld">
+            <label class="lbl" for="correo">CORREO</label>
+            <input class="inp" id="correo" type="email" maxlength="100" formControlName="correo" />
+          </div>
+          <div class="fld">
+            <label class="lbl" for="fechaCumpleanos">CUMPLEAÑOS</label>
+            <input class="inp" id="fechaCumpleanos" type="date" formControlName="fechaCumpleanos" />
+          </div>
+        </div>
+        <div class="fld">
+          <label class="lbl" for="observaciones">OBSERVACIONES</label>
+          <textarea
+            class="inp"
+            id="observaciones"
+            maxlength="300"
+            formControlName="observaciones"
+          ></textarea>
+        </div>
+        <label class="row nw" style="gap: 10px; align-items: flex-start">
+          <input
+            id="consentimiento"
+            type="checkbox"
+            style="margin-top: 4px"
+            formControlName="consentimiento"
+          />
+          <span>
+            <b>Consentimiento (obligatorio).</b> La clienta autoriza el tratamiento de sus datos
+            personales para gestionar sus citas, ventas e historial (Ley N° 29733, RN27). Se guarda
+            la fecha.
+          </span>
+        </label>
+        <label class="row nw" style="gap: 10px">
+          <input id="aceptaComunicaciones" type="checkbox" formControlName="aceptaComunicaciones" />
+          <span>Acepta recibir recordatorios y comunicaciones por WhatsApp</span>
+        </label>
+      </div>
+      <div class="mf">
+        <button class="btn sec" type="button" (click)="modalAbierto.set(false)">Cancelar</button>
+        <button class="btn" type="submit" [disabled]="enviando()">Registrar</button>
+      </div>
+    </form>
+  </app-modal>
+}
