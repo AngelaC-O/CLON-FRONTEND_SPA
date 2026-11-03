@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div class="col" style="gap:16px;max-width:1100px">
+<div class="row"><div class="sp"><h1 class="h1">Caja diaria</h1><div class="mut">Lunes 12 de octubre · Sede Pichanaki Centro</div></div><span class="chip {{ stCls }}" style="height:32px;padding:0 14px"><span class="dot"></span>{{ stTxt }}</span></div>
+<sc-if value="{{ revPend }}" hint-placeholder-val="{{ false }}"><div class="card col" style="border-color:var(--warn)"><div class="row"><h2 class="h2 sp">Cierre con diferencia por aprobar</h2><span class="chip warn">Administradora</span></div>
+<div class="sm">{{ last.hora }} · diferencia total <b class="{{ last.cc }}">S/ {{ last.dif }}</b> · observación de la recepcionista: «{{ last.obs }}»</div>
+<div class="tw"><table class="tbl"><thead><tr><th>Medio</th><th class="r">Esperado</th><th class="r">Contado / Izipay</th><th class="r">Diferencia</th></tr></thead><tbody><sc-for list="{{ last.rows }}" as="r" hint-placeholder-count="4"><tr><td class="b">{{ r.n }}</td><td class="r num">S/ {{ r.exp }}</td><td class="r num">S/ {{ r.cnt }}</td><td class="r b num">{{ r.dif }}</td></tr></sc-for></tbody></table></div>
+<sc-if value="{{ isAdm }}"><div class="row"><button class="btn" onClick="{{ aprobar }}">Aprobar cierre</button><span class="xs mut">Queda registrado quién revisó y cuándo (CAJA.id_usuario_revisa, fecha_revision).</span></div></sc-if>
+<sc-if value="{{ notAdm }}"><div class="xs mut">Se avisó a la Administradora para que revise y apruebe este cierre.</div></sc-if></div></sc-if>
+<sc-if value="{{ vApertura }}" hint-placeholder-val="{{ false }}">
+<div class="gf2"><div class="card col"><h2 class="h2">Abrir caja</h2>
+<sc-if value="{{ prevPend }}" hint-placeholder-val="{{ false }}"><div class="alert bad"><span class="sp"><b>La caja de ayer (11 oct) quedó sin cerrar.</b> Solo puede haber una caja abierta por sede: ciérrala primero.</span><button class="btn sm" onClick="{{ closePrev }}">Cerrar caja de ayer</button></div></sc-if>
+<sc-if value="{{ prevOk }}" hint-placeholder-val="{{ true }}"><div class="alert ok">No hay otra caja abierta en la sede.</div></sc-if>
+<div class="fld"><label class="lbl">MONTO INICIAL EN EFECTIVO (S/)</label><input class="inp" style="min-height:56px;font-size:20px" type="number" min="0" value="{{ ini }}" onInput="{{ setIni }}" placeholder="0.00"></div>
+<button class="btn lg" disabled="{{ cantOpen }}" onClick="{{ doOpen }}">Abrir caja</button>
+<a href="#" class="xs" onClick="{{ togglePrev }}">Simular caja de ayer sin cerrar</a></div>
+<sc-if value="{{ last }}" hint-placeholder-val="{{ false }}"><div class="card col"><h2 class="h2">Último cierre</h2><div class="sm mut">{{ last.hora }} · diferencia total S/ {{ last.dif }} · {{ last.revTxt }}</div><div class="row"><span class="sp">Total vendido</span><b class="num">S/ {{ last.ventas }}</b></div><button class="btn sec" onClick="{{ openResumen }}">Ver resumen de caja</button></div></sc-if></div>
+</sc-if>
+<sc-if value="{{ vCurso }}" hint-placeholder-val="{{ true }}">
+<div class="gf1"><sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4"><div class="card"><div class="mut sm">{{ k.n }}</div><div class="kpi num">S/ {{ k.v }}</div><div class="xs mut">{{ k.s }}</div></div></sc-for></div>
+<div class="gs"><div class="card cp0"><div class="row" style="padding:16px 18px 8px"><h2 class="h2 sp">Movimientos del día</h2><span class="xs mut">Las ventas anuladas no se suman</span></div><div class="tw"><table class="tbl"><tbody><sc-for list="{{ movs }}" as="m" hint-placeholder-count="4"><tr class="{{ m.rc }}"><td class="num sm">{{ m.f }}</td><td>{{ m.t }}</td><td class="no-m sm">{{ m.medio }}</td><td class="r b num {{ m.cc }}">{{ m.m }}</td></tr></sc-for></tbody></table></div></div>
+<div class="col"><div class="card col"><h2 class="h2">Egreso del día</h2><div class="xs mut">Gasto menor o devolución en efectivo. Se resta del efectivo esperado (CAJA_EGRESO).</div><input class="inp" value="{{ egC }}" onInput="{{ setEgC }}" placeholder="Concepto"><input class="inp" type="number" min="0" value="{{ egM }}" onInput="{{ setEgM }}" placeholder="Monto S/"><button class="btn sec" disabled="{{ cantEg }}" onClick="{{ addEg }}">Registrar egreso</button></div>
+<button class="btn lg bad" onClick="{{ openCierre }}">Cerrar caja y arquear</button></div></div>
+</sc-if>
+<sc-if value="{{ mCierre }}" hint-placeholder-val="{{ false }}"><div class="modal-bg" onClick="{{ closeM }}"><div class="modal w" onClick="{{ stop }}">
+<div class="mh"><div class="sp"><h2 class="h2">Cierre y arqueo</h2><div class="mut sm">Cuenta el efectivo. Yape, Plin y tarjeta se toman de lo aprobado en Izipay hoy (RF64).</div></div></div>
+<div class="mb"><div class="tw"><table class="tbl"><thead><tr><th>Medio</th><th class="r">Esperado (ventas)</th><th>Contado / Izipay (S/)</th><th class="r">Diferencia</th></tr></thead><tbody><sc-for list="{{ arq }}" as="r" hint-placeholder-count="4"><tr><td class="b">{{ r.n }}<div class="xs mut">{{ r.src }}</div></td><td class="r num">S/ {{ r.exp }}</td><td><input class="inp" style="max-width:140px" type="number" value="{{ r.cnt }}" onInput="{{ r.set }}" disabled="{{ r.ro }}"></td><td class="r b num {{ r.cc }}">{{ r.dif }}</td></tr></sc-for></tbody></table></div>
+<sc-if value="{{ pendCpe }}" hint-placeholder-val="{{ false }}"><div class="alert warn">Hay {{ pendCpe }} comprobante(s) del día pendientes de envío a SUNAT. El sistema los seguirá reenviando (RN46).</div></sc-if>
+<sc-if value="{{ hasDif }}" hint-placeholder-val="{{ false }}"><div class="alert warn">Hay diferencia: escribe el motivo. La Administradora revisará y aprobará el cierre (RN30).</div><div class="fld"><label class="lbl">OBSERVACIÓN (OBLIGATORIA)</label><textarea class="inp" value="{{ obs }}" onInput="{{ setObs }}"></textarea></div></sc-if>
+<div class="alert info">Al confirmar se cierra el día: no se admiten ventas nuevas en él sin autorización de la Administradora (RF66).</div></div>
+<div class="mf"><button class="btn sec" onClick="{{ closeM }}">Cancelar</button><button class="btn bad" disabled="{{ cantClose }}" onClick="{{ doClose }}">Confirmar cierre</button></div></div></div></sc-if>
+<sc-if value="{{ mRes }}" hint-placeholder-val="{{ false }}"><div class="modal-bg" onClick="{{ closeM }}"><div class="modal n" onClick="{{ stop }}">
+<div class="mh"><div class="sp"><h2 class="h2">Resumen de caja</h2><div class="mut sm">Cautiva Spa · {{ last.hora }} · {{ user }}</div></div></div>
+<div class="mb"><sc-for list="{{ last.rows }}" as="r" hint-placeholder-count="4"><div class="row sm"><span class="sp">{{ r.n }}</span><span class="num">Esp. S/ {{ r.exp }}</span><b class="num" style="width:110px;text-align:right">Real S/ {{ r.cnt }}</b></div></sc-for><hr class="sep"><div class="row"><span class="sp b">Total vendido</span><b class="num">S/ {{ last.ventas }}</b></div><div class="row"><span class="sp mut">Egresos</span><span class="num">S/ {{ last.egr }}</span></div><div class="row"><span class="sp mut">Diferencia</span><b class="num {{ last.cc }}">S/ {{ last.dif }}</b></div><sc-if value="{{ last.obs }}"><div class="alert warn">{{ last.obs }}</div></sc-if><div class="xs mut">{{ last.revTxt }}</div></div>
+<div class="mf"><button class="btn sec" onClick="{{ closeM }}">Cerrar</button><button class="btn" onClick="{{ print }}">Imprimir</button></div></div></div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { ini:'100', prev:false, egC:'', egM:'', modal:null, cnt:{}, obs:'' };
+  f2(n){ return (Math.round(n*100)/100).toFixed(2); }
+  MED = ['Efectivo','Yape','Plin','Tarjeta'];
+  calc(a) {
+    const c = a.caja, tot = {Efectivo:0,Yape:0,Plin:0,Tarjeta:0}, izi = {Yape:0,Plin:0,Tarjeta:0};
+    const hoy = a.ventas.filter(v=>v.f.startsWith('12 oct')&&v.est==='cerrada');
+    hoy.forEach(v=>{ const pg = v.pagos || {[v.medio]:v.tot}; Object.keys(pg).forEach(k=>{ if(tot[k]!==undefined) tot[k]+=pg[k]; }); });
+    a.data.txs.filter(t=>t.f.startsWith('12 oct')&&t.est==='APROBADA'&&t.tipo!=='DEVOLUCION').forEach(t=>{ if(izi[t.medio]!==undefined) izi[t.medio]+=t.m; });
+    const eg = (c.egresos||[]).reduce((t,e)=>t+e.m,0), ventas = Object.values(tot).reduce((t,x)=>t+x,0);
+    return {tot, izi, eg, ventas, hoy, exp:{Efectivo:(c.inicial||0)+tot.Efectivo-eg,Yape:tot.Yape,Plin:tot.Plin,Tarjeta:tot.Tarjeta}};
+  }
+  renderVals() {
+    const a = this.props.app, s = this.state, set=(o)=>this.setState(o), c = a.caja, k = this.calc(a), isAdm = a.role==='D';
+    const cnt = (m)=> m!=='Efectivo' ? this.f2(k.izi[m]) : (s.cnt[m]!==undefined ? s.cnt[m] : this.f2(k.exp[m]));
+    const arq = this.MED.map(m=>{ const d = (+cnt(m)||0)-k.exp[m]; return {n:m,src:m==='Efectivo'?'Contado en caja':'Aprobado en Izipay',ro:m!=='Efectivo',exp:this.f2(k.exp[m]),cnt:cnt(m),dif:(d>0?'+':'')+this.f2(d),d,cc:Math.abs(d)<.005?'':(d<0?'bad':'warn'),set:(e)=>set({cnt:{...s.cnt,[m]:e.target.value}})}; });
+    const hasDif = arq.some(r=>Math.abs(r.d)>=.005), difTot = arq.reduce((t,r)=>t+r.d,0);
+    const movs = [{f:c.hora,t:'Apertura de caja',medio:'Efectivo',m:'+ S/ '+this.f2(c.inicial||0),cc:'',rc:''}]
+      .concat([...k.hoy].reverse().map(v=>({f:v.f.slice(7),t:v.cli+' · '+v.comp,medio:v.medio,m:'+ S/ '+this.f2(v.tot),cc:'ok',rc:''})))
+      .concat((c.egresos||[]).map(e=>({f:e.h||'—',t:'Egreso · '+e.c,medio:'Efectivo',m:'− S/ '+this.f2(e.m),cc:'bad',rc:''})));
+    const cz = c.cierre;
+    const last = cz ? {...cz, dif:this.f2(cz.difN), cc:Math.abs(cz.difN)<.005?'':'bad', revTxt:cz.revisado?'Revisado y aprobado por '+cz.revisado:(Math.abs(cz.difN)<.005?'Sin diferencias':'Pendiente de revisión de la Administradora')} : null;
+    const close = ()=>set({modal:null});
+    const pendCpe = k.hoy.filter(v=>v.sunat==='PENDIENTE').length;
+    return {
+      stCls:c.abierta?'ok':'warn', stTxt:c.abierta?'Abierta desde '+c.hora:'Cerrada', vApertura:!c.abierta, vCurso:c.abierta, isAdm, notAdm:!isAdm,
+      revPend:!!(cz && Math.abs(cz.difN)>=.005 && !cz.revisado),
+      aprobar:()=>{ a.setCaja({...c,cierre:{...cz,revisado:a.user+' · 12 oct '+new Date().toTimeString().slice(0,5)}}); a.toast('Cierre aprobado · queda registrado quién lo revisó'); },
+      prevPend:s.prev, prevOk:!s.prev, togglePrev:(e)=>{e.preventDefault();set({prev:!s.prev});}, closePrev:()=>{set({prev:false}); a.toast('Caja de ayer cerrada');},
+      ini:s.ini, setIni:(e)=>set({ini:e.target.value}), cantOpen:s.prev||s.ini===''||+s.ini<0,
+      doOpen:()=>{ a.setCaja({abierta:true,inicial:+s.ini,hora:new Date().toTimeString().slice(0,5),egresos:[],cierre:c.cierre}); a.toast('Caja abierta con S/ '+this.f2(+s.ini)); },
+      last, openResumen:()=>set({modal:'res'}),
+      kpis:[{n:'Efectivo en caja (esperado)',v:this.f2(k.exp.Efectivo),s:'Inicial S/ '+this.f2(c.inicial||0)+' + ventas − egresos'},{n:'Yape (Izipay)',v:this.f2(k.izi.Yape),s:'Aprobado hoy en la pasarela'},{n:'Plin (Izipay)',v:this.f2(k.izi.Plin),s:'Aprobado hoy en la pasarela'},{n:'Tarjeta (Izipay)',v:this.f2(k.izi.Tarjeta),s:'Aprobado hoy por enlace de pago'}],
+      movs, egC:s.egC, egM:s.egM, setEgC:(e)=>set({egC:e.target.value}), setEgM:(e)=>set({egM:e.target.value}), cantEg:!s.egC.trim()||!(+s.egM>0),
+      addEg:()=>{ a.setCaja({...c,egresos:[...(c.egresos||[]),{c:s.egC.trim(),m:+s.egM,h:new Date().toTimeString().slice(0,5)}]}); set({egC:'',egM:''}); a.toast('Egreso registrado'); },
+      openCierre:()=>set({modal:'cierre',cnt:{},obs:''}), mCierre:s.modal==='cierre', mRes:s.modal==='res', closeM:close, stop:(e)=>e.stopPropagation(),
+      arq, hasDif, pendCpe, obs:s.obs, setObs:(e)=>set({obs:e.target.value}), cantClose:hasDif&&!s.obs.trim(),
+      doClose:()=>{ a.setCaja({...c,abierta:false,cierre:{hora:'12 oct '+new Date().toTimeString().slice(0,5),ventas:this.f2(k.ventas),egr:this.f2(k.eg),difN:difTot,obs:hasDif?s.obs:'',revisado:'',rows:arq.map(r=>({n:r.n,exp:r.exp,cnt:this.f2(+r.cnt||0),dif:r.dif}))},egresos:[]}); set({modal:'res'}); a.toast(hasDif?'Caja cerrada con diferencia · pendiente de aprobación de la Administradora':'Caja cerrada sin diferencias'); },
+      user:a.user, print:()=>window.print()
+    };
+  }
+}
+</script>
+</body>
+</html>

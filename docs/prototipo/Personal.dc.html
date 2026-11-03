@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div class="col" style="gap:16px">
+<div class="row"><div class="sp"><h1 class="h1">Personal</h1><div class="mut">Fichas del personal con consulta de DNI (CUS36–CUS38). Al desactivar, su usuario pierde el acceso y el historial se conserva.</div></div><button class="btn lg" onClick="{{ openNew }}">+ Registrar personal</button></div>
+<div class="card cp0"><div class="tw"><table class="tbl"><thead><tr><th>Nombre</th><th class="no-m">DNI</th><th>Cargo</th><th class="no-m">Áreas</th><th class="no-m">Pago</th><th class="r">Sueldo</th><th class="r no-m">Comisión</th><th>Estado</th></tr></thead><tbody>
+<sc-for list="{{ rows }}" as="p" hint-placeholder-count="6"><tr class="clk" onClick="{{ p.open }}"><td><div class="row nw"><span class="avatar {{ p.sp }}">{{ p.ini }}</span><span class="b">{{ p.n }}</span></div></td><td class="no-m"><div class="num sm">{{ p.dni }}</div><span class="chip {{ p.oChip }}" style="margin-top:2px">{{ p.oTxt }}</span></td><td class="sm"><div>{{ p.cargo }}</div><div class="xs mut">{{ p.hor }}</div></td><td class="no-m sm mut">{{ p.areasTxt }}</td><td class="no-m sm">{{ p.mod }}</td><td class="r num">{{ p.sueldoTxt }}</td><td class="r no-m num">{{ p.comTxt }}</td><td><span class="chip {{ p.chip }}">{{ p.estado }}</span></td></tr></sc-for></tbody></table></div></div>
+<sc-if value="{{ modal }}" hint-placeholder-val="{{ false }}"><div class="modal-bg" onClick="{{ closeM }}"><div class="modal w" onClick="{{ stop }}">
+<div class="mh"><div class="sp"><h2 class="h2">{{ mTitle }}</h2><div class="mut sm">{{ mSub }}</div></div></div>
+<div class="mb"><div class="row nw" style="align-items:flex-end;gap:8px"><div class="fld sp"><label class="lbl">DNI (8 DÍGITOS)</label><input class="inp" value="{{ e.dni }}" onInput="{{ setDni }}" placeholder="Ej. 43120987"></div><button class="btn sec" style="min-height:44px" disabled="{{ cantDni }}" onClick="{{ consultaDni }}">Consultar DNI</button><span class="chip {{ oChip }}">{{ oTxt }}</span></div>
+<sc-if value="{{ docMsg }}"><div class="alert {{ docCls }}">{{ docMsg }}</div></sc-if>
+<div class="gf1" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))"><sc-for list="{{ fields }}" as="x" hint-placeholder-count="4"><div class="fld"><label class="lbl">{{ x.l }}</label><input class="inp" value="{{ x.v }}" onInput="{{ x.set }}"></div></sc-for>
+<div class="fld"><label class="lbl">CARGO</label><select class="inp" value="{{ e.cargo }}" onChange="{{ setCargo }}"><option>Especialista Técnica</option><option>Recepcionista</option><option>Encargada de Almacén</option><option>Administradora</option></select></div></div>
+<sc-if value="{{ isTec }}"><div><label class="lbl">ÁREAS QUE ATIENDE (PERSONAL POLIFUNCIONAL)</label><div class="row" style="gap:8px"><sc-for list="{{ areas }}" as="ar" hint-placeholder-count="5"><button class="btn sm {{ ar.cls }}" onClick="{{ ar.tog }}">{{ ar.n }}</button></sc-for></div></div></sc-if>
+<div class="gf1" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))"><div class="fld"><label class="lbl">MODALIDAD DE PAGO</label><div class="seg"><sc-for list="{{ mods }}" as="m" hint-placeholder-count="3"><button class="{{ m.cls }}" onClick="{{ m.pick }}">{{ m.n }}</button></sc-for></div></div>
+<sc-if value="{{ showSueldo }}"><div class="fld"><label class="lbl">SUELDO (S/)</label><input class="inp" type="number" value="{{ e.sueldo }}" onInput="{{ setSueldo }}"></div></sc-if>
+<sc-if value="{{ showCom }}"><div class="fld"><label class="lbl">COMISIÓN SOBRE SERVICIOS (%)</label><input class="inp" type="number" min="0" max="100" value="{{ e.com }}" onInput="{{ setCom }}"></div></sc-if></div>
+<sc-if value="{{ rmv }}"><div class="alert warn"><span>Aviso: el sueldo es menor a la RMV vigente de <b>S/ {{ rmvTxt }}</b>. Se puede guardar: la remuneración la acuerdan la dueña y la persona (RN22).</span></div></sc-if>
+<div><label class="lbl">HORARIO DE TRABAJO</label><div class="gf1" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))"><div class="fld"><label class="lbl">DÍAS</label><select class="inp" value="{{ h.d }}" onChange="{{ setHd }}"><option>Lun–Sáb</option><option>Mar–Dom</option><option>Lun–Vie</option><option>Lun–Dom</option></select></div><div class="fld"><label class="lbl">ENTRADA</label><input class="inp" type="time" value="{{ h.i }}" onInput="{{ setHi }}"></div><div class="fld"><label class="lbl">SALIDA</label><input class="inp" type="time" value="{{ h.o }}" onInput="{{ setHo }}"></div><div class="fld"><label class="lbl">ALMUERZO (MIN)</label><input class="inp" type="number" min="0" max="120" value="{{ h.m }}" onInput="{{ setHm }}"></div></div><div class="xs mut">El local atiende de lunes a domingo de 09:00 a 20:00. El horario define la tardanza en la asistencia.</div></div>
+<div class="xs mut">La comisión se paga solo sobre servicios cobrados, nunca sobre productos ni sesiones de paquete (RN38).</div></div>
+<div class="mf"><sc-if value="{{ canDeact }}"><button class="btn bad" style="margin-right:auto" onClick="{{ deact }}">Desactivar</button></sc-if><sc-if value="{{ canReact }}"><button class="btn sec" style="margin-right:auto" onClick="{{ react }}">Reactivar</button></sc-if><button class="btn sec" onClick="{{ closeM }}">Cancelar</button><button class="btn" disabled="{{ cant }}" onClick="{{ save }}">Guardar ficha</button></div>
+</div></div></sc-if>
+<sc-if value="{{ mDeact }}" hint-placeholder-val="{{ false }}"><div class="modal-bg"><div class="modal n"><div class="mh"><h2 class="h2 sp">Reasignar citas futuras</h2></div><div class="mb"><div class="alert warn"><span>{{ e.n }} tiene <b>{{ nFut }}</b> cita(s) pendiente(s). Reasígnalas antes de desactivar. Su usuario quedará INACTIVO (evento PersonalDesactivado).</span></div><div class="fld"><label class="lbl">REASIGNAR A</label><select class="inp" value="{{ reTo }}" onChange="{{ setReTo }}"><sc-for list="{{ reOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.t }}</option></sc-for></select></div></div><div class="mf"><button class="btn sec" onClick="{{ cancelDeact }}">Volver</button><button class="btn bad" onClick="{{ confirmDeact }}">Reasignar y desactivar</button></div></div></div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  AREAS = ['Peluquería y Estilismo','Manicura y Pedicura','Depilación','Cuidado Facial','Cabina Spa'];
+  state = { modal:false, e:null, isNew:false, mDeact:false, reTo:'', docMsg:'', docCls:'' };
+  ph(t){ const m=(t||'').match(/^(\S+) (\d\d:\d\d)–(\d\d:\d\d)/); return m?{d:m[1],i:m[2],o:m[3]}:{d:'Lun–Sáb',i:'09:00',o:'18:00'}; }
+  renderVals() {
+    const a = this.props.app, S = a.data.staff, s = this.state, set=(o)=>this.setState(o), e = s.e||{};
+    const ini = (n)=>n.split(' ').map(w=>w[0]).slice(0,2).join('');
+    const setE = (k)=>(ev)=>set({e:{...e,[k]:ev.target.value}});
+    const isTec = e.cargo==='Especialista Técnica';
+    const showSueldo = e.mod!=='Comisión', showCom = e.mod!=='Fijo' && isTec;
+    const RMV = a.param('RMV_MONTO')||1230;
+    const rmv = showSueldo && e.sueldo!==undefined && e.sueldo!=='' && +e.sueldo<RMV;
+    const h = {...this.ph(e.hor), m:e.alm===undefined?60:e.alm};
+    const setH=(k)=>(ev)=>{ const nh={...h,[k]:ev.target.value}; set({e:{...e,hor:nh.d+' '+nh.i+'–'+nh.o,alm:nh.m}}); };
+    const fut = e.eid ? a.citas.filter(c=>c.e===e.eid&&c.est==='pendiente') : [];
+    const closeM = ()=>set({modal:false,mDeact:false});
+    const write = (o)=>{ if(s.isNew) S.push({id:'t'+Date.now(),act:true,areas:[],...o}); else Object.assign(S.find(x=>x.id===o.id),o); };
+    return {
+      rows:S.map(p=>({...p,oTxt:p.ver?'Verificado':'Manual',oChip:p.ver?'ok':'warn',hor:p.hor||'',ini:ini(p.n),sp:p.cargo==='Especialista Técnica'&&p.eid&&['e4','e5'].includes(p.eid)?'spa':'',areasTxt:p.areas.join(', ')||'—',sueldoTxt:p.mod==='Comisión'?'—':'S/ '+p.sueldo,comTxt:p.com?p.com+' %':'—',chip:p.act?'ok':'',estado:p.act?'Activo':'Inactivo',open:()=>set({modal:true,isNew:false,docMsg:'',e:{...p,areas:[...p.areas]}})})),
+      openNew:()=>set({modal:true,isNew:true,docMsg:'',e:{n:'',dni:'',tel:'',mail:'',cargo:'Especialista Técnica',areas:[],mod:'Mixto',sueldo:'1230',com:'30',act:true,ver:false,hor:'Lun–Sáb 09:00–18:00',alm:60}}),
+      modal:s.modal, closeM, stop:(ev)=>ev.stopPropagation(), mTitle:s.isNew?'Registrar personal':e.n, mSub:s.isNew?'Datos personales, cargo, áreas y modalidad de pago':e.cargo,
+      fields:[['NOMBRES Y APELLIDOS','n'],['TELÉFONO','tel'],['CORREO','mail']].map(x=>({l:x[0],v:e[x[1]]||'',set:setE(x[1])})), e, setCargo:setE('cargo'), isTec,
+      areas:this.AREAS.map(n=>({n,cls:(e.areas||[]).includes(n)?'':'sec',tog:()=>set({e:{...e,areas:(e.areas||[]).includes(n)?e.areas.filter(x=>x!==n):[...(e.areas||[]),n]}})})),
+      mods:['Fijo','Comisión','Mixto'].map(n=>({n,cls:e.mod===n?'on':'',pick:()=>set({e:{...e,mod:n}})})), showSueldo, showCom,
+      setSueldo:setE('sueldo'), setCom:setE('com'), rmv, rmvTxt:RMV.toLocaleString('en-US'), h, setHd:setH('d'), setHi:setH('i'), setHo:setH('o'), setHm:setH('m'),
+      cant:!(e.n||'').trim()||!/^\d{8}$/.test(e.dni||'')||(isTec&&!(e.areas||[]).length),
+      oTxt:e.ver?'Verificado':'Manual', oChip:e.ver?'ok':'warn', docMsg:s.docMsg, docCls:s.docCls,
+      setDni:(ev)=>set({e:{...e,dni:ev.target.value.replace(/\D/g,'').slice(0,8),ver:false},docMsg:''}), cantDni:!/^\d{8}$/.test(e.dni||''),
+      consultaDni:()=>{ const known=S.find(x=>x.dni===e.dni&&x.id!==e.id); if(known){ set({docMsg:'Ese DNI ya pertenece a '+known.n+' (DNI único).',docCls:'bad'}); return; }
+        if(e.dni.endsWith('0')) set({e:{...e,ver:false},docMsg:'APISPERU no encontró el DNI o no respondió. Escribe los nombres a mano; la ficha quedará como MANUAL (RN45).',docCls:'warn'});
+        else set({e:{...e,ver:true,n:e.n||'Rosa Elvira Quispe Palomino'},docMsg:'DNI encontrado en APISPERU: nombres completados y ficha VERIFICADA.',docCls:'ok'}); },
+      save:()=>{ write({...e,sueldo:showSueldo?+e.sueldo:0,com:showCom?+e.com:0}); closeM(); a.toast('Ficha guardada'+(rmv?' con aviso de sueldo menor a la RMV':'')+' · auditoría registrada'); },
+      canDeact:!s.isNew&&e.act, canReact:!s.isNew&&!e.act,
+      deact:()=>{ if(fut.length) set({mDeact:true,reTo:(a.data.esp.find(x=>x.id!==e.eid)||{}).id}); else { write({...e,act:false}); closeM(); a.toast(e.n+' desactivada · su usuario quedó INACTIVO y el historial se conserva'); } },
+      react:()=>{ write({...e,act:true}); closeM(); a.toast('Personal reactivado'); },
+      mDeact:s.mDeact, nFut:fut.length, reTo:s.reTo, setReTo:(ev)=>set({reTo:ev.target.value}), reOpts:a.data.esp.filter(x=>x.id!==e.eid).map(x=>({v:x.id,t:x.n})), cancelDeact:()=>set({mDeact:false}),
+      confirmDeact:()=>{ a.setCitas(cs=>cs.map(c=>c.e===e.eid&&c.est==='pendiente'?{...c,e:s.reTo}:c)); write({...e,act:false}); closeM(); a.toast('Citas reasignadas · '+e.n+' desactivada, fuera de la agenda y sin acceso al sistema'); }
+    };
+  }
+}
+</script>
+</body>
+</html>

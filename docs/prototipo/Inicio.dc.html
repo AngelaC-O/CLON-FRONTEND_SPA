@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div class="col" style="gap:18px">
+<div class="row"><div class="sp"><div class="xs mut b" style="letter-spacing:.08em">LUNES 12 DE OCTUBRE · SEDE PICHANAKI CENTRO</div><h1 class="h1">Buen día, {{ first }}</h1></div>
+<button class="btn lg salon" onClick="{{ goSin }}"><svg class="ic" viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"></path></svg>Atención sin cita</button>
+<button class="btn lg sec" onClick="{{ goAgenda }}">Nueva cita</button></div>
+<sc-if value="{{ cajaCerrada }}" hint-placeholder-val="{{ false }}"><div class="alert warn"><span class="sp"><b>La caja del día está cerrada.</b> No podrás cobrar hasta abrirla.</span><button class="btn sm" onClick="{{ goCaja }}">Abrir caja</button></div></sc-if>
+<div class="gf1">
+<div class="card"><div class="mut sm">Citas de hoy</div><div class="kpi">{{ nCitas }}</div><div class="xs mut">{{ nPend }} pendientes · {{ nCancel }} cancelada</div></div>
+<div class="card"><div class="mut sm">En atención</div><div class="kpi">{{ nAt }}</div><div class="xs mut">{{ nFin }} finalizadas hoy</div></div>
+<button class="card" style="text-align:left;cursor:pointer;font:inherit" onClick="{{ goCobros }}"><div class="mut sm">Por cobrar</div><div class="kpi">{{ nCobros }}</div><div class="xs mut">S/ {{ totCobros }} en atenciones finalizadas</div></button>
+<div class="card"><div class="mut sm">Ventas de hoy</div><div class="kpi num">S/ {{ ventasHoy }}</div><div class="row xs" style="gap:6px"><span class="chip salon">Salón S/ {{ vSalon }}</span><span class="chip spa">Spa S/ {{ vSpa }}</span></div></div>
+</div>
+<div class="gs">
+<div class="card cp0"><div class="row" style="padding:16px 18px 8px"><h2 class="h2 sp">Próximas citas</h2><button class="btn ghost sm" onClick="{{ goAgenda }}">Ver agenda</button></div>
+<div class="tw"><table class="tbl"><tbody>
+<sc-for list="{{ proximas }}" as="c" hint-placeholder-count="5"><tr class="clk" onClick="{{ goAgenda }}"><td class="b num" style="width:70px">{{ c.ini }}</td><td><div class="b">{{ c.cli }}</div><div class="xs mut">{{ c.srv }} · {{ c.v }}</div></td><td class="no-m mut sm">{{ c.espN }}</td><td><span class="chip {{ c.l }}">{{ c.lname }}</span></td></tr></sc-for>
+</tbody></table></div></div>
+<div class="col">
+<div class="card"><h2 class="h2" style="margin-bottom:10px">Pendientes</h2><div class="col" style="gap:8px">
+<sc-for list="{{ pend }}" as="x" hint-placeholder-count="4"><div class="row nw"><span class="chip {{ x.c }}">{{ x.n }}</span><span class="sp sm">{{ x.t }}</span><button class="btn sm sec" onClick="{{ x.go }}">{{ x.b }}</button></div></sc-for>
+<sc-if value="{{ noPend }}"><div class="mut sm">Nada pendiente por ahora.</div></sc-if>
+</div></div>
+<sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}"><div class="card"><h2 class="h2" style="margin-bottom:10px">Ocupación hoy</h2><div class="col" style="gap:12px">
+<div><div class="row sm"><span class="sp">Salón</span><b>72 %</b></div><div class="bar"><i style="width:72%;background:var(--salon)"></i></div></div>
+<div><div class="row sm"><span class="sp">Spa</span><b>58 %</b></div><div class="bar"><i style="width:58%;background:var(--spa)"></i></div></div></div></div></sc-if>
+</div></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const a = this.props.app, cs = a.citas, esp = a.data.esp;
+    const sum = (arr)=>arr.reduce((t,x)=>t+x,0);
+    const vh = a.ventas.filter(v=>v.f.startsWith('12 oct')&&v.est==='cerrada');
+    const sl = sum(vh.filter(v=>v.l==='salon').map(v=>v.tot)), sp = sum(vh.filter(v=>v.l==='spa').map(v=>v.tot));
+    const adm = a.role==='D', cz = a.caja.cierre;
+    const P = [
+      [cs.filter(c=>c.est==='pendiente').length,'info','Recordatorios para mañana','Enviar',()=>a.go('recordatorios'),true],
+      [a.cobros.length,'warn','Atenciones por cobrar','Cobrar',()=>a.go('cobros'),true],
+      [a.ventas.filter(v=>v.est==='cerrada'&&v.sunat==='PENDIENTE').length,'warn','Comprobantes pendientes de envío a SUNAT (se reenvían solos; plazo 3 días)','Ver',()=>a.go('cobros',{tab:'hist'}),true],
+      [a.ventas.filter(v=>v.est==='cerrada'&&v.sunat==='OBSERVADO').length,'bad','Comprobantes OBSERVADOS por SUNAT','Revisar',()=>a.go('cobros',{tab:'hist'}),true],
+      [cs.filter(c=>c.est==='pendiente'&&c.adelEst==='PENDIENTE').length,'warn','Adelantos con enlace de pago sin confirmar','Ver',()=>a.go('agenda'),true],
+      [a.espera.filter(w=>w.est==='PENDIENTE').length,'info','Clientas en lista de espera','Ver',()=>a.go('agenda',{tab:'espera'}),true],
+      [cz&&Math.abs(cz.difN||0)>=.005&&!cz.revisado?1:0,'bad','Cierre de caja con diferencia por aprobar','Revisar',()=>a.go('caja'),adm],
+      [a.data.prod.filter(p=>p.st<=p.min).length,'bad','Productos en stock mínimo o menos','Revisar',()=>a.go('compras'),adm],
+      [1,'dk','Requerimiento de compra por aprobar','Abrir',()=>a.go('compras',{tab:'req'}),adm],
+      [1,'bad','Incidente de seguridad sin aviso (plazo 48 h)','Abrir',()=>a.go('usuarios',{tab:'inc'}),adm]
+    ];
+    const pend = P.filter(x=>x[5]&&x[0]>0).map(x=>({n:x[0],c:x[1],t:x[2],b:x[3],go:x[4]}));
+    return {
+      first:a.user.split(' ')[0], isAdmin:a.role==='D', cajaCerrada:!a.caja.abierta,
+      nCitas:cs.filter(c=>c.est!=='cancelada').length, nPend:cs.filter(c=>c.est==='pendiente').length, nCancel:cs.filter(c=>c.est==='cancelada').length,
+      nAt:cs.filter(c=>c.est==='atencion').length, nFin:cs.filter(c=>c.est==='finalizada').length,
+      nCobros:a.cobros.length, totCobros:sum(a.cobros.map(c=>sum(c.lin.map(l=>l.p))-c.adel)),
+      ventasHoy:sl+sp, vSalon:sl, vSpa:sp, nRecord:cs.filter(c=>c.est==='pendiente').length,
+      proximas:cs.filter(c=>c.est==='pendiente'||c.est==='atencion').sort((x,y)=>x.ini.localeCompare(y.ini)).slice(0,6).map(c=>({...c,espN:esp.find(e=>e.id===c.e).n,lname:c.l==='salon'?'Salón':'Spa'})),
+      pend, noPend:pend.length===0,
+      goSin:()=>a.go('sincita'), goAgenda:()=>a.go('agenda'), goCaja:()=>a.go('caja'), goCobros:()=>a.go('cobros'), goRec:()=>a.go('recordatorios'), goCompras:()=>a.go('compras')
+    };
+  }
+}
+</script>
+</body>
+</html>

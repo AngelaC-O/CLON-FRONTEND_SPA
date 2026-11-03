@@ -1,0 +1,538 @@
+Especificación de Casos de Uso de Sistema – BackOffice Cautiva Spa
+Cautiva Spa E.I.R.L. · Pichanaki, Junín · Documento de trabajo para prototipos y modelo de datos
+1. Propósito y alcance
+Este documento detalla los 21 casos de uso de sistema (CUS) del BackOffice web de Cautiva Spa. Cada CUS agrupa los requisitos funcionales (RF) de la matriz y se apoya en las reglas de negocio (RN) vigentes. Sirve como insumo directo para los prototipos (diseño de pantallas) y, después, para el modelo entidad-relación en Oracle y el diccionario de datos.
+Tecnología confirmada: backend en Java, frontend en Angular, base de datos Oracle, patrón MVC (este último aún por validar con el docente). El diagrama entidad-relación se hará en draw.io, con cardinalidad, más un diccionario de datos.
+2. Cómo leer este documento
+Actores: Recepcionista, Administradora (la dueña), Especialista Técnica (estilistas, masoterapeutas, cosmetólogas, manicuristas; son cinco, polifuncionales) y Encargada de Almacén.
+Prioridad: PRIMARIO o SECUNDARIO, según la hoja de priorización de la matriz.
+Códigos: RF = requisito funcional, RN = regla de negocio, CUS = caso de uso de sistema. Los RF de cada CUS están en la hoja «2. REQ FUNCIONALES» de la matriz.
+Convención de flujo: en cada paso, «el actor» realiza una acción y «el sistema» responde; los flujos alternos indican el paso donde se desvían.
+3. Resumen de los 21 casos de uso
+Código
+ | Caso de uso
+ | Proceso
+ | Actores
+ | Prioridad
+ | RF
+ | CUS01
+ | Buscar, Registrar y Editar Clientas
+ | BUC01
+ | Recepcionista, Administradora
+ | PRIMARIO
+ | RF01–RF05
+ | CUS02
+ | Programar Citas
+ | BUC01
+ | Recepcionista, Administradora
+ | PRIMARIO
+ | RF06–RF11
+ | CUS03
+ | Reprogramar o Cancelar Citas
+ | BUC01
+ | Recepcionista, Administradora
+ | PRIMARIO
+ | RF12
+ | CUS04
+ | Registrar Atención del Servicio
+ | BUC01
+ | Especialista Técnica, Administradora
+ | PRIMARIO
+ | RF13–RF16
+ | CUS20
+ | Registrar Atención sin Cita
+ | BUC01
+ | Recepcionista, Administradora
+ | PRIMARIO
+ | RF17–RF20
+ | CUS05
+ | Cobrar Venta y Registrar Comprobante
+ | BUC02
+ | Recepcionista, Administradora
+ | PRIMARIO
+ | RF21–RF31
+ | CUS07
+ | Anular Venta
+ | BUC02
+ | Recepcionista, Administradora
+ | PRIMARIO
+ | RF32–RF34
+ | CUS06
+ | Vender Productos
+ | BUC03
+ | Recepcionista, Administradora
+ | PRIMARIO
+ | RF35–RF39
+ | CUS10
+ | Registrar Compras y Aprobar Reposiciones
+ | BUC04
+ | Encargada de Almacén, Administradora
+ | SECUNDARIO
+ | RF40–RF43
+ | CUS09
+ | Registrar Productos y Movimientos de Kardex
+ | BUC04
+ | Encargada de Almacén, Administradora
+ | PRIMARIO
+ | RF44–RF50
+ | CUS11
+ | Registrar, Editar y Desactivar Personal
+ | BUC05
+ | Administradora
+ | SECUNDARIO
+ | RF51–RF53
+ | CUS12
+ | Registrar y Corregir Asistencias
+ | BUC05
+ | Recepcionista, Administradora
+ | SECUNDARIO
+ | RF54–RF56
+ | CUS13
+ | Registrar Adelantos y Calcular Planilla
+ | BUC05
+ | Administradora
+ | PRIMARIO
+ | RF57–RF61
+ | CUS08
+ | Abrir y Cerrar Caja Diaria
+ | BUC06
+ | Recepcionista, Administradora
+ | PRIMARIO
+ | RF62–RF67
+ | CUS16
+ | Generar y Exportar Reportes Gerenciales
+ | BUC07
+ | Administradora
+ | PRIMARIO
+ | RF68–RF74
+ | CUS17
+ | Conciliar Ventas del Mes
+ | BUC07
+ | Administradora
+ | PRIMARIO
+ | RF75–RF76
+ | CUS15
+ | Autenticar Usuarios y Restringir Accesos por Rol
+ | BUC08
+ | Todo el Personal
+ | PRIMARIO
+ | RF77–RF80
+ | CUS21
+ | Crear Usuarios y Asignar Roles
+ | BUC08
+ | Administradora
+ | PRIMARIO
+ | RF81–RF82
+ | CUS14
+ | Crear y Editar Servicios, Paquetes, Recursos y Precios
+ | BUC09
+ | Administradora
+ | PRIMARIO
+ | RF83–RF88
+ | CUS18
+ | Enviar Recordatorios y Registrar Membresías por Sesiones
+ | BUC10
+ | Recepcionista, Administradora
+ | SECUNDARIO
+ | RF89–RF91
+ | CUS19
+ | Crear Sedes y Publicar Reserva y Tienda en Línea
+ | BUC10
+ | Administradora
+ | SECUNDARIO
+ | RF92–RF95
+ | 4. Decisiones transversales (aplican a todos los CUS)
+Todas las ventas generan comprobante (boleta o factura), aunque la clienta no lo pida. El sistema solo registra el tipo y número del comprobante emitido en SEE-SOL (gratuito); no emite por sí mismo.
+Una venta nunca se elimina: se anula con nota de crédito. La venta anulada se conserva, pero queda excluida de reportes, caja y conciliación.
+Medios de pago: efectivo, Yape, Plin y tarjeta.
+Precios: cada variante de un servicio (por ejemplo corte normal S/ 20 y corte degradado S/ 30) tiene precio fijo. Solo la Administradora cambia precios y crea descuentos y promociones.
+Duración: la del catálogo es solo referencial. La especialista técnica indica el tiempo exacto, ya sea al agendar (por medio de la recepcionista) o al iniciar la atención; ocurren ambos casos.
+Comisión: se paga solo sobre servicios (nunca sobre productos) y su porcentaje lo define únicamente la Administradora.
+Paquetes y membresías de spa se consumen por sesiones, a lo largo de varias visitas. No hay programa de puntos.
+Una cita cancelada convierte el adelanto en saldo a favor de la clienta, que no vence.
+Solo la Administradora crea usuarios y asigna roles. Solo ella ve costos, márgenes y planilla.
+Toda acción sensible deja registro de auditoría (usuario, fecha y hora, acción).
+5. Especificación por caso de uso
+CUS01 – Buscar, Registrar y Editar Clientas
+Objetivo: mantener un registro único y confiable de clientas (y clientes) para agendar, cobrar y fidelizar.
+Actores: Recepcionista, Administradora. Prioridad: PRIMARIO. Proceso: BUC01.
+Precondiciones: el usuario ha iniciado sesión con un rol que permite acceder al módulo de clientas.
+Flujo principal:
+La recepcionista ingresa el nombre, apellido o teléfono en el buscador de clientas.
+El sistema muestra las coincidencias con nombre, teléfono, última visita y saldo a favor.
+Si la clienta no existe, la recepcionista elige «Registrar clienta» e ingresa nombre y teléfono (obligatorios) y, opcionalmente, DNI o RUC, correo, fecha de cumpleaños y observaciones.
+El sistema valida los datos obligatorios, evita duplicados por teléfono y guarda el registro.
+La recepcionista abre la ficha de la clienta para ver su historial de citas, compras, paquetes y membresías, y puede editar sus datos.
+El sistema guarda los cambios y registra la auditoría.
+Flujos alternos y excepciones:
+Paso 4: ya existe una clienta con ese teléfono; el sistema ofrece abrir la ficha existente en vez de crear un duplicado.
+Paso 3: el cliente es de paso y solo desea un servicio rápido; se atiende por CUS20 sin exigir registro completo.
+Paso 5: la clienta solicita no recibir comunicaciones; el sistema marca la preferencia y CUS18 la respeta.
+Postcondiciones: la clienta queda registrada o actualizada y disponible para agenda y cobro.
+Reglas de negocio: RN01, RN27, RN28, RN29. RF cubiertos: RF01–RF05.
+Pantallas sugeridas: buscador de clientas con resultados; formulario de registro/edición; ficha de la clienta con pestañas (datos, historial, paquetes y membresías, saldo a favor).
+CUS02 – Programar Citas
+Objetivo: reservar un horario con una especialista, un recurso (sillón o cabina) y la clienta, sin cruces.
+Actores: Recepcionista, Administradora. Prioridad: PRIMARIO. Proceso: BUC01.
+Precondiciones: la clienta está registrada (CUS01); existen servicios, especialistas y recursos activos (CUS11, CUS14).
+Flujo principal:
+La recepcionista selecciona la clienta y la sede.
+Elige el servicio y la variante (por ejemplo corte degradado); el sistema muestra el precio fijo y la duración referencial.
+Elige o confirma la especialista; si la especialista indica un tiempo exacto, la recepcionista lo registra como duración de la cita.
+El sistema muestra los horarios libres considerando agenda de la especialista, disponibilidad del recurso y tiempo de limpieza entre atenciones.
+La recepcionista elige el horario y registra el adelanto (monto y medio de pago).
+El sistema confirma la cita, la muestra en la agenda y queda disponible para el recordatorio (CUS18).
+Flujos alternos y excepciones:
+Paso 4: el horario elegido se cruza con otra cita; el sistema lo bloquea y propone el siguiente espacio libre.
+Paso 5: la clienta no deja adelanto; el sistema no confirma la reserva (queda como no reservada).
+Paso 3: la especialista aún no define el tiempo; se usa la duración referencial y la especialista la ajusta al iniciar la atención (CUS04).
+Paso 1: la clienta tiene saldo a favor; el sistema permite aplicarlo como adelanto.
+Postcondiciones: cita confirmada con adelanto registrado; horario y recurso bloqueados.
+Reglas de negocio: RN02, RN03, RN04, RN26, RN40, RN41. RF cubiertos: RF06–RF11.
+Pantallas sugeridas: agenda diaria/semanal por especialista y por recurso; modal «Nueva cita» (clienta, servicio y variante, especialista, horario, adelanto); vista de detalle de cita.
+CUS03 – Reprogramar o Cancelar Citas
+Objetivo: cambiar o cancelar una cita sin perder el dinero de la clienta ni dejar huecos sin explicar.
+Actores: Recepcionista, Administradora. Prioridad: PRIMARIO. Proceso: BUC01.
+Precondiciones: existe una cita confirmada en estado pendiente.
+Flujo principal:
+La recepcionista abre la cita desde la agenda.
+Elige «Reprogramar» o «Cancelar».
+Para reprogramar, selecciona un nuevo horario libre; el sistema valida que no haya cruces y mantiene el adelanto asociado a la cita.
+Para cancelar, registra el motivo; el sistema convierte el adelanto en saldo a favor de la clienta (no vence).
+El sistema actualiza la agenda, libera el horario y registra la auditoría.
+Flujos alternos y excepciones:
+Paso 3: no hay horario libre en la fecha pedida; la recepcionista prueba otra fecha o cancela.
+Paso 4: la clienta no tenía adelanto; solo se libera el horario.
+Postcondiciones: cita reprogramada o cancelada; si se canceló, el adelanto queda como saldo a favor.
+Reglas de negocio: RN02, RN04, RN05. RF cubiertos: RF12.
+Pantallas sugeridas: detalle de cita con acciones «Reprogramar» y «Cancelar»; modal de motivo de cancelación con aviso de saldo a favor.
+CUS04 – Registrar Atención del Servicio
+Objetivo: dejar constancia de lo realizado en la cita (inicio, tiempo real, servicio y variante, recursos) como base del cobro y de la comisión.
+Actores: Especialista Técnica, Administradora. Prioridad: PRIMARIO. Proceso: BUC01.
+Precondiciones: la clienta llegó y la cita está confirmada.
+Flujo principal:
+La especialista abre su agenda del día y selecciona la cita.
+Marca «Iniciar atención»; el sistema registra la hora de inicio.
+La especialista confirma el servicio y la variante, y declara el tiempo exacto si no se había definido al agendar.
+Si el servicio pertenece a un paquete o membresía, el sistema muestra las sesiones disponibles y descuenta una al finalizar.
+La especialista agrega observaciones y marca «Finalizar atención»; el sistema registra la hora de fin y deja la atención lista para cobro (CUS05).
+Flujos alternos y excepciones:
+Paso 3: la clienta cambia de variante durante la atención; el sistema actualiza el precio fijo de esa variante.
+Paso 3: el tiempo exacto cambia el horario y genera cruce con la cita siguiente; el sistema avisa a la recepcionista.
+Paso 4: la clienta no tiene sesiones disponibles; la atención se cobra como servicio individual.
+Postcondiciones: atención finalizada con tiempo real, lista para cobrar y calcular la comisión de la especialista.
+Reglas de negocio: RN02, RN36, RN37, RN38, RN40, RN41. RF cubiertos: RF13–RF16.
+Pantallas sugeridas: «Mi agenda» de la especialista; pantalla de atención en curso (cronómetro, servicio y variante, sesiones del paquete, observaciones).
+CUS20 – Registrar Atención sin Cita
+Objetivo: permitir la atención inmediata de clientas que llegan al local sin reserva y la venta rápida del cliente de paso (por ejemplo, un corte de varón), sin perder el ingreso.
+Actores: Recepcionista, Administradora. Prioridad: PRIMARIO. Proceso: BUC01.
+Precondiciones: hay una especialista y un recurso libres en ese momento.
+Flujo principal:
+La recepcionista elige «Atención sin cita».
+Selecciona una clienta registrada o «Cliente de paso» (sin datos obligatorios).
+Elige el servicio y la variante; el sistema muestra el precio fijo.
+El sistema propone la especialista y el recurso libres y verifica que no se superponga con citas ya agendadas.
+La recepcionista confirma; el sistema crea la atención en curso (CUS04) y, al finalizar, la deja lista para cobro rápido (CUS05).
+Flujos alternos y excepciones:
+Paso 4: no hay especialista disponible sin afectar una cita; el sistema indica el próximo espacio libre para que la clienta decida esperar.
+Paso 2: la clienta desea registrarse; se deriva a CUS01.
+Cliente de paso con compra mayor a S/ 700: el cobro exige datos del comprador (RN08).
+Postcondiciones: atención y venta registradas, de modo que la ganancia quede en caja y reportes.
+Reglas de negocio: RN01 (excepción para cliente de paso), RN07, RN34, RN35. RF cubiertos: RF17–RF20.
+Pantallas sugeridas: botón destacado «Atención sin cita» en el inicio; modal de venta rápida (cliente de paso, servicio y variante, especialista disponible) con paso directo a cobro.
+CUS05 – Cobrar Venta y Registrar Comprobante
+Objetivo: cobrar los servicios (y productos) con uno o varios medios de pago y registrar siempre el comprobante.
+Actores: Recepcionista, Administradora. Prioridad: PRIMARIO. Proceso: BUC02.
+Precondiciones: existe una atención finalizada o una venta en curso; la caja del día está abierta (CUS08).
+Flujo principal:
+La recepcionista abre la atención pendiente de cobro (o la venta rápida).
+El sistema muestra el detalle: servicios con variante y precio, productos, descuentos o promociones vigentes, adelanto, saldo a favor, subtotal, IGV (18 %) y total.
+La recepcionista aplica el adelanto y el saldo a favor, si corresponden.
+Registra los medios de pago (efectivo, Yape, Plin, tarjeta); el sistema valida que la suma sea igual al total.
+Elige el tipo de comprobante (boleta o factura) e ingresa los datos del comprador; para factura exige RUC y razón social.
+La recepcionista emite el comprobante en SEE-SOL y registra en el sistema su serie y número.
+El sistema cierra la venta, descuenta sesiones de paquete si corresponde, calcula la comisión de la especialista (solo servicios) y registra el movimiento en caja.
+Flujos alternos y excepciones:
+Paso 4: la suma de pagos no coincide con el total; el sistema no deja cerrar la venta.
+Paso 5: el total supera S/ 700; el sistema exige los datos del comprador en la boleta.
+Paso 6: aún no se registra el comprobante; el sistema impide cerrar la venta.
+Paso 2: la clienta pidió una proforma; esta no reemplaza al comprobante y se imprime aparte.
+Paso 3: la clienta paga con paquete o membresía; el sistema descuenta la sesión y el total a cobrar es el saldo restante.
+Postcondiciones: venta cerrada con comprobante registrado, pagos conciliables y comisión calculada.
+Reglas de negocio: RN05, RN06, RN07, RN08, RN09, RN10, RN11, RN36, RN37, RN38, RN40. RF cubiertos: RF21–RF31.
+Pantallas sugeridas: pantalla de cobro (detalle, descuentos, adelanto y saldo a favor, múltiples medios de pago, comprobante); resumen de venta cerrada; impresión de proforma.
+CUS07 – Anular Venta
+Objetivo: anular una venta mal emitida sin eliminarla, de modo que no queden vacíos en la numeración ni en la trazabilidad.
+Actores: Recepcionista, Administradora. Prioridad: PRIMARIO. Proceso: BUC02.
+Precondiciones: la venta existe y no está anulada; el mes no está conciliado.
+Flujo principal:
+La recepcionista busca la venta y elige «Anular».
+Indica el motivo y el sistema solicita la autorización de la Administradora.
+La Administradora autoriza; la recepcionista registra la serie y número de la nota de crédito emitida en SEE-SOL.
+El sistema cambia el estado a «Anulada», revierte la comisión, el stock y las sesiones de paquete asociadas, y registra la auditoría.
+Flujos alternos y excepciones:
+Paso 2: sin motivo o sin autorización, el sistema no anula.
+Paso 3: la nota de crédito aún no está emitida; la anulación queda pendiente.
+Postcondiciones: la venta se conserva en el historial, con estado Anulada, y queda excluida de reportes, caja y conciliación.
+Reglas de negocio: RN12, RN29, RN32, RN33. RF cubiertos: RF32–RF34.
+Pantallas sugeridas: historial de ventas con filtro por estado; modal de anulación (motivo, autorización, nota de crédito); etiqueta visual «Anulada».
+CUS06 – Vender Productos
+Objetivo: vender productos de belleza y spa con control de stock y comprobante.
+Actores: Recepcionista, Administradora. Prioridad: PRIMARIO. Proceso: BUC03.
+Precondiciones: el producto existe en el catálogo con stock disponible; la caja está abierta.
+Flujo principal:
+La recepcionista elige «Venta de productos» (o agrega productos a una venta de servicio).
+Busca y agrega productos; el sistema muestra precio y stock.
+El sistema calcula subtotal, IGV y total.
+La recepcionista registra el pago y el comprobante como en CUS05.
+Al cerrar, el sistema descuenta el stock y genera el movimiento de salida en el kardex.
+Flujos alternos y excepciones:
+Paso 2: la cantidad pedida supera el stock; el sistema impide agregarla y muestra el stock real.
+Paso 2: producto sin stock; el sistema lo marca como agotado.
+Postcondiciones: venta registrada, stock actualizado y movimiento de salida en kardex. No genera comisión (solo los servicios).
+Reglas de negocio: RN06, RN07, RN08, RN11, RN13, RN14. RF cubiertos: RF35–RF39.
+Pantallas sugeridas: punto de venta de productos (buscador, carrito, stock visible); pantalla de cobro compartida con CUS05.
+CUS10 – Registrar Compras y Aprobar Reposiciones
+Objetivo: reponer insumos y productos de forma controlada.
+Actores: Encargada de Almacén, Administradora. Prioridad: SECUNDARIO. Proceso: BUC04.
+Precondiciones: existen productos con stock mínimo configurado.
+Flujo principal:
+El sistema alerta los productos por debajo del stock mínimo.
+La encargada de almacén crea una solicitud de reposición con producto, cantidad y proveedor.
+La Administradora revisa y aprueba o rechaza la solicitud.
+Al llegar la mercadería, la encargada registra la compra (proveedor, documento, cantidades, costo unitario).
+El sistema genera la entrada en el kardex y actualiza el stock y el costo.
+Flujos alternos y excepciones:
+Paso 3: la Administradora rechaza; la solicitud queda cerrada con el motivo.
+Paso 4: la cantidad recibida difiere de la aprobada; el sistema registra la diferencia.
+Postcondiciones: compra registrada y stock repuesto. El costo solo lo ve la Administradora.
+Reglas de negocio: RN19, RN24. RF cubiertos: RF40–RF43.
+Pantallas sugeridas: alertas de stock bajo; solicitud de reposición; bandeja de aprobación; formulario de registro de compra.
+CUS09 – Registrar Productos y Movimientos de Kardex
+Objetivo: mantener el catálogo de productos e insumos y un kardex fiel de entradas y salidas.
+Actores: Encargada de Almacén, Administradora. Prioridad: PRIMARIO. Proceso: BUC04.
+Precondiciones: sesión iniciada con rol de almacén o administración.
+Flujo principal:
+La encargada de almacén registra un producto o insumo (código, nombre, categoría, unidad, stock mínimo, precio de venta).
+El sistema guarda el producto y crea su kardex.
+La encargada registra movimientos manuales (entrada, salida por consumo interno, ajuste por inventario o merma) con motivo.
+El sistema actualiza el stock y registra el movimiento con usuario, fecha y saldo.
+La encargada consulta el kardex por producto y por periodo, y puede exportarlo.
+Flujos alternos y excepciones:
+Paso 3: la salida deja stock negativo; el sistema la rechaza.
+Paso 3: un ajuste sin motivo no se guarda.
+Postcondiciones: stock y kardex consistentes con las entradas, ventas, consumos y ajustes.
+Reglas de negocio: RN13 a RN18 (productos, stock y kardex). RF cubiertos: RF44–RF50.
+Pantallas sugeridas: lista de productos con stock; formulario de producto; registro de movimiento; kardex por producto.
+CUS11 – Registrar, Editar y Desactivar Personal
+Objetivo: administrar la ficha del personal (especialistas, recepción, almacén) sin borrar su historial.
+Actores: Administradora. Prioridad: SECUNDARIO. Proceso: BUC05.
+Precondiciones: sesión de Administradora.
+Flujo principal:
+La Administradora abre «Personal» y elige «Registrar».
+Ingresa datos personales, cargo, áreas que atiende (el personal técnico es polifuncional), modalidad de pago (fijo, comisión o mixto), sueldo y porcentaje de comisión sobre servicios.
+El sistema valida los datos (el sueldo no puede ser menor a la RMV vigente) y guarda la ficha.
+La Administradora puede editar o desactivar al personal; al desactivar, el historial se conserva.
+Flujos alternos y excepciones:
+Paso 3: sueldo menor a la RMV (S/ 1,230 desde el 1 de octubre de 2026); el sistema alerta y no guarda.
+Paso 4: personal con citas futuras; el sistema pide reasignarlas antes de desactivar.
+Postcondiciones: personal registrado o actualizado; el personal inactivo no aparece en la agenda.
+Reglas de negocio: RN20, RN21, RN24, RN27, RN28. RF cubiertos: RF51–RF53.
+Pantallas sugeridas: lista de personal con estado; ficha del personal (datos, áreas, modalidad de pago, comisión).
+CUS12 – Registrar y Corregir Asistencias
+Objetivo: llevar el registro diario de asistencia, tardanzas y faltas que alimenta la planilla.
+Actores: Recepcionista, Administradora. Prioridad: SECUNDARIO. Proceso: BUC05.
+Precondiciones: personal activo registrado.
+Flujo principal:
+La recepcionista abre «Asistencia del día».
+Marca la hora de entrada y salida de cada persona, o la falta o permiso.
+El sistema calcula horas trabajadas y tardanzas.
+Si hay un error, la recepcionista solicita corrección con motivo y la Administradora la aprueba; el sistema guarda ambas versiones en la auditoría.
+Flujos alternos y excepciones:
+Paso 2: falta de marcación de salida; el sistema la deja como incompleta para su corrección.
+Postcondiciones: asistencia diaria registrada y disponible para el cálculo de planilla.
+Reglas de negocio: RN21, RN22. RF cubiertos: RF54–RF56.
+Pantallas sugeridas: asistencia del día; calendario mensual de asistencia; solicitud de corrección.
+CUS13 – Registrar Adelantos y Calcular Planilla
+Objetivo: calcular el pago mensual del personal con sueldo, comisiones, adelantos y descuentos.
+Actores: Administradora. Prioridad: PRIMARIO. Proceso: BUC05.
+Precondiciones: asistencia del mes registrada (CUS12) y ventas cerradas (CUS05).
+Flujo principal:
+La Administradora registra los adelantos entregados a cada persona, con fecha y monto.
+Al cierre del mes, elige «Calcular planilla» e indica el periodo.
+El sistema calcula por persona: sueldo base, comisión sobre servicios (excluyendo ventas anuladas y productos), descuentos por faltas y tardanzas y adelantos.
+La Administradora revisa el detalle, ajusta si procede y genera la boleta de pago.
+El sistema bloquea el periodo calculado y permite exportarlo.
+Flujos alternos y excepciones:
+Paso 3: el sueldo calculado es menor a la RMV; el sistema alerta.
+Paso 3: los adelantos superan lo devengado; el sistema muestra saldo negativo para que la Administradora decida.
+Postcondiciones: planilla del mes calculada y visible solo para la Administradora.
+Reglas de negocio: RN20, RN21, RN23, RN24, RN38. RF cubiertos: RF57–RF61.
+Pantallas sugeridas: registro de adelantos; vista de planilla mensual (tabla por persona); boleta de pago individual.
+CUS08 – Abrir y Cerrar Caja Diaria
+Objetivo: controlar el efectivo y los demás medios de pago del día y detectar diferencias.
+Actores: Recepcionista, Administradora. Prioridad: PRIMARIO. Proceso: BUC06.
+Precondiciones: no hay otra caja abierta en la misma sede.
+Flujo principal:
+La recepcionista elige «Abrir caja» e ingresa el monto inicial en efectivo.
+Durante el día, el sistema acumula cada venta cobrada por medio de pago (efectivo, Yape, Plin, tarjeta) y los egresos o gastos menores.
+Al cierre, la recepcionista ingresa el efectivo contado.
+El sistema compara lo esperado con lo contado y muestra la diferencia por medio de pago.
+La recepcionista confirma el cierre; el sistema bloquea las ventas de ese día y genera el resumen de caja.
+Flujos alternos y excepciones:
+Paso 4: hay diferencia; el sistema exige una observación y avisa a la Administradora.
+Paso 2: las ventas anuladas no se suman a la caja.
+Paso 1: la caja del día anterior quedó sin cerrar; el sistema exige cerrarla antes.
+Postcondiciones: caja del día cerrada, con resumen por medio de pago.
+Reglas de negocio: RN11, RN29, RN30, RN33. RF cubiertos: RF62–RF67.
+Pantallas sugeridas: apertura de caja; caja en curso (ingresos por medio de pago, egresos); cierre y arqueo; resumen de caja imprimible.
+CUS16 – Generar y Exportar Reportes Gerenciales
+Objetivo: dar a la dueña indicadores para decidir: ventas, margen, rendimiento y ocupación.
+Actores: Administradora. Prioridad: PRIMARIO. Proceso: BUC07.
+Precondiciones: existen ventas cerradas en el periodo.
+Flujo principal:
+La Administradora elige el reporte (ventas por línea Salón y Spa, por área, por servicio, por especialista, productos más vendidos, ocupación de agenda, clientas recurrentes, rentabilidad y planilla).
+Define periodo, sede y filtros.
+El sistema genera el reporte con tablas y gráficos, excluyendo las ventas anuladas.
+La Administradora exporta el resultado (PDF o Excel).
+Flujos alternos y excepciones:
+Paso 3: el periodo no tiene datos; el sistema muestra un mensaje claro.
+Los reportes de costos, márgenes y planilla solo se muestran con el rol de Administradora.
+Postcondiciones: reporte generado y, si se pidió, exportado.
+Reglas de negocio: RN24, RN26, RN33. RF cubiertos: RF68–RF74.
+Pantallas sugeridas: panel de indicadores (dashboard); selector de reportes con filtros; vista de reporte con gráfico, tabla y botones de exportar.
+CUS17 – Conciliar Ventas del Mes
+Objetivo: comparar las ventas del sistema con los comprobantes registrados en SEE-SOL y con los pagos (caja, Yape, Plin, tarjeta) para cerrar el mes sin diferencias.
+Actores: Administradora. Prioridad: PRIMARIO. Proceso: BUC07.
+Precondiciones: el mes terminó y todas las cajas del periodo están cerradas.
+Flujo principal:
+La Administradora elige «Conciliar» y el mes.
+El sistema lista los comprobantes y pagos del sistema, y la Administradora marca los que coinciden con SEE-SOL y con los extractos de pago.
+El sistema resalta diferencias: ventas sin comprobante, comprobantes sin venta y pagos sin respaldo.
+La Administradora justifica o corrige cada diferencia y cierra la conciliación.
+Flujos alternos y excepciones:
+Paso 3: las ventas anuladas se excluyen de la conciliación.
+Paso 4: quedan diferencias sin justificar; el sistema no permite cerrar el mes.
+Postcondiciones: mes conciliado, con registro de las diferencias y su justificación.
+Reglas de negocio: RN11, RN31, RN33. RF cubiertos: RF75–RF76.
+Pantallas sugeridas: tablero de conciliación por mes con semáforo de diferencias; detalle de cada diferencia con campo de justificación.
+CUS15 – Autenticar Usuarios y Restringir Accesos por Rol
+Objetivo: asegurar que cada persona acceda solo a lo que su rol permite.
+Actores: Todo el Personal. Prioridad: PRIMARIO. Proceso: BUC08.
+Precondiciones: el usuario fue creado por la Administradora (CUS21).
+Flujo principal:
+El usuario ingresa su usuario y contraseña.
+El sistema valida las credenciales y carga el menú según el rol.
+El usuario navega solo por los módulos permitidos; el sistema oculta o bloquea el resto.
+El usuario cierra sesión, o el sistema la cierra por inactividad.
+Flujos alternos y excepciones:
+Paso 2: credenciales incorrectas; el sistema avisa y, tras varios intentos fallidos, bloquea temporalmente la cuenta.
+Paso 3: intento de acceder a un módulo no permitido (por ejemplo, planilla con rol de recepción); el sistema niega el acceso y lo registra.
+Paso 1: contraseña olvidada; la Administradora la restablece.
+Postcondiciones: sesión activa con permisos del rol; accesos y denegaciones auditados.
+Reglas de negocio: RN24, RN29, RN39. RF cubiertos: RF77–RF80.
+Pantallas sugeridas: inicio de sesión; menú lateral que cambia según el rol; pantalla «Acceso denegado».
+CUS21 – Crear Usuarios y Asignar Roles
+Objetivo: que solo la dueña controle quién entra al sistema y con qué permisos.
+Actores: Administradora. Prioridad: PRIMARIO. Proceso: BUC08.
+Precondiciones: el personal está registrado (CUS11).
+Flujo principal:
+La Administradora abre «Usuarios y roles» y elige «Crear usuario».
+Selecciona a la persona del personal, define el nombre de usuario y la contraseña inicial.
+Asigna el rol (Recepcionista, Especialista Técnica, Encargada de Almacén o Administradora).
+El sistema guarda el usuario, lo marca como activo y registra la auditoría.
+La Administradora puede cambiar el rol, restablecer la contraseña o desactivar al usuario.
+Flujos alternos y excepciones:
+Paso 2: el nombre de usuario ya existe; el sistema pide otro.
+Paso 5: no se puede desactivar o quitar el rol al único usuario Administradora.
+Postcondiciones: usuario creado con su rol; ningún otro rol puede crear usuarios.
+Reglas de negocio: RN29, RN39. RF cubiertos: RF81–RF82.
+Pantallas sugeridas: lista de usuarios con rol y estado; formulario de creación; matriz de permisos por rol (solo lectura).
+CUS14 – Crear y Editar Servicios, Paquetes, Recursos y Precios
+Objetivo: administrar el catálogo comercial: servicios con variantes y precios fijos, paquetes, descuentos, promociones y recursos físicos.
+Actores: Administradora. Prioridad: PRIMARIO. Proceso: BUC09.
+Precondiciones: sesión de Administradora.
+Flujo principal:
+La Administradora abre «Catálogo» y elige el área (Peluquería y Estilismo, Manicura y Pedicura, Depilación, Cuidado Facial o Masajes y Cabina Spa); el sistema asigna la línea (Salón o Spa).
+Crea o edita un servicio con su duración referencial y sus variantes, cada una con precio fijo (por ejemplo corte normal S/ 20, corte degradado S/ 30).
+Crea paquetes o membresías por sesiones, con servicios incluidos, número de sesiones y precio.
+Crea descuentos y promociones con vigencia.
+Registra los recursos físicos (sillones, camillas, cabinas) por sede y los asocia a los servicios.
+El sistema guarda los cambios, versiona los precios y registra la auditoría.
+Flujos alternos y excepciones:
+Paso 2: el cambio de precio no afecta las ventas ya cerradas ni las citas con adelanto ya confirmadas.
+Paso 5: un recurso en mantenimiento se marca como no disponible y deja de aparecer en la agenda.
+Solo la Administradora puede ejecutar este caso; otros roles solo consultan precios.
+Postcondiciones: catálogo, precios, paquetes y recursos actualizados y disponibles para agenda y cobro.
+Reglas de negocio: RN25, RN26, RN36, RN37, RN40, RN41. RF cubiertos: RF83–RF88.
+Pantallas sugeridas: catálogo por área y línea; formulario de servicio con tabla de variantes y precios; paquetes y membresías; promociones y descuentos; recursos por sede.
+CUS18 – Enviar Recordatorios y Registrar Membresías por Sesiones
+Objetivo: reducir las inasistencias con recordatorios y fidelizar con membresías de spa por sesiones.
+Actores: Recepcionista, Administradora. Prioridad: SECUNDARIO. Proceso: BUC10.
+Precondiciones: existen citas pendientes; la clienta autorizó las comunicaciones.
+Flujo principal:
+El sistema lista las citas del día siguiente con el teléfono de cada clienta.
+La recepcionista envía el recordatorio (mensaje con plantilla) y el sistema registra el envío.
+Para una membresía, la recepcionista selecciona a la clienta y el plan de sesiones creado en CUS14.
+Se cobra por CUS05; el sistema crea la membresía con sus sesiones disponibles.
+En cada atención, el sistema descuenta una sesión y muestra el saldo restante.
+Flujos alternos y excepciones:
+Paso 2: la clienta no autorizó comunicaciones; el sistema no permite el envío.
+Paso 5: la membresía llega a cero sesiones; el sistema avisa y ofrece renovar.
+Postcondiciones: recordatorios registrados; membresía activa con sesiones controladas.
+Reglas de negocio: RN27, RN28, RN37. RF cubiertos: RF89–RF91.
+Pantallas sugeridas: bandeja de recordatorios del día; formulario de membresía; saldo de sesiones en la ficha de la clienta.
+CUS19 – Crear Sedes y Publicar Reserva y Tienda en Línea
+Objetivo: habilitar nuevas sedes y abrir canales en línea para reservar citas y comprar productos.
+Actores: Administradora. Prioridad: SECUNDARIO. Proceso: BUC10.
+Precondiciones: catálogo y precios configurados (CUS14).
+Flujo principal:
+La Administradora crea una sede con nombre, dirección, horario y recursos.
+Elige qué servicios, productos y horarios se publican en línea.
+El sistema genera la página pública de reserva y la tienda en línea de la sede.
+La clienta reserva en línea y paga el adelanto; el sistema crea la cita (CUS02).
+Si compra en la tienda, se registra la venta con su comprobante.
+Flujos alternos y excepciones:
+Paso 4: no se registra el adelanto; la cita en línea no se confirma.
+Paso 5: la compra sin stock se rechaza.
+Los datos de los reportes se separan por sede.
+Postcondiciones: sede activa; reservas y compras en línea ingresan a la misma agenda, caja y reportes.
+Reglas de negocio: RN04, RN07, RN26. RF cubiertos: RF92–RF95.
+Pantallas sugeridas: gestión de sedes; configuración de publicación; página pública de reserva; tienda en línea.
+6. Paquete para el chat de prototipos
+6.1 Menú por rol
+Rol
+ | Módulos visibles
+ | Recepcionista
+ | Inicio, Agenda, Clientas, Atención sin cita, Cobros y ventas, Productos (venta), Caja, Asistencia, Recordatorios y membresías
+ | Especialista Técnica
+ | Mi agenda, Atención en curso
+ | Encargada de Almacén
+ | Productos, Kardex, Compras y reposiciones
+ | Administradora
+ | Todos los módulos, además de Catálogo y precios, Personal, Planilla, Reportes, Conciliación, Usuarios y roles, Sedes y canales en línea
+ | 6.2 Pantallas clave a prototipar (en orden de prioridad)
+Inicio de sesión y menú por rol (CUS15).
+Agenda diaria y modal «Nueva cita» (CUS02, CUS03).
+Atención sin cita / venta rápida (CUS20).
+Atención en curso de la especialista (CUS04).
+Cobro con medios de pago y comprobante (CUS05).
+Ficha y búsqueda de clientas (CUS01).
+Caja: apertura, cierre y arqueo (CUS08).
+Catálogo de servicios con variantes y precios (CUS14).
+Productos y kardex (CUS09).
+Dashboard de reportes (CUS16) y conciliación mensual (CUS17).
+Personal, asistencia y planilla (CUS11, CUS12, CUS13).
+Usuarios y roles (CUS21), anulación de venta (CUS07).
+Pantallas secundarias: compras (CUS10), recordatorios y membresías (CUS18), sedes y canales en línea (CUS19).
+6.3 Lineamientos de diseño sugeridos
+Identidad: salón y spa, con tono cálido y limpio; dos acentos de color para distinguir la línea Salón y la línea Spa en agenda y reportes.
+Uso en recepción: pantallas rápidas, botones grandes, mínimo de clics en cobro y atención sin cita.
+Responsive: la agenda y la «Mi agenda» de la especialista deben verse bien en tableta y celular.
+Estados visibles: cita pendiente, en atención, finalizada, cancelada; venta cerrada o anulada; caja abierta o cerrada.
+Montos en soles (S/) con IGV visible en cobro; las ventas anuladas deben distinguirse visualmente.
+7. Puntos pendientes por confirmar
+RN10 y RN11 figuran como «Propuesta» en la matriz y deben validarse con la Administradora.
+RN22 (tardanzas y descuentos), RN28 (datos personales) y RN31 (conciliación mensual) están como «Por confirmar».
+Los valores objetivo de los requisitos no funcionales (tiempos de respuesta, disponibilidad, respaldo) están por confirmar.
+El patrón MVC (RES10/RNF14) debe validarse con el docente.

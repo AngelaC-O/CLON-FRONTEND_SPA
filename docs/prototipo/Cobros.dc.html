@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div class="col" style="gap:16px">
+<sc-if value="{{ listView }}" hint-placeholder-val="{{ true }}">
+<div class="row"><div class="sp"><h1 class="h1">Cobros y comprobantes</h1><div class="mut">Cobra servicios y productos. El sistema emite la boleta o factura electrónica y la envía a SUNAT por APISPERU.</div></div><button class="btn sec" onClick="{{ goProd }}">Venta de productos</button></div>
+<div class="tabs"><button class="tab {{ tabPor }}" onClick="{{ setPor }}">Por cobrar ({{ nPend }})</button><button class="tab {{ tabHist }}" onClick="{{ setHist }}">Ventas y comprobantes</button></div>
+<sc-if value="{{ isPor }}">
+<sc-if value="{{ cajaCerrada }}" hint-placeholder-val="{{ false }}"><div class="alert warn"><span class="sp"><b>La caja está cerrada.</b> Ábrela para poder cobrar.</span><button class="btn sm" onClick="{{ goCaja }}">Ir a Caja</button></div></sc-if>
+<div class="gf2"><sc-for list="{{ pend }}" as="p" hint-placeholder-count="2"><div class="card col" style="gap:10px"><div class="row nw"><span class="avatar {{ p.l }}">{{ p.ini }}</span><div class="sp"><div class="b" style="font-size:16px">{{ p.cli }}</div><div class="xs mut">{{ p.esp }} · finalizó {{ p.hora }}</div></div><span class="chip {{ p.l }}">{{ p.lname }}</span></div>
+<div class="sm">{{ p.desc }}</div><div class="row"><span class="sp mut sm">Adelanto S/ {{ p.adel }}</span><span class="kpi num" style="font-size:26px">S/ {{ p.tot }}</span></div>
+<button class="btn lg blk" onClick="{{ p.open }}">Cobrar</button></div></sc-for></div>
+<sc-if value="{{ noPend }}" hint-placeholder-val="{{ false }}"><div class="card mut" style="text-align:center;padding:36px">No hay atenciones pendientes de cobro.</div></sc-if>
+</sc-if>
+<sc-if value="{{ isHist }}"><dc-import name="Ventas" app="{{ app }}" hint-size="100%,500px"></dc-import></sc-if>
+</sc-if>
+<sc-if value="{{ cobroView }}" hint-placeholder-val="{{ false }}">
+<div class="row"><button class="btn ghost sm" onClick="{{ back }}">← Volver</button><h1 class="h1 sp">Cobro · {{ d.cli }}</h1><span class="chip {{ d.l }}">{{ d.lname }}</span></div>
+<sc-if value="{{ cajaCerrada }}" hint-placeholder-val="{{ false }}"><div class="alert bad"><span class="sp"><b>No hay caja abierta.</b> Abre la caja del día para cerrar la venta.</span><button class="btn sm" onClick="{{ goCaja }}">Abrir caja</button></div></sc-if>
+<div class="gs"><div class="col" style="gap:16px">
+<div class="card cp0"><div class="tw"><table class="tbl"><thead><tr><th>Detalle</th><th>Tipo</th><th class="r">Precio</th></tr></thead><tbody><sc-for list="{{ lines }}" as="l" hint-placeholder-count="2"><tr><td><div class="b">{{ l.t }}</div><sc-if value="{{ l.q }}"><div class="xs mut">{{ l.q }}</div></sc-if></td><td><span class="chip {{ l.chip }}">{{ l.tipo }}</span></td><td class="r b num">S/ {{ l.pt }}</td></tr></sc-for></tbody></table></div></div>
+<div class="card col"><div class="h3">1 · Descuentos, adelanto y saldo a favor</div>
+<div class="fld"><label class="lbl">PROMOCIÓN VIGENTE (SOLO SERVICIOS)</label><select class="inp" value="{{ promo }}" onChange="{{ setPromo }}"><option value="">Sin promoción</option><option value="p10">Promo octubre · −10 % en servicios</option><option value="cum">Cumpleaños · −S/ 10</option></select></div>
+<sc-if value="{{ d.adel }}"><label class="row" style="gap:10px"><input type="checkbox" checked="{{ adelOn }}" onChange="{{ setAdel }}"><span>Aplicar adelanto de la cita: <b>S/ {{ d.adel }}</b></span></label></sc-if>
+<sc-if value="{{ hasSaldo }}"><label class="row" style="gap:10px"><input type="checkbox" checked="{{ saldoOn }}" onChange="{{ setSaldo }}"><span>Aplicar saldo a favor disponible: <b>S/ {{ saldoDisp }}</b></span></label></sc-if>
+<sc-if value="{{ d.paq }}"><label class="row" style="gap:10px"><input type="checkbox" checked="{{ paqOn }}" onChange="{{ setPaq }}"><span>Pagar el servicio con <b>sesión de paquete o membresía</b> (precio 0, no genera comisión)</span></label></sc-if></div>
+<div class="card col"><div class="row"><div class="h3 sp">2 · Medios de pago</div><span class="chip {{ pagoChip }}">{{ pagoTxt }}</span></div>
+<div class="xs mut">El efectivo se cobra en caja. Yape y Plin se cobran con QR de Izipay y la tarjeta con enlace de pago (POS cuando la empresa tenga el terminal). Un pago digital solo cuenta cuando Izipay lo aprueba.</div>
+<div class="col" style="gap:10px"><sc-for list="{{ medios }}" as="m" hint-placeholder-count="4"><div class="row nw" style="gap:8px;align-items:flex-end;flex-wrap:wrap">
+<div class="fld" style="flex:1;min-width:150px"><label class="lbl">{{ m.n }} · {{ m.canal }}</label><input class="inp" type="number" min="0" step="0.5" value="{{ m.v }}" onInput="{{ m.set }}" placeholder="0.00" disabled="{{ m.lock }}"></div>
+<button class="btn sec sm" style="min-height:44px" onClick="{{ m.rest }}" disabled="{{ m.lock }}">Todo</button>
+<sc-if value="{{ m.dig }}"><button class="btn sm" style="min-height:44px" disabled="{{ m.cantPay }}" onClick="{{ m.pay }}">{{ m.payTxt }}</button></sc-if>
+<sc-if value="{{ m.chip }}"><span class="chip {{ m.chipCls }}" style="height:30px">{{ m.chip }}</span></sc-if>
+<sc-if value="{{ m.canRej }}"><button class="btn ghost sm" onClick="{{ m.rej }}">Simular rechazo</button></sc-if>
+</div></sc-for></div></div>
+<div class="card col"><div class="row"><div class="h3 sp">3 · Comprobante electrónico</div><span class="chip info">APISPERU → SUNAT</span></div>
+<div class="seg"><button class="{{ bCls }}" onClick="{{ setB }}">Boleta</button><button class="{{ fCls }}" onClick="{{ setF }}">Factura</button></div>
+<sc-if value="{{ esB }}"><div class="row nw" style="align-items:flex-end;gap:8px"><div class="fld sp"><label class="lbl">DNI DEL COMPRADOR {{ dniReq }}</label><input class="inp" value="{{ dni }}" onInput="{{ setDni }}" placeholder="8 dígitos"></div><button class="btn sec" style="min-height:44px" disabled="{{ cantDni }}" onClick="{{ consultaDni }}">Consultar DNI</button></div>
+<sc-if value="{{ big }}"><div class="alert warn">El total supera S/ {{ umbral }}: la boleta exige el nombre y el documento del comprador (RN08).</div></sc-if></sc-if>
+<sc-if value="{{ esF }}"><div class="row nw" style="align-items:flex-end;gap:8px"><div class="fld sp"><label class="lbl">RUC (11 DÍGITOS)</label><input class="inp" value="{{ ruc }}" onInput="{{ setRuc }}" placeholder="20xxxxxxxxx"></div><button class="btn sec" style="min-height:44px" disabled="{{ cantRuc }}" onClick="{{ consultaRuc }}">Consultar RUC</button></div></sc-if>
+<sc-if value="{{ needName }}"><div class="fld"><label class="lbl">{{ nameLbl }}</label><input class="inp" value="{{ nombre }}" onInput="{{ setNombre }}" placeholder="Se completa con la consulta o a mano"></div></sc-if>
+<sc-if value="{{ docMsg }}"><div class="alert {{ docCls }}">{{ docMsg }}</div></sc-if>
+<div class="row sm"><span class="mut sp">Serie y número (los asigna el sistema, sin saltos)</span><b class="num">{{ nextComp }}</b></div>
+<label class="row xs mut" style="gap:8px"><input type="checkbox" checked="{{ simPend }}" onChange="{{ setSimPend }}">Demo: simular que SUNAT o APISPERU no responden (el comprobante queda PENDIENTE y se reenvía solo)</label>
+</div>
+</div>
+<div class="card col" style="position:sticky;top:16px"><h2 class="h2">Resumen</h2>
+<div class="col" style="gap:6px"><div class="row sm"><span class="sp mut">Servicios y productos</span><span class="num">S/ {{ bruto }}</span></div><div class="row sm"><span class="sp mut">IGV (Amazonía exonerada)</span><span class="num">S/ 0.00</span></div>
+<sc-if value="{{ desc }}"><div class="row sm ok"><span class="sp">Descuento / promoción</span><span class="num">− S/ {{ desc }}</span></div></sc-if><div class="row b"><span class="sp">Total del comprobante</span><span class="num">S/ {{ total }}</span></div><hr class="sep">
+<div class="row sm"><span class="sp mut">Adelanto aplicado</span><span class="num">− S/ {{ adelAp }}</span></div><div class="row sm"><span class="sp mut">Saldo a favor aplicado</span><span class="num">− S/ {{ saldoAp }}</span></div></div>
+<div class="row" style="align-items:flex-end"><span class="sp b">A pagar</span><span class="kpi num">S/ {{ aPagar }}</span></div>
+<div class="xs mut">Pagos válidos: <b>S/ {{ pagado }}</b> (efectivo + digitales aprobados)</div>
+<button class="btn lg blk" disabled="{{ cant }}" onClick="{{ close }}">Cerrar venta y emitir {{ tipoTxt }}</button>
+<sc-if value="{{ why }}"><div class="xs bad">{{ why }}</div></sc-if>
+<button class="btn sec blk" onClick="{{ openProf }}">Emitir proforma</button></div>
+</div>
+</sc-if>
+<sc-if value="{{ prof }}" hint-placeholder-val="{{ false }}"><div class="modal-bg" onClick="{{ closeM }}"><div class="modal n" onClick="{{ stop }}"><div class="mh"><div class="sp"><h2 class="h2">Proforma</h2><div class="mut sm">Cautiva Spa E.I.R.L. · documento interno, no reemplaza al comprobante (RN09)</div></div></div><div class="mb"><div class="b">{{ d.cli }}</div><sc-for list="{{ lines }}" as="l" hint-placeholder-count="2"><div class="row sm"><span class="sp">{{ l.t }}</span><span class="num">S/ {{ l.pt }}</span></div></sc-for><hr class="sep"><div class="row b"><span class="sp">Total referencial (sin IGV, Amazonía)</span><span class="num">S/ {{ total }}</span></div><div class="xs mut">Vigencia de 7 días. La venta se cobra con boleta o factura electrónica.</div></div><div class="mf"><button class="btn sec" onClick="{{ closeM }}">Cerrar</button><button class="btn" onClick="{{ saveProf }}">Guardar e imprimir</button></div></div></div></sc-if>
+<sc-if value="{{ done }}" hint-placeholder-val="{{ false }}"><div class="modal-bg"><div class="modal n"><div class="mh"><div class="sp"><div class="row" style="gap:6px"><span class="chip ok">Venta cerrada</span><span class="chip {{ dn.sc }}">SUNAT: {{ dn.sunat }}</span></div><h2 class="h2" style="margin-top:8px">{{ dn.tipo }} {{ dn.comp }}</h2><div class="mut sm">{{ dn.cli }} · {{ dn.f }}</div></div></div><div class="mb"><div class="row"><span class="sp mut">Total del comprobante</span><b class="kpi num" style="font-size:28px">S/ {{ dn.tot }}</b></div><div class="sm">Medios: {{ dn.medio }}</div>
+<sc-if value="{{ dn.pend }}"><div class="alert warn">SUNAT no respondió. El comprobante quedó PENDIENTE y el sistema lo reenvía solo; avisa si se acerca al plazo de 3 días (RN46).</div></sc-if>
+<sc-if value="{{ dn.ok }}"><div class="alert ok">Constancia de recepción (CDR) guardada con el XML firmado.</div></sc-if>
+<sc-if value="{{ dn.com }}"><div class="alert info"><span>Comisión de {{ dn.esp }} ({{ dn.pct }} % solo sobre servicios cobrados): <b>S/ {{ dn.comAmt }}</b></span></div></sc-if>
+<div class="h3">Entregar comprobante</div><div class="row" style="gap:8px"><button class="btn sec sm" onClick="{{ printDone }}">Imprimir con QR</button><button class="btn sec sm" onClick="{{ mailDone }}">Enviar por correo</button><button class="btn sec sm" onClick="{{ waDone }}">Enlace para WhatsApp</button></div></div><div class="mf"><button class="btn" onClick="{{ finishDone }}">Listo</button></div></div></div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  BASE = { d:null, adelOn:true, saldoOn:false, paqOn:true, promo:'', pg:{Efectivo:'',Yape:'',Plin:'',Tarjeta:''}, tx:{}, tipo:'B', dni:'', ruc:'', nombre:'', docMsg:'', docCls:'info', simPend:false, prof:false, done:null };
+  state = { tab:null, ...this.BASE };
+  componentDidMount(){ const p=this.props.app.params; if(p&&p.draft) this.setState({d:p.draft}); }
+  r2(n){ return Math.round(n*100)/100; }
+  f2(n){ return this.r2(n).toFixed(2); }
+  renderVals() {
+    const a = this.props.app, s = this.state, set=(o)=>this.setState(o), d = s.d, MED=a.data.medios.filter(m=>m.act).map(m=>m.n);
+    const tab = s.tab || (a.params&&a.params.tab==='hist'?'hist':'por');
+    const tot = (c)=>c.lin.reduce((t,l)=>t+l.p*(l.q||1),0);
+    const out = { app:a, listView:!d, cobroView:!!d, done:!!s.done, nPend:a.cobros.length, tabPor:tab==='por'?'on':'', tabHist:tab==='hist'?'on':'',
+      setPor:()=>set({tab:'por'}), setHist:()=>set({tab:'hist'}), isPor:tab==='por', isHist:tab==='hist', goProd:()=>a.go('ventaprod'), goCaja:()=>a.go('caja'), cajaCerrada:!a.caja.abierta,
+      noPend:a.cobros.length===0,
+      pend:a.cobros.map(c=>({...c,ini:c.cli.split(' ').map(w=>w[0]).slice(0,2).join(''),lname:c.l==='salon'?'Salón':'Spa',desc:c.lin.map(l=>l.t).join(' + '),tot:this.f2(tot(c)-c.adel),
+        open:()=>set({...this.BASE,d:{src:'cobro',cobroId:c.id,...c,lin:c.lin}})})) };
+    if (!d) return out;
+    const cli = a.clientas.find(c=>c.n===d.cli);
+    const srvT = d.lin.filter(l=>l.tipo==='srv').reduce((t,l)=>t+l.p,0), prodT = d.lin.filter(l=>l.tipo!=='srv').reduce((t,l)=>t+l.p*(l.q||1),0);
+    const paqUse = !!d.paq && s.paqOn, srvEff = paqUse?0:srvT;
+    const desc = paqUse?0:(s.promo==='p10'?this.r2(srvT*.1):s.promo==='cum'?Math.min(10,srvT):0);
+    const total = Math.max(0,this.r2(srvEff+prodT-desc)), adelAp = s.adelOn?Math.min(d.adel||0,total):0;
+    const saldoDisp = cli?cli.saldo:0, saldoAp = s.saldoOn?Math.min(saldoDisp,this.r2(total-adelAp)):0;
+    const aPagar = this.r2(total-adelAp-saldoAp);
+    const isDig = (m)=>(a.data.medios.find(x=>x.n===m)||{}).pas;
+    const valid = (m)=>!isDig(m) || (s.tx[m]&&s.tx[m].est==='APROBADA');
+    const pagado = this.r2(MED.reduce((t,m)=>t+(valid(m)?(+s.pg[m]||0):0),0));
+    const pendDig = MED.some(m=>isDig(m)&&(+s.pg[m]>0)&&!(s.tx[m]&&s.tx[m].est==='APROBADA'));
+    const sumOk = Math.abs(pagado-aPagar)<0.005, umbral = a.param('UMBRAL_DATOS_BOLETA'), big = total>umbral;
+    const esB = s.tipo==='B';
+    const docOk = esB ? (!big || (/^\d{8}$/.test(s.dni) && s.nombre.trim().length>2)) : (/^\d{11}$/.test(s.ruc) && s.nombre.trim().length>2);
+    let why=''; if(!a.caja.abierta) why='Abre la caja del día.'; else if(pendDig) why='Hay un pago digital sin aprobar: cóbralo por Izipay o quita el monto.'; else if(!sumOk) why='Los pagos válidos (S/ '+this.f2(pagado)+') deben sumar S/ '+this.f2(aPagar)+' (RN11).'; else if(!docOk) why=esB?'Boleta mayor a S/ '+umbral+': completa DNI y nombre del comprador.':'Factura: consulta el RUC y completa la razón social.';
+    const closeM = ()=>set({prof:false});
+    const tipoComp = esB?'BOLETA':'FACTURA';
+    const txSet = (m,o)=>set({tx:{...s.tx,[m]:{...(s.tx[m]||{}),...o}}});
+    return {...out, d:{...d,lname:d.l==='salon'?'Salón':'Spa'}, back:()=>set({d:null}),
+      lines:d.lin.map(l=>({t:l.t,tipo:l.tipo==='srv'?'Servicio':(l.tipo==='paq'?'Paquete':'Producto'),chip:l.tipo==='srv'?(d.l||'salon'):'info',q:l.q>1?l.q+' × S/ '+this.f2(l.p):'',pt:this.f2(l.p*(l.q||1))})),
+      promo:s.promo, setPromo:(e)=>set({promo:e.target.value}), adelOn:s.adelOn, setAdel:(e)=>set({adelOn:e.target.checked}),
+      hasSaldo:saldoDisp>0, saldoDisp, saldoOn:s.saldoOn, setSaldo:(e)=>set({saldoOn:e.target.checked}), paqOn:s.paqOn, setPaq:(e)=>set({paqOn:e.target.checked}),
+      pagoChip:sumOk&&!pendDig?'ok':'warn', pagoTxt:sumOk&&!pendDig?'Pagos completos':(pagado>aPagar?'Excede S/ '+this.f2(pagado-aPagar):'Falta S/ '+this.f2(Math.max(0,aPagar-pagado))),
+      medios:MED.map(m=>{ const md=a.data.medios.find(x=>x.n===m), t=s.tx[m]||{}, dig=md.pas, amt=+s.pg[m]||0;
+        const chip = !dig ? '' : (t.est==='APROBADA'?'Aprobado · '+t.cod:(t.est==='PENDIENTE'?'Esperando a Izipay…':(t.est==='RECHAZADA'?'Rechazado: no se registra':'')));
+        return {n:m.toUpperCase(),canal:md.canal,v:s.pg[m],dig,lock:t.est==='APROBADA'||t.est==='PENDIENTE',
+          set:(e)=>set({pg:{...s.pg,[m]:e.target.value},tx:{...s.tx,[m]:t.est==='RECHAZADA'?{}:t}}),
+          rest:()=>set({pg:{...s.pg,[m]:String(this.f2(Math.max(0,aPagar-(pagado-(valid(m)?(+s.pg[m]||0):0)))))}}),
+          payTxt:m==='Tarjeta'?'Enviar enlace de pago':'Mostrar QR Izipay', cantPay:!(amt>0)||t.est==='APROBADA'||t.est==='PENDIENTE',
+          pay:()=>{ txSet(m,{est:'PENDIENTE'}); setTimeout(()=>{ const st=this.state.tx[m]; if(st&&st.est==='PENDIENTE') this.setState(z=>({tx:{...z.tx,[m]:{est:'APROBADA',cod:a.newOp()}}})); },1600); },
+          chip, chipCls:t.est==='APROBADA'?'ok':(t.est==='RECHAZADA'?'bad':'warn'), canRej:t.est==='PENDIENTE',
+          rej:()=>{ txSet(m,{est:'RECHAZADA'}); a.toast('Izipay rechazó el pago de '+m+': no se registra (RF103)'); }}; }),
+      esB, esF:!esB, bCls:esB?'on':'', fCls:esB?'':'on', setB:()=>set({tipo:'B',docMsg:'',nombre:''}), setF:()=>set({tipo:'F',docMsg:'',nombre:''}),
+      dni:s.dni, setDni:(e)=>set({dni:e.target.value}), dniReq:big?'(OBLIGATORIO)':'(OPCIONAL)', big, umbral, ruc:s.ruc, setRuc:(e)=>set({ruc:e.target.value}),
+      cantDni:!/^\d{8}$/.test(s.dni), cantRuc:!/^\d{11}$/.test(s.ruc),
+      consultaDni:()=>{ const n = cli&&cli.dni===s.dni ? cli.n.toUpperCase() : (s.dni.endsWith('0')?'':'MARÍA ELENA CÓNDOR RAMOS'); if(n) set({nombre:n,docMsg:'DNI encontrado en APISPERU. Nombres completados (no se guardan en la consulta, RN45).',docCls:'ok'}); else set({docMsg:'La consulta no encontró el DNI. Ingresa el nombre a mano; quedará como no verificado (RF99).',docCls:'warn'}); },
+      consultaRuc:()=>{ if(s.ruc.startsWith('20')||s.ruc.startsWith('10')) set({nombre:s.ruc.startsWith('20')?'EMPRESA DEMO S.A.C.':'CÓNDOR RAMOS MARÍA ELENA',docMsg:'RUC ACTIVO y HABIDO según APISPERU. Razón social completada.',docCls:'ok'}); else set({docMsg:'RUC no encontrado. Revisa el número o ingresa los datos a mano (RF99).',docCls:'warn'}); },
+      needName:!esB||big||!!s.nombre, nameLbl:esB?'NOMBRE DEL COMPRADOR':'RAZÓN SOCIAL', nombre:s.nombre, setNombre:(e)=>set({nombre:e.target.value}), docMsg:s.docMsg, docCls:s.docCls,
+      nextComp:a.peekSerie(tipoComp), tipoTxt:esB?'boleta':'factura', simPend:s.simPend, setSimPend:(e)=>set({simPend:e.target.checked}),
+      bruto:this.f2(srvEff+prodT), desc:desc?this.f2(desc):'', total:this.f2(total), adelAp:this.f2(adelAp), saldoAp:this.f2(saldoAp), aPagar:this.f2(aPagar), pagado:this.f2(pagado),
+      cant:!!why, why, prof:s.prof, openProf:()=>set({prof:true}), closeM, stop:(e)=>e.stopPropagation(),
+      saveProf:()=>{ closeM(); a.toast('Proforma PF-0042 guardada · vigencia 7 días'); setTimeout(()=>window.print(),50); },
+      close:()=>{ const hh=new Date().toTimeString().slice(0,5), used=MED.filter(m=>+s.pg[m]>0), pagos={}, txs={}; used.forEach(m=>{ pagos[m]=+s.pg[m]; if(s.tx[m]&&s.tx[m].cod) txs[m]=s.tx[m].cod; });
+        used.filter(m=>txs[m]).forEach(m=>a.data.txs.unshift({cod:txs[m],f:'12 oct '+hh,medio:m,canal:m==='Tarjeta'?'LINK':'QR',m:pagos[m],est:'APROBADA',venta:''}));
+        const comp=a.nextSerie(tipoComp), sunat=s.simPend?'PENDIENTE':'ACEPTADO';
+        a.data.txs.forEach(t=>{ if(Object.values(txs).includes(t.cod)) t.venta=comp; });
+        const cobroTxt = used.length?used.map(m=>m+' S/ '+this.f2(+s.pg[m])+(txs[m]?' ('+txs[m]+')':'')).join(' + '):'Cubierto con adelanto / saldo / paquete';
+        const v={id:'v'+Date.now(),f:'12 oct '+hh,cli:d.cli,tot:total,medio:used.length?used.join(' + '):'Adelanto',pagos,tx:txs,comp,sunat,est:'cerrada',l:d.l||'salon',comprador:s.nombre};
+        a.setVentas(vs=>[v,...vs]); if(d.cobroId) a.setCobros(cb=>cb.filter(c=>c.id!==d.cobroId));
+        if(saldoAp>0&&cli) a.setClientas(cl=>cl.map(c=>c.id===cli.id?{...c,saldo:this.r2(c.saldo-saldoAp)}:c));
+        d.lin.filter(l=>l.tipo==='prod').forEach(l=>{ const p=a.data.prod.find(x=>x.id===l.pid); if(p){p.st-=l.q||1; a.data.kmov.unshift({f:'12 oct '+hh,pid:p.id,prod:p.n,tipo:'Salida',mot:'Venta '+comp,q:l.q||1,delta:-(l.q||1),saldo:p.st,u:a.user});} });
+        const st=(a.data.staff.find(x=>x.eid===d.eid)||{}), pct=st.com||0, com = srvEff>0&&pct>0;
+        set({done:{comp,tipo:esB?'Boleta':'Factura',sunat,sc:sunat==='ACEPTADO'?'ok':'warn',ok:sunat==='ACEPTADO',pend:sunat!=='ACEPTADO',cli:d.cli,f:'12 oct '+hh,tot:this.f2(total),medio:cobroTxt,com,esp:d.esp,pct,comAmt:this.f2(Math.max(0,srvEff-desc)*pct/100)}}); },
+      dn:s.done||{}, printDone:()=>window.print(), mailDone:()=>a.toast('Representación impresa enviada por correo'), waDone:()=>a.toast('Enlace del comprobante copiado para compartir por WhatsApp'),
+      finishDone:()=>{ set({done:null,d:null}); a.toast('Venta registrada en caja y en el historial de la clienta'); }
+    };
+  }
+}
+</script>
+</body>
+</html>

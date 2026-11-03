@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div class="col" style="gap:16px">
+<div class="row"><div class="sp"><h1 class="h1">Planilla</h1><div class="mut">Sueldo según el esquema de pago, comisión sobre servicios cobrados, descuentos por faltas y tardanzas, y adelantos del mes (CUS41–CUS43). Solo la ve la Administradora (RN24).</div></div></div>
+<div class="tabs"><sc-for list="{{ tabs }}" as="t" hint-placeholder-count="2"><button class="tab {{ t.cls }}" onClick="{{ t.pick }}">{{ t.n }}</button></sc-for></div>
+<sc-if value="{{ tAdel }}" hint-placeholder-val="{{ false }}"><div class="gs"><div class="card cp0"><div class="tw"><table class="tbl"><thead><tr><th>Fecha</th><th>Persona</th><th class="no-m">Observación</th><th class="r">Monto</th></tr></thead><tbody><sc-for list="{{ adels }}" as="x" hint-placeholder-count="3"><tr><td class="num sm">{{ x.f }}</td><td class="b">{{ x.n }}</td><td class="no-m sm mut">{{ x.o }}</td><td class="r num">S/ {{ x.m }}</td></tr></sc-for></tbody></table></div></div>
+<div class="card col"><h2 class="h2">Registrar adelanto</h2><div class="fld"><label class="lbl">PERSONA</label><select class="inp" value="{{ af.sid }}" onChange="{{ setAs }}"><sc-for list="{{ people }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.t }}</option></sc-for></select></div><div class="fld"><label class="lbl">FECHA</label><input class="inp" type="date" value="{{ af.f }}" onInput="{{ setAf }}"></div><div class="fld"><label class="lbl">MONTO (S/)</label><input class="inp" type="number" min="0" value="{{ af.m }}" onInput="{{ setAm }}"></div><div class="fld"><label class="lbl">OBSERVACIÓN</label><input class="inp" value="{{ af.o }}" onInput="{{ setAo }}" placeholder="Opcional"></div><button class="btn" disabled="{{ cantAd }}" onClick="{{ saveAd }}">Registrar adelanto</button><div class="xs mut">Se descuenta en la planilla del mes (RN21).</div></div></div></sc-if>
+<sc-if value="{{ tPlan }}" hint-placeholder-val="{{ true }}">
+<div class="row"><select class="inp" style="max-width:220px" value="{{ per }}" onChange="{{ setPer }}"><option>Octubre 2026</option><option>Septiembre 2026</option></select><button class="btn" disabled="{{ locked }}" onClick="{{ calc }}">Calcular planilla</button><span class="sp"></span><sc-if value="{{ calced }}"><span class="chip {{ estChip }}">{{ estTxt }}</span></sc-if><button class="btn sec" disabled="{{ noCalc }}" onClick="{{ lock }}">Bloquear y exportar</button></div>
+<sc-if value="{{ calced }}" hint-placeholder-val="{{ false }}"><sc-for list="{{ alerts }}" as="al" hint-placeholder-count="0"><div class="alert {{ al.k }}">{{ al.t }}</div></sc-for>
+<div class="card cp0"><div class="tw"><table class="tbl"><thead><tr><th>Persona</th><th class="r">Sueldo base</th><th class="r">Comisión</th><th class="r no-m">Desc. faltas</th><th class="r no-m">Desc. tardanzas</th><th class="r no-m">Adelantos</th><th class="r">Neto</th><th></th></tr></thead><tbody><sc-for list="{{ rows }}" as="r" hint-placeholder-count="8"><tr class="clk" onClick="{{ r.open }}"><td><div class="b">{{ r.n }}</div><div class="xs mut">{{ r.cargo }}</div></td><td class="r num">{{ r.base }}</td><td class="r num">{{ r.com }}</td><td class="r no-m num bad">{{ r.dF }}</td><td class="r no-m num bad">{{ r.dT }}</td><td class="r no-m num">{{ r.ad }}</td><td class="r b num {{ r.cc }}">{{ r.neto }}</td><td><sc-if value="{{ r.flag }}"><span class="chip {{ r.fc }}">{{ r.flag }}</span></sc-if></td></tr></sc-for></tbody>
+<tfoot><tr><td class="b">Total planilla</td><td colspan="5"></td><td class="r b num">S/ {{ total }}</td><td></td></tr></tfoot></table></div></div>
+<div class="xs mut">La comisión se calcula solo sobre servicios cobrados con el porcentaje que define la dueña; no cuentan los productos, las ventas anuladas ni las sesiones de paquete o membresía (RN38). Pulsa una fila para ver su recibo de pago.</div></sc-if>
+<sc-if value="{{ notCalc }}" hint-placeholder-val="{{ true }}"><div class="card mut" style="text-align:center;padding:36px">Elige el periodo y pulsa «Calcular planilla».</div></sc-if></sc-if>
+<sc-if value="{{ bol }}" hint-placeholder-val="{{ false }}"><div class="modal-bg" onClick="{{ closeM }}"><div class="modal n" onClick="{{ stop }}"><div class="mh"><div class="sp"><h2 class="h2">Recibo de pago</h2><div class="mut sm">Cautiva Spa E.I.R.L. · {{ per }}</div></div></div><div class="mb"><div class="b" style="font-size:16px">{{ bol.n }}</div><div class="sm mut">{{ bol.cargo }} · DNI {{ bol.dni }} · Esquema {{ bol.mod }}</div><hr class="sep">
+<div class="row sm"><span class="sp">Sueldo base</span><span class="num">S/ {{ bol.base }}</span></div><div class="row sm"><span class="sp">Comisión por servicios ({{ bol.pct }} %)</span><span class="num">S/ {{ bol.com }}</span></div><div class="row sm"><span class="sp">Descuento por faltas</span><span class="num bad">− S/ {{ bol.dF }}</span></div><div class="row sm"><span class="sp">Descuento por tardanzas</span><span class="num bad">− S/ {{ bol.dT }}</span></div><div class="row sm"><span class="sp">Adelantos</span><span class="num bad">− S/ {{ bol.ad }}</span></div><hr class="sep"><div class="row b"><span class="sp">Neto a pagar</span><span class="num {{ bol.cc }}">S/ {{ bol.neto }}</span></div></div><div class="mf"><button class="btn sec" onClick="{{ closeM }}">Cerrar</button><button class="btn" onClick="{{ print }}">Imprimir recibo</button></div></div></div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  COM = {e1:640,e2:520,e3:410,e4:580,e5:470};
+  FAL = {e3:{f:1,t:0},e2:{f:0,t:2}};
+  state = { tab:'plan', per:'Octubre 2026', calced:false, locked:false, bol:null,
+    adels:[{f:'03 oct',n:'Pamela Torres',m:1800,o:'Gastos de salud familiar'},{f:'05 oct',n:'Yesenia Lazo',m:400,o:''},{f:'08 oct',n:'Milagros Ayala',m:200,o:''}], af:{sid:'t1',f:'2026-10-12',m:'',o:''} };
+  componentDidMount(){ const p=this.props.app.params; if(p&&p.tab) this.setState({tab:p.tab}); }
+  f2(n){ return (Math.round(n*100)/100).toFixed(2); }
+  renderVals() {
+    const a = this.props.app, S = a.data.staff.filter(x=>x.act), s = this.state, set=(o)=>this.setState(o);
+    const RMV = +(a.param('RMV_MONTO')||1230);
+    const rows = S.map(p=>{ const base=p.mod==='Comisión'?0:p.sueldo, com=p.eid?(this.COM[p.eid]||0):0, fl=(p.eid&&this.FAL[p.eid])||{f:0,t:0};
+      const dF=base/30*fl.f, dT=fl.t*10, desc=dF+dT, ad=s.adels.filter(x=>x.n===p.n).reduce((t,x)=>t+x.m,0), neto=base+com-desc-ad;
+      const devengado=base+com-desc; let flag='',fc='';
+      if(neto<0){flag='Saldo negativo';fc='bad';} else if(p.mod!=='Comisión'&&base<RMV){flag='Menor a la RMV';fc='warn';}
+      const o={...p,mod:{Mixto:'mixto',Fijo:'fijo','Comisión':'comisión'}[p.mod]||p.mod,dF:this.f2(dF),dT:this.f2(dT),base:this.f2(base),com:this.f2(com),desc:this.f2(desc),ad:this.f2(ad),neto:this.f2(neto),cc:neto<0?'bad':'',flag,fc,pct:p.com,devengado};
+      o.open=()=>set({bol:o}); return o; });
+    const alerts=[]; rows.forEach(r=>{ if(r.flag==='Menor a la RMV') alerts.push({k:'warn',t:r.n+': el sueldo acordado (S/ '+r.base+') es menor a la RMV vigente de S/ '+RMV.toLocaleString('en-US')+'. Solo es un aviso: la remuneración la acuerdan la dueña y la persona (RN22).'}); if(r.flag==='Saldo negativo') alerts.push({k:'bad',t:r.n+': los adelantos (S/ '+r.ad+') superan lo devengado (S/ '+this.f2(r.devengado)+'). Saldo negativo S/ '+r.neto+': decide cómo regularizarlo.'}); });
+    const af=s.af, closeM=()=>set({bol:null});
+    return {
+      tabs:[['plan','Planilla mensual'],['adel','Adelantos']].map(t=>({n:t[1],cls:s.tab===t[0]?'on':'',pick:()=>set({tab:t[0]})})), tAdel:s.tab==='adel', tPlan:s.tab==='plan',
+      per:s.per, setPer:(e)=>set({per:e.target.value,calced:false,locked:false}), calc:()=>set({calced:true}), calced:s.calced, notCalc:!s.calced, locked:s.locked, noCalc:!s.calced||s.locked,
+      lock:()=>{ set({locked:true}); a.toast('Planilla BLOQUEADA · exportada para el pago'); }, estTxt:s.locked?'BLOQUEADA':'CALCULADA', estChip:s.locked?'dk':'info', alerts, rows, total:this.f2(rows.reduce((t,r)=>t+parseFloat(r.neto),0)),
+      bol:s.bol, closeM, stop:(e)=>e.stopPropagation(), print:()=>window.print(),
+      adels:s.adels, people:S.map(p=>({v:p.id,t:p.n})), af, setAs:(e)=>set({af:{...af,sid:e.target.value}}), setAf:(e)=>set({af:{...af,f:e.target.value}}), setAm:(e)=>set({af:{...af,m:e.target.value}}), setAo:(e)=>set({af:{...af,o:e.target.value}}), cantAd:!(+af.m>0)||!af.f,
+      saveAd:()=>{ const p=S.find(x=>x.id===af.sid); set({adels:[{f:af.f.slice(8)+' oct',n:p.n,m:+af.m,o:af.o.trim()},...s.adels],af:{...af,m:'',o:''},calced:false}); a.toast('Adelanto registrado · se descontará en la planilla de '+s.per); }
+    };
+  }
+}
+</script>
+</body>
+</html>

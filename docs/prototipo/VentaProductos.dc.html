@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div class="col" style="gap:16px">
+<div class="row"><div class="sp"><h1 class="h1">Venta de productos</h1><div class="mut">Solo productos de venta, con su stock real (CUS25–CUS26). No se vende con stock cero (RN15) y los productos no generan comisión.</div></div></div>
+<div class="gs"><div class="col">
+<div class="row"><input class="inp sp" style="min-width:200px;min-height:52px;font-size:16px" value="{{ q }}" onInput="{{ setQ }}" placeholder="Buscar producto o código"><div class="seg" style="overflow-x:auto"><sc-for list="{{ cats }}" as="c" hint-placeholder-count="4"><button class="{{ c.cls }}" onClick="{{ c.pick }}">{{ c.n }}</button></sc-for></div></div>
+<sc-if value="{{ nRec }}" hint-placeholder-val="{{ false }}"><div class="alert info"><span class="sp"><b>Recomendaciones de hoy:</b> {{ recTxt }}</span><button class="btn sm sec" onClick="{{ addRecs }}">Agregar al carrito</button></div></sc-if>
+<sc-if value="{{ stockErr }}" hint-placeholder-val="{{ false }}"><div class="alert bad">{{ stockErr }}</div></sc-if>
+<div class="gf1" style="grid-template-columns:repeat(auto-fill,minmax(190px,1fr))"><sc-for list="{{ prods }}" as="p" hint-placeholder-count="6"><button class="card col" style="text-align:left;font:inherit;cursor:pointer;gap:8px;{{ p.st }}" disabled="{{ p.off }}" onClick="{{ p.add }}"><div class="ph" style="height:70px">foto</div><div class="b">{{ p.n }}</div><div class="xs mut">{{ p.cod }} · {{ p.cat }}</div><div class="row"><span class="b num sp">S/ {{ p.pv }}</span><span class="chip {{ p.chip }}">{{ p.stTxt }}</span></div></button></sc-for></div>
+</div>
+<div class="card col" style="position:sticky;top:16px"><h2 class="h2">Carrito</h2>
+<sc-if value="{{ empty }}" hint-placeholder-val="{{ true }}"><div class="mut sm">Agrega productos para comenzar.</div></sc-if>
+<sc-for list="{{ cart }}" as="l" hint-placeholder-count="0"><div class="row nw"><div class="sp"><div class="b sm">{{ l.n }}</div><div class="xs mut">S/ {{ l.pv }} · stock {{ l.st }}</div></div><div class="row nw" style="gap:4px"><button class="btn sec sm" style="width:36px;padding:0" onClick="{{ l.minus }}">−</button><b class="num" style="min-width:20px;text-align:center">{{ l.q }}</b><button class="btn sec sm" style="width:36px;padding:0" onClick="{{ l.plus }}">+</button></div><b class="num" style="width:64px;text-align:right">S/ {{ l.t }}</b></div></sc-for>
+<hr class="sep"><div class="row sm"><span class="sp mut">Subtotal</span><span class="num">S/ {{ total }}</span></div><div class="row sm"><span class="sp mut">IGV 0 % (Amazonía)</span><span class="num">S/ 0.00</span></div><div class="row"><span class="sp b">Total</span><span class="kpi num" style="font-size:30px">S/ {{ total }}</span></div>
+<div class="fld"><label class="lbl">CLIENTA</label><select class="inp" value="{{ cli }}" onChange="{{ setCli }}"><option>Cliente de paso</option><sc-for list="{{ cliOpts }}" as="o" hint-placeholder-count="3"><option>{{ o }}</option></sc-for></select></div>
+<div class="fld"><label class="lbl">RECOMENDADO POR (OPCIONAL)</label><select class="inp" value="{{ rec }}" onChange="{{ setRec }}"><option value="">Nadie</option><sc-for list="{{ espOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.t }}</option></sc-for></select></div><button class="btn lg blk" disabled="{{ empty }}" onClick="{{ pay }}">Cobrar y emitir comprobante</button><div class="xs mut">El stock se descuenta al cerrar la venta y queda en el kardex.</div></div>
+</div></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { q:'', cat:'Todos', cart:{}, err:'', cli:'Cliente de paso', rec:'' };
+  renderVals() {
+    const a = this.props.app, s = this.state, set=(o)=>this.setState(o), P = a.data.prod.filter(p=>p.uso==='VENTA'&&p.est!=='INACTIVO');
+    const recs = (a.data.recs||[]).filter(r=>!r.vendida);
+    const q = s.q.trim().toLowerCase();
+    const cats = ['Todos',...new Set(P.map(p=>p.cat))];
+    const add = (p,dq)=>{ const cur=s.cart[p.id]||0, n=cur+dq; if(n>p.st){ set({err:'La cantidad supera el stock real de «'+p.n+'»: hay '+p.st+' unidades.'}); return; } const c={...s.cart}; if(n<=0) delete c[p.id]; else c[p.id]=n; set({cart:c,err:''}); };
+    const lines = P.filter(p=>s.cart[p.id]).map(p=>({...p,q:s.cart[p.id],t:(p.pv*s.cart[p.id]).toFixed(2),minus:()=>add(p,-1),plus:()=>add(p,1)}));
+    const total = lines.reduce((t,l)=>t+l.pv*l.q,0);
+    return {
+      q:s.q, setQ:(e)=>set({q:e.target.value}), stockErr:s.err,
+      cats:cats.map(c=>({n:c,cls:s.cat===c?'on':'',pick:()=>set({cat:c})})),
+      prods:P.filter(p=>(s.cat==='Todos'||p.cat===s.cat)&&(!q||p.n.toLowerCase().includes(q)||p.cod.toLowerCase().includes(q))).map(p=>({...p,off:p.st<=0,chip:p.st<=0?'bad':(p.st<=p.min?'warn':'ok'),stTxt:p.st<=0?'Agotado':(p.st<=p.min?'Quedan '+p.st:'Stock '+p.st),st:p.st<=0?'opacity:.55;cursor:not-allowed':'',add:()=>add(p,1)})),
+      cart:lines, empty:lines.length===0, total:total.toFixed(2),
+      nRec:recs.length, recTxt:recs.map(r=>r.prod+' para '+r.cli+' ('+r.esp+')').join(' · '),
+      addRecs:()=>{ const c={...s.cart}; let r0=recs[0]; recs.forEach(r=>{ const p=P.find(x=>x.id===r.pid); if(p&&p.st>(c[p.id]||0)) c[p.id]=(c[p.id]||0)+1; }); set({cart:c,cli:r0?r0.cli:s.cli,rec:r0?r0.eid:''}); },
+      rec:s.rec, setRec:(e)=>set({rec:e.target.value}), espOpts:a.data.esp.map(e=>({v:e.id,t:e.n})),
+      cli:s.cli, setCli:(e)=>set({cli:e.target.value}), cliOpts:a.clientas.map(c=>c.n),
+      pay:()=>a.go('cobros',{draft:{src:'prod',cli:s.cli,l:'salon',adel:0,lin:lines.map(l=>({t:l.n,p:l.pv,q:l.q,tipo:'prod',pid:l.id,recEid:s.rec||null}))}}); (a.data.recs||[]).forEach(r=>{ if(s.cart[r.pid]) r.vendida=true; })
+    };
+  }
+}
+</script>
+</body>
+</html>

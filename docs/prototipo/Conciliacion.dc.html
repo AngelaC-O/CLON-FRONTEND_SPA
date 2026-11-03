@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div class="col" style="gap:16px">
+<div class="row"><div class="sp"><h1 class="h1">Conciliación mensual</h1><div class="mut">Ventas del sistema contra los comprobantes aceptados por SUNAT (con sus notas de crédito) y contra las transacciones, comisiones y abonos de Izipay (CUS47, RN31).</div></div><select class="inp" style="width:auto;min-width:200px" value="{{ mes }}" onChange="{{ setMes }}"><option value="sep">Septiembre 2026</option><option value="oct">Octubre 2026</option></select></div>
+<sc-if value="{{ cerrado }}" hint-placeholder-val="{{ false }}"><div class="alert ok"><span>Septiembre 2026 conciliado (estado CERRADA). Diferencias justificadas: <b>{{ nJust }}</b>. El reporte para la contadora está listo.</span></div></sc-if>
+<sc-if value="{{ blocked }}" hint-placeholder-val="{{ false }}"><div class="card" style="text-align:center;padding:40px"><div class="h2">Octubre aún no termina</div><p class="mut">Solo se concilia un mes terminado, con todas sus cajas cerradas.</p></div></sc-if>
+<sc-if value="{{ open }}" hint-placeholder-val="{{ true }}">
+<div class="gf1"><div class="card"><div class="row"><span class="dot ok"></span><span class="mut sm">Coinciden</span></div><div class="kpi num">{{ nOk }}</div></div><div class="card"><div class="row"><span class="dot bad"></span><span class="mut sm">Sin justificar</span></div><div class="kpi num">{{ nDif }}</div></div><div class="card"><div class="row"><span class="dot warn"></span><span class="mut sm">Justificadas</span></div><div class="kpi num">{{ nJust }}</div></div><div class="card"><div class="mut sm">Excluidas (anuladas con NC)</div><div class="kpi num">{{ nEx }}</div></div></div>
+<div class="gf2"><div class="card col" style="gap:6px"><div class="row"><div class="h3 sp">SUNAT · vía APISPERU</div><span class="chip info">Comprobantes</span></div><div class="row sm"><span class="sp">Boletas y facturas aceptadas</span><b class="num">{{ sAcep }}</b></div><div class="row sm"><span class="sp">Notas de crédito aceptadas</span><b class="num">{{ sNc }}</b></div><div class="row sm"><span class="sp">Pendientes u observados</span><b class="num bad">{{ sPend }}</b></div></div>
+<div class="card col" style="gap:6px"><div class="row"><div class="h3 sp">Izipay · pagos digitales</div><span class="chip info">Liquidación</span></div><div class="row sm"><span class="sp">Cobros aprobados</span><b class="num">S/ {{ izCob }}</b></div><div class="row sm"><span class="sp">Comisión de la pasarela</span><b class="num bad">− S/ {{ izCom }}</b></div><div class="row sm"><span class="sp">Abonado a la cuenta</span><b class="num">S/ {{ izAbo }}</b></div><div class="row sm"><span class="sp">Devoluciones</span><b class="num">S/ {{ izDev }}</b></div></div></div>
+<div class="card cp0"><div class="tw"><table class="tbl"><thead><tr><th></th><th>Fecha</th><th>Venta</th><th>Comprobante</th><th class="no-m">Medio · transacción</th><th class="r">Total</th><th style="text-align:center">Aceptado SUNAT</th><th style="text-align:center">Pago respaldado</th><th></th></tr></thead><tbody>
+<sc-for list="{{ rows }}" as="r" hint-placeholder-count="10"><tr class="{{ r.rc }}"><td><span class="dot {{ r.dc }}"></span></td><td class="num sm">{{ r.f }}</td><td class="b">{{ r.d }}</td><td class="num sm"><div>{{ r.comp }}</div><sc-if value="{{ r.nc }}"><div class="xs">NC {{ r.nc }}</div></sc-if></td><td class="no-m sm"><div>{{ r.medio }}</div><div class="xs mut num">{{ r.tx }}</div></td><td class="r num nw">S/ {{ r.tot }}</td><td style="text-align:center"><span class="chip {{ r.sChip }}">{{ r.sTxt }}</span></td><td style="text-align:center"><span class="chip {{ r.pChip }}">{{ r.pTxt }}</span></td><td class="r"><sc-if value="{{ r.chip }}"><button class="chip {{ r.cc }}" style="border:0;cursor:pointer;height:30px" onClick="{{ r.open }}">{{ r.chip }}</button></sc-if></td></tr></sc-for></tbody></table></div></div>
+<div class="row"><span class="sp xs mut">El efectivo se respalda con el arqueo de la caja del día; los pagos digitales, con la transacción APROBADA y abonada por Izipay. Las ventas anuladas se excluyen (RN33). No se cierra el mes con diferencias sin justificar.</span><button class="btn sec" onClick="{{ sync }}">Actualizar SUNAT e Izipay</button><button class="btn lg" disabled="{{ cantClose }}" onClick="{{ close }}">Cerrar conciliación</button></div>
+</sc-if>
+<sc-if value="{{ det }}" hint-placeholder-val="{{ false }}"><div class="modal-bg" onClick="{{ closeM }}"><div class="modal n" onClick="{{ stop }}"><div class="mh"><div class="sp"><h2 class="h2">Diferencia</h2><div class="mut sm">{{ det.d }} · {{ det.comp }} · S/ {{ det.tot }}</div></div></div><div class="mb"><div class="alert bad">{{ det.motivo }}</div><div class="fld"><label class="lbl">JUSTIFICACIÓN</label><textarea class="inp" value="{{ just }}" onInput="{{ setJust }}" placeholder="Ej. Pago en efectivo; la transacción Yape fue rechazada y la clienta pagó en caja"></textarea></div></div><div class="mf"><button class="btn sec" onClick="{{ closeM }}">Cancelar</button><button class="btn" disabled="{{ cantJ }}" onClick="{{ saveJ }}">Justificar</button></div></div></div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { mes:'sep', sel:null, just:'', closed:false, synced:false, rows:[
+    {id:1,f:'02 sep',d:'Lucía Paredes',comp:'B001-00101',medio:'Tarjeta · enlace',tx:'IZ-000171220',tot:150,sun:'ACEPTADO',pago:'S',j:''},
+    {id:2,f:'04 sep',d:'Karina Huamán',comp:'B001-00104',medio:'Efectivo',tx:'Caja 04 sep',tot:35,sun:'ACEPTADO',pago:'S',j:''},
+    {id:3,f:'07 sep',d:'Elena Gómez',comp:'F001-00031',medio:'Yape · QR',tx:'IZ-000172001',tot:296,sun:'ACEPTADO',pago:'S',j:''},
+    {id:4,f:'11 sep',d:'Rosa Mendoza',comp:'B001-00117',medio:'Plin · QR',tx:'IZ-000173450 RECHAZADA',tot:100,sun:'ACEPTADO',pago:'N',j:''},
+    {id:5,f:'14 sep',d:'Jorge (de paso)',comp:'B001-00125',medio:'Efectivo',tx:'Caja 14 sep',tot:20,sun:'PENDIENTE',pago:'S',j:''},
+    {id:6,f:'18 sep',d:'Andrea Salazar',comp:'B001-00131',medio:'Yape · QR',tx:'IZ-000174880',tot:90,sun:'ACEPTADO',pago:'S',j:''},
+    {id:7,f:'21 sep',d:'Transacción sin venta',comp:'—',medio:'Yape · QR',tx:'IZ-000176010',tot:60,sun:'—',pago:'S',j:'',orphan:true},
+    {id:8,f:'25 sep',d:'Jimena Rojas',comp:'B001-00148',medio:'Efectivo',tx:'Caja 25 sep',tot:76,sun:'ACEPTADO',pago:'S',j:''},
+    {id:9,f:'27 sep',d:'Marisol Quispe',comp:'B001-00152',nc:'BC01-00009',medio:'Yape · QR',tx:'IZ-000177302 + DEVOLUCION',tot:120,sun:'ACEPTADO',pago:'S',j:'',ex:true},
+    {id:10,f:'30 sep',d:'Carla Díaz',comp:'B001-00160',medio:'Tarjeta · enlace',tx:'IZ-000178115',tot:55,sun:'ACEPTADO',pago:'S',j:''} ] };
+  renderVals() {
+    const s = this.state, set=(o)=>this.setState(o), a=this.props.app;
+    const diff = (r)=>r.ex?'':(r.orphan?'Izipay registra un cobro aprobado sin venta en el sistema.':(r.sun!=='ACEPTADO'?'El comprobante no figura como aceptado por SUNAT (estado '+r.sun+').':(r.pago!=='S'?'La transacción de Izipay no está aprobada: el pago no tiene respaldo.':'')));
+    const upd=(id,o)=>set(st=>({rows:st.rows.map(r=>r.id===id?{...r,...o}:r)}));
+    const rows = s.rows.map(r=>{ const m = diff(r), st = r.ex?'ex':(m?(r.j?'just':'dif'):'ok');
+      return {...r,nc:r.nc||'',rc:r.ex?'anul':'',dc:{ex:'',ok:'ok',dif:'bad',just:'warn'}[st],chip:st==='dif'?'SIN_JUSTIFICAR':(st==='just'?'JUSTIFICADA':(st==='ex'?'EXCLUIDA':'COINCIDE')),cc:st==='dif'?'bad':(st==='just'?'warn':(st==='ok'?'ok':'')),
+        sTxt:r.sun==='ACEPTADO'?'S':(r.sun==='—'?'—':'N · '+r.sun), sChip:r.sun==='ACEPTADO'?'ok':(r.sun==='—'?'':'bad'), pTxt:r.pago, pChip:r.pago==='S'?'ok':'bad', tot:Number(r.tot).toFixed(2),
+        open:()=>m&&set({sel:r.id,just:r.j||''}),m,st}; });
+    const det = rows.find(r=>r.id===s.sel);
+    const nDif = rows.filter(r=>r.st==='dif').length, nJust = rows.filter(r=>r.st==='just').length;
+    const dig = s.rows.filter(r=>/^IZ/.test(r.tx)&&r.pago==='S'), cob = dig.reduce((t,r)=>t+r.tot,0), com = cob*0.0344;
+    const closeM=()=>set({sel:null}), f2=(n)=>n.toFixed(2);
+    return {
+      mes:s.mes, setMes:(e)=>set({mes:e.target.value}), cerrado:s.closed&&s.mes==='sep', blocked:s.mes==='oct', open:s.mes==='sep'&&!s.closed,
+      nOk:rows.filter(r=>r.st==='ok').length, nDif, nJust, nEx:rows.filter(r=>r.st==='ex').length, rows,
+      sAcep:s.rows.filter(r=>r.sun==='ACEPTADO'&&!r.ex).length, sNc:s.rows.filter(r=>r.nc).length, sPend:s.rows.filter(r=>r.sun!=='ACEPTADO'&&r.sun!=='—').length,
+      izCob:f2(cob), izCom:f2(com), izAbo:f2(cob-com-120), izDev:'120.00',
+      sync:()=>{ upd(5,{sun:'ACEPTADO'}); a.toast('APISPERU: B001-00125 ACEPTADO con su CDR · Izipay: liquidación de septiembre descargada'); },
+      det:det?{...det,motivo:det.m}:null, just:s.just, setJust:(e)=>set({just:e.target.value}), cantJ:!s.just.trim(), closeM, stop:(e)=>e.stopPropagation(),
+      saveJ:()=>{ upd(s.sel,{j:s.just.trim()}); closeM(); a.toast('Diferencia justificada · queda en el ítem de conciliación'); },
+      cantClose:nDif>0, close:()=>{ set({closed:true}); a.toast('Septiembre 2026 conciliado · conciliación CERRADA'); }
+    };
+  }
+}
+</script>
+</body>
+</html>

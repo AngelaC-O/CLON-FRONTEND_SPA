@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div class="col" style="gap:16px">
+<div class="row"><div class="sp"><h1 class="h1">Asistencia</h1><div class="mut">Registro diario de entrada, almuerzo y salida (CUS39). Alimenta la planilla. Una marcación guardada solo cambia con una corrección de la Administradora (CUS40, RN23).</div></div><button class="btn sec" onClick="{{ openCorr }}">{{ corrBtn }}</button></div>
+<div class="tabs"><sc-for list="{{ tabs }}" as="t" hint-placeholder-count="3"><button class="tab {{ t.cls }}" onClick="{{ t.pick }}">{{ t.n }}</button></sc-for></div>
+<sc-if value="{{ tDia }}" hint-placeholder-val="{{ true }}"><div class="card cp0"><div class="tw"><table class="tbl"><thead><tr><th>Persona</th><th>Entrada</th><th class="no-m">Inicio almuerzo</th><th class="no-m">Fin almuerzo</th><th>Salida</th><th class="no-m r">Horas</th><th>Estado</th><th class="no-m"></th></tr></thead><tbody>
+<sc-for list="{{ rows }}" as="r" hint-placeholder-count="8"><tr><td><div class="b">{{ r.n }}</div><div class="xs mut">{{ r.cargo }}</div></td><td><input class="inp" style="width:92px;padding:0 6px" type="time" value="{{ r.in }}" disabled="{{ r.lockIn }}" onInput="{{ r.setIn }}"></td><td class="no-m"><input class="inp" style="width:92px;padding:0 6px" type="time" value="{{ r.as }}" onInput="{{ r.setAs }}"></td><td class="no-m"><input class="inp" style="width:92px;padding:0 6px" type="time" value="{{ r.ar }}" onInput="{{ r.setAr }}"></td><td><input class="inp" style="width:92px;padding:0 6px" type="time" value="{{ r.out }}" onInput="{{ r.setOut }}"></td><td class="no-m r num">{{ r.hrs }}</td><td><span class="chip {{ r.chip }}">{{ r.est }}</span></td><td class="no-m"><div class="row nw" style="gap:6px"><button class="btn sm sec" onClick="{{ r.now }}">Marcar ahora</button><button class="btn sm ghost" onClick="{{ r.falta }}">Falta</button><button class="btn sm ghost" onClick="{{ r.perm }}">Permiso</button></div></td></tr></sc-for></tbody></table></div></div>
+<div class="xs mut">Tardanza desde 5 min después de la hora de ingreso de su horario. Las horas trabajadas descuentan el almuerzo. Una vez guardada, la marcación solo la corrige la Administradora; el cambio queda en la auditoría.</div></sc-if>
+<sc-if value="{{ tMes }}"><div class="card col"><div class="row"><select class="inp" style="max-width:260px" value="{{ who }}" onChange="{{ setWho }}"><sc-for list="{{ whoOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.t }}</option></sc-for></select><span class="sp"></span><span class="chip ok">Asistió</span><span class="chip warn">Tardanza</span><span class="chip bad">Falta</span><span class="chip info">Permiso</span></div>
+<div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px"><sc-for list="{{ dow }}" as="d" hint-placeholder-count="7"><div class="xs mut b" style="text-align:center">{{ d }}</div></sc-for><sc-for list="{{ cal }}" as="d" hint-placeholder-count="31"><div style="{{ d.st }}"><span class="b sm">{{ d.n }}</span></div></sc-for></div></div></sc-if>
+<sc-if value="{{ tCorr }}"><div class="col"><sc-for list="{{ corrs }}" as="c" hint-placeholder-count="1"><div class="card col" style="gap:8px"><div class="row"><b class="sp">{{ c.n }} · {{ c.campo }}</b><span class="chip {{ c.chip }}">{{ c.est }}</span></div><div class="sm"><span class="mut">Antes:</span> {{ c.antes }} <span class="mut">→ Después:</span> <b>{{ c.nuevo }}</b></div><div class="sm mut">Motivo: {{ c.motivo }}</div>
+<sc-if value="{{ c.canAprob }}"><div class="row"><button class="btn" onClick="{{ c.ok }}">Aprobar</button><button class="btn sec" onClick="{{ c.no }}">Rechazar</button></div></sc-if><sc-if value="{{ c.waiting }}"><div class="xs mut">Solicitada por {{ c.sol }} · pendiente de la Administradora.</div></sc-if><sc-if value="{{ c.done }}"><div class="xs mut">Solicitó {{ c.sol }} · resolvió {{ c.por }} · {{ c.f }}</div></sc-if></div></sc-for><sc-if value="{{ noCorr }}"><div class="card mut" style="text-align:center">Sin correcciones.</div></sc-if><div class="xs mut">Ambas versiones (antes y después) quedan guardadas en la auditoría (RN de auditabilidad).</div></div></sc-if>
+<sc-if value="{{ mCorr }}" hint-placeholder-val="{{ false }}"><div class="modal-bg" onClick="{{ closeM }}"><div class="modal n" onClick="{{ stop }}"><div class="mh"><h2 class="h2 sp">{{ corrBtn }}</h2></div><div class="mb"><div class="fld"><label class="lbl">PERSONA</label><select class="inp" value="{{ cf.sid }}" onChange="{{ setCfS }}"><sc-for list="{{ whoOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.t }}</option></sc-for></select></div><div class="fld"><label class="lbl">CAMPO</label><select class="inp" value="{{ cf.campo }}" onChange="{{ setCfC }}"><option>Entrada</option><option>Salida</option></select></div><div class="fld"><label class="lbl">NUEVA HORA</label><input class="inp" type="time" value="{{ cf.v }}" onInput="{{ setCfV }}"></div><div class="fld"><label class="lbl">MOTIVO (OBLIGATORIO)</label><input class="inp" value="{{ cf.motivo }}" onInput="{{ setCfM }}"></div></div><div class="mf"><button class="btn sec" onClick="{{ closeM }}">Cancelar</button><button class="btn" disabled="{{ cantCorr }}" onClick="{{ saveCorr }}">{{ corrSave }}</button></div></div></div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  componentDidMount(){ const p=this.props.app.params; if(p&&p.tab) this.setState({tab:p.tab}); }
+  state = { tab:'dia', who:'t1', modal:false, cf:{sid:'t1',campo:'Salida',v:'',motivo:''}, corrs:[{id:1,sid:'t3',n:'Yesenia Lazo',campo:'Salida',antes:'—',nuevo:'18:10',motivo:'Olvidó marcar salida el 09 oct',est:'Pendiente',sol:'Carmen Soto'}],
+    reg:{t1:{in:'08:52',as:'13:00',ar:'13:58',out:'',tipo:''},t2:{in:'08:58',as:'13:05',ar:'',out:'',tipo:''},t3:{in:'10:17',out:'',tipo:''},t4:{in:'09:00',out:'',tipo:''},t5:{in:'',out:'',tipo:'perm'},t6:{in:'08:40',out:'',tipo:''},t7:{in:'',out:'',tipo:'falta'},t8:{in:'09:30',out:'',tipo:''}} };
+  mn(t){ if(!t) return null; const [h,m]=t.split(':').map(Number); return h*60+m; }
+  renderVals() {
+    const a = this.props.app, S = a.data.staff.filter(x=>x.act), s = this.state, set=(o)=>this.setState(o), isAdm = a.role==='D';
+    const setReg = (id,o)=>set(st=>({reg:{...st.reg,[id]:{...st.reg[id],...o}}}));
+    const ing=(p)=>{ const m=(p.hor||'').match(/(\d\d:\d\d)–/); return m?this.mn(m[1]):540; };
+    const rows = S.map(p=>{ const r = s.reg[p.id]||{in:'',out:'',tipo:''}, i=this.mn(r.in), o=this.mn(r.out), h0=ing(p), lun=(this.mn(r.ar)||0)-(this.mn(r.as)||0);
+      let est='Sin marcar', chip='', hrs='—';
+      if(r.tipo==='falta'){est='Falta';chip='bad';} else if(r.tipo==='perm'){est='Permiso';chip='info';}
+      else if(i!==null){ const tard=i>h0+5; if(o===null){est=(tard?'Tardanza '+(i-h0)+' min · ':'')+(r.as&&!r.ar?'En almuerzo':'Incompleta');chip=tard||(r.as&&!r.ar)?'warn':'info';} else {est=tard?'Tardanza '+(i-h0)+' min':'Presente';chip=tard?'warn':'ok'; const h=(o-i-Math.max(0,lun))/60; hrs=h>0?h.toFixed(1)+' h':'—';} }
+      const nowT=new Date().toTimeString().slice(0,5);
+      const nxt = !r.in?{in:nowT,tipo:''}:(!r.as?{as:nowT}:(!r.ar?{ar:nowT}:{out:nowT}));
+      return {n:p.n,cargo:(p.hor||''),in:r.in,as:r.as||'',ar:r.ar||'',out:r.out,hrs,est,chip,lockIn:!!r.in&&!isAdm,setIn:(e)=>setReg(p.id,{in:e.target.value,tipo:''}),setAs:(e)=>setReg(p.id,{as:e.target.value}),setAr:(e)=>setReg(p.id,{ar:e.target.value}),setOut:(e)=>setReg(p.id,{out:e.target.value}),
+        now:()=>setReg(p.id,nxt),falta:()=>setReg(p.id,{tipo:'falta',in:'',out:''}),perm:()=>setReg(p.id,{tipo:'perm',in:'',out:''})}; });
+    const who = S.find(x=>x.id===s.who)||S[0];
+    const cal = []; for(let i=0;i<3;i++) cal.push({n:'',st:'height:44px'});
+    for(let d=1;d<=31;d++){ const dow=(3+d)%7; // 1 oct 2026 = jueves
+      let c=['#fff','var(--ink)']; const wk=dow===0; if(wk) c=['#F6F0EA','var(--mut)']; else if(d<=12){ const h=(d*7+who.n.length)%13; c = h===0?['var(--bad-l)','var(--bad)']:h===5?['var(--warn-l)','var(--warn)']:h===9&&d<10?['var(--info-l)','var(--info)']:['var(--ok-l)','var(--ok)']; }
+      cal.push({n:d,st:`height:44px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid var(--line);background:${c[0]};color:${c[1]}`}); }
+    const cf = s.cf, set2=(k)=>(e)=>set({cf:{...cf,[k]:e.target.value}});
+    const closeM=()=>set({modal:false});
+    const updC=(id,est)=>set(st=>({corrs:st.corrs.map(c=>c.id===id?{...c,est,por:a.user,f:'12 oct '+new Date().toTimeString().slice(0,5)}:c)}));
+        return { tabs:[['dia','Asistencia del día'],['mes','Calendario mensual'],['corr','Correcciones ('+s.corrs.filter(c=>c.est==='Pendiente').length+' pendientes)']].map(t=>({n:t[1],cls:s.tab===t[0]?'on':'',pick:()=>set({tab:t[0]})})),
+      tDia:s.tab==='dia', tMes:s.tab==='mes', tCorr:s.tab==='corr', rows, who:s.who, setWho:(e)=>set({who:e.target.value}), whoOpts:S.map(p=>({v:p.id,t:p.n})),
+      dow:['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'], cal,
+      corrs:s.corrs.map(c=>({...c,chip:c.est==='Pendiente'?'warn':(c.est==='Aprobada'?'ok':'bad'),canAprob:isAdm&&c.est==='Pendiente',waiting:!isAdm&&c.est==='Pendiente',done:c.est!=='Pendiente',
+        ok:()=>{ updC(c.id,'Aprobada'); setReg(c.sid,c.campo==='Salida'?{out:c.nuevo}:{in:c.nuevo,tipo:''}); a.toast('Corrección aprobada · la auditoría guarda ambas versiones'); },no:()=>updC(c.id,'Rechazada')})), noCorr:s.corrs.length===0, isAdm,
+      corrBtn:isAdm?'Corregir marcación':'Solicitar corrección', corrSave:isAdm?'Guardar corrección':'Enviar solicitud',
+      openCorr:()=>set({modal:true,cf:{sid:'t1',campo:'Salida',v:'',motivo:''}}), mCorr:s.modal, closeM, stop:(e)=>e.stopPropagation(), cf, setCfS:set2('sid'), setCfC:set2('campo'), setCfV:set2('v'), setCfM:set2('motivo'), cantCorr:!cf.v||!cf.motivo.trim(),
+      saveCorr:()=>{ const p=S.find(x=>x.id===cf.sid); const r=s.reg[p.id]||{}; const k=cf.campo==='Salida'?'out':'in'; const f='12 oct '+new Date().toTimeString().slice(0,5);
+        if(isAdm) setReg(p.id,k==='in'?{in:cf.v,tipo:''}:{out:cf.v});
+        set(st=>({corrs:[{id:Date.now(),sid:p.id,n:p.n,campo:cf.campo,antes:r[k]||'—',nuevo:cf.v,motivo:cf.motivo.trim(),est:isAdm?'Aprobada':'Pendiente',sol:a.user,por:isAdm?a.user:'',f:isAdm?f:''},...st.corrs],modal:false,tab:'corr'}));
+        a.toast(isAdm?'Marcación corregida · la auditoría guarda ambas versiones':'Solicitud enviada a la Administradora'); }
+    };
+  }
+}
+</script>
+</body>
+</html>

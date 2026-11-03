@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div class="col" style="gap:16px">
+<div class="row"><div class="sp"><h1 class="h1">Agenda</h1><div class="mut">Lunes 12 de octubre de 2026 · Sede Pichanaki Centro</div></div>
+<button class="btn sec" onClick="{{ openEspera }}">Lista de espera ({{ nEspera }})</button><button class="btn lg" onClick="{{ openNueva }}">+ Nueva cita</button></div>
+<div class="row">
+<div class="seg"><button class="{{ byE }}" onClick="{{ setByE }}">Por especialista</button><button class="{{ byR }}" onClick="{{ setByR }}">Por recurso</button></div>
+<div class="seg"><button class="{{ lAll }}" onClick="{{ setLAll }}">Todas</button><button class="{{ lSalon }}" onClick="{{ setLSalon }}">Salón</button><button class="{{ lSpa }}" onClick="{{ setLSpa }}">Spa</button></div>
+<span class="sp"></span>
+<span class="chip salon"><span class="dot"></span>Salón</span><span class="chip spa"><span class="dot"></span>Spa</span><span class="chip warn no-m">Pendiente</span><span class="chip dk no-m">En atención</span><span class="chip ok no-m">Finalizada</span><span class="chip bad no-m">Cancelada</span>
+</div>
+<div class="card cp0 no-m"><div class="tw"><div style="display:flex;min-width:{{ minW }}px">
+<div style="width:56px;flex:none;padding-top:44px"><sc-for list="{{ hours }}" as="h" hint-placeholder-count="10"><div class="xs mut num" style="height:64px;padding:0 8px;text-align:right;transform:translateY(-7px)">{{ h }}</div></sc-for></div>
+<sc-for list="{{ cols }}" as="c" hint-placeholder-count="5"><div style="flex:1;min-width:150px;border-left:1px solid var(--line)">
+<div style="height:44px;display:flex;align-items:center;gap:8px;padding:0 10px;border-bottom:1px solid var(--line);background:#FCF9F6"><span class="dot" style="color:{{ c.color }}"></span><span class="b sm" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.n }}</span></div>
+<div style="position:relative;height:640px;background-image:repeating-linear-gradient(#F0E8E0 0 1px,transparent 1px 64px)">
+<sc-for list="{{ c.blocks }}" as="b" hint-placeholder-count="1"><button style="{{ b.st }}" onClick="{{ b.open }}"><div class="b xs num">{{ b.ini }} · {{ b.cli }}</div><div class="xs">{{ b.srv }} · {{ b.v }}</div><div class="xs b" style="margin-top:2px">{{ b.estTxt }}</div></button></sc-for>
+</div></div></sc-for>
+</div></div></div>
+<div class="only-m col">
+<sc-for list="{{ listM }}" as="b" hint-placeholder-count="4"><button class="card" style="text-align:left;font:inherit;cursor:pointer" onClick="{{ b.open }}"><div class="row nw"><span class="b num" style="font-size:16px;width:50px">{{ b.ini }}</span><div class="sp"><div class="b">{{ b.cli }}</div><div class="xs mut">{{ b.srv }} · {{ b.v }} · {{ b.espN }}</div></div><span class="chip {{ b.chip }}">{{ b.estTxt }}</span></div></button></sc-for>
+</div>
+<sc-if value="{{ mNueva }}" hint-placeholder-val="{{ false }}">
+<div class="modal-bg" onClick="{{ close }}"><div class="modal w" onClick="{{ stop }}">
+<div class="mh"><div class="sp"><h2 class="h2">Nueva cita</h2><div class="mut sm">Hoy, lunes 12 de octubre · Sede Pichanaki Centro</div></div><button class="btn ghost sm" onClick="{{ close }}">Cerrar</button></div>
+<div class="mb">
+<div class="gf1" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
+<div class="fld"><label class="lbl">CLIENTA</label><select class="inp" value="{{ f.cid }}" onChange="{{ setCid }}"><sc-for list="{{ cliOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.t }}</option></sc-for></select></div>
+<div class="fld"><label class="lbl">SERVICIO</label><select class="inp" value="{{ f.sid }}" onChange="{{ setSid }}"><sc-for list="{{ srvOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.t }}</option></sc-for></select></div>
+<div class="fld"><label class="lbl">VARIANTE · PRECIO FIJO</label><select class="inp" value="{{ f.vi }}" onChange="{{ setVi }}"><sc-for list="{{ varOpts }}" as="o" hint-placeholder-count="2"><option value="{{ o.v }}">{{ o.t }}</option></sc-for></select></div>
+<div class="fld"><label class="lbl">ESPECIALISTA</label><select class="inp" value="{{ f.eid }}" onChange="{{ setEid }}"><sc-for list="{{ espOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.t }}</option></sc-for></select></div>
+<div class="fld"><label class="lbl">DURACIÓN (MIN) · REFERENCIAL {{ refDur }}</label><input class="inp" type="number" min="10" step="5" value="{{ f.dur }}" onInput="{{ setDur }}"></div>
+</div>
+<sc-if value="{{ f.saldoOk }}" hint-placeholder-val="{{ false }}"><div class="alert info"><span>La clienta tiene <b>S/ {{ saldoCli }}</b> de saldo a favor. Puedes aplicarlo como adelanto.</span></div></sc-if>
+<div><label class="lbl">HORARIOS LIBRES · especialista, {{ recName }} y su tiempo de limpieza ({{ limpMin }} min)</label>
+<div class="row" style="gap:8px"><sc-for list="{{ slots }}" as="s" hint-placeholder-count="12"><button class="btn sm {{ s.cls }}" disabled="{{ s.off }}" onClick="{{ s.pick }}">{{ s.t }}</button></sc-for></div>
+<sc-if value="{{ noSlots }}" hint-placeholder-val="{{ false }}"><div class="alert bad" style="margin-top:8px"><span class="sp">No hay horarios libres hoy para esta combinación. Ofrece otra hora o anota a la clienta en la lista de espera (RF09).</span><button class="btn sm" onClick="{{ toEspera }}">Anotar en lista de espera</button></div></sc-if>
+<sc-if value="{{ conflict }}" hint-placeholder-val="{{ false }}"><div class="alert warn" style="margin-top:8px"><span>Ese horario se cruza con otra cita. Siguiente espacio libre: <b>{{ nextFree }}</b></span></div></sc-if></div>
+<div class="gf1" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+<div class="fld"><label class="lbl">ADELANTO (S/)</label><input class="inp" type="number" min="0" value="{{ f.adel }}" onInput="{{ setAdel }}" placeholder="0.00"></div>
+<div class="fld"><label class="lbl">CÓMO PAGA EL ADELANTO</label><div class="seg" style="width:100%"><sc-for list="{{ medios }}" as="m" hint-placeholder-count="3"><button class="{{ m.cls }}" style="flex:1;padding:0 6px" onClick="{{ m.pick }}">{{ m.n }}</button></sc-for></div></div>
+</div>
+<sc-if value="{{ adelInfo }}" hint-placeholder-val="{{ false }}"><div class="alert info">{{ adelInfo }}</div></sc-if>
+<sc-if value="{{ adelCaja }}" hint-placeholder-val="{{ false }}"><div class="alert bad">El adelanto en efectivo necesita la caja del día abierta.</div></sc-if>
+<sc-if value="{{ f.saldoOk }}" hint-placeholder-val="{{ false }}"><label class="row sm" style="gap:8px"><input type="checkbox" checked="{{ f.saldo }}" onChange="{{ setSaldo }}">Aplicar saldo a favor como adelanto</label></sc-if>
+<sc-if value="{{ sinAdel }}" hint-placeholder-val="{{ false }}"><div class="alert warn"><span>Sin adelanto la reserva no se confirma: la cita quedará como <b>no reservada</b>.</span></div></sc-if>
+<div class="row sm"><b>Total referencial: S/ {{ precio }}</b><span class="mut">· {{ resumen }}</span></div>
+</div>
+<div class="mf"><button class="btn sec" onClick="{{ close }}">Cancelar</button><sc-if value="{{ sinAdel }}" hint-placeholder-val="{{ false }}"><button class="btn sec" onClick="{{ noReservar }}">Dejar sin reservar</button></sc-if><button class="btn" disabled="{{ cantSave }}" onClick="{{ save }}">{{ saveTxt }}</button></div>
+</div></div>
+</sc-if>
+<sc-if value="{{ mDet }}" hint-placeholder-val="{{ false }}">
+<div class="modal-bg" onClick="{{ close }}"><div class="modal n" onClick="{{ stop }}">
+<div class="mh"><div class="sp"><h2 class="h2">{{ d.cli }}</h2><div class="mut sm">{{ d.srv }} · {{ d.v }}</div></div><span class="chip {{ d.chip }}">{{ d.estTxt }}</span></div>
+<div class="mb">
+<div class="g2 sm"><div><div class="mut xs">HORARIO</div><b class="num">{{ d.ini }} – {{ d.fin }}</b> ({{ d.dur }} min)</div><div><div class="mut xs">ESPECIALISTA</div><b>{{ d.espN }}</b></div><div><div class="mut xs">RECURSO</div><b>{{ d.rec }}</b></div><div><div class="mut xs">LÍNEA</div><span class="chip {{ d.l }}">{{ d.lname }}</span></div><div><div class="mut xs">PRECIO</div><b>S/ {{ d.p }}</b></div><div><div class="mut xs">ADELANTO</div><b>S/ {{ d.adel }}</b> <span class="chip {{ d.aChip }}">{{ d.aTxt }}</span></div></div>
+<sc-if value="{{ d.linkPend }}" hint-placeholder-val="{{ false }}"><div class="alert warn"><span class="sp">Enlace de pago enviado: la reserva se asegura cuando Izipay confirme el pago (webhook).</span><button class="btn sm" onClick="{{ simWebhook }}">Simular pago aprobado</button></div></sc-if>
+<sc-if value="{{ d.canAct }}" hint-placeholder-val="{{ false }}"><div class="row"><button class="btn sp" onClick="{{ openReprog }}">Reprogramar</button><button class="btn sec sp" onClick="{{ openCancel }}">Cancelar cita</button></div></sc-if>
+<sc-if value="{{ d.noAct }}" hint-placeholder-val="{{ false }}"><div class="alert info">Solo se reprograman o cancelan citas confirmadas en estado pendiente.</div></sc-if>
+</div>
+<div class="mf"><button class="btn sec" onClick="{{ close }}">Cerrar</button></div>
+</div></div>
+</sc-if>
+<sc-if value="{{ mReprog }}" hint-placeholder-val="{{ false }}">
+<div class="modal-bg" onClick="{{ close }}"><div class="modal n" onClick="{{ stop }}">
+<div class="mh"><div class="sp"><h2 class="h2">Reprogramar cita</h2><div class="mut sm">{{ d.cli }} · {{ d.srv }} · hoy {{ d.ini }}</div></div></div>
+<div class="mb"><div class="alert info"><span>El adelanto de <b>S/ {{ d.adel }}</b> se mantiene asociado a la cita.</span></div>
+<label class="lbl">NUEVO HORARIO LIBRE (HOY)</label>
+<div class="row" style="gap:8px"><sc-for list="{{ rSlots }}" as="s" hint-placeholder-count="8"><button class="btn sm {{ s.cls }}" disabled="{{ s.off }}" onClick="{{ s.pick }}">{{ s.t }}</button></sc-for></div>
+<sc-if value="{{ rNone }}" hint-placeholder-val="{{ false }}"><div class="alert warn">No hay horario libre en esta fecha. Prueba otra fecha o cancela la cita.</div></sc-if></div>
+<div class="mf"><button class="btn sec" onClick="{{ close }}">Volver</button><button class="btn" disabled="{{ rCant }}" onClick="{{ doReprog }}">Confirmar nuevo horario</button></div>
+</div></div>
+</sc-if>
+<sc-if value="{{ mCancel }}" hint-placeholder-val="{{ false }}">
+<div class="modal-bg" onClick="{{ close }}"><div class="modal n" onClick="{{ stop }}">
+<div class="mh"><div class="sp"><h2 class="h2">Cancelar cita</h2><div class="mut sm">{{ d.cli }} · {{ d.srv }} · {{ d.ini }}</div></div></div>
+<div class="mb"><div class="fld"><label class="lbl">MOTIVO (OBLIGATORIO)</label><select class="inp" value="{{ motivo }}" onChange="{{ setMotivo }}"><option value="">Selecciona…</option><option>La clienta no puede asistir</option><option>Enfermedad</option><option>Especialista no disponible</option><option>Otro</option></select></div>
+<sc-if value="{{ d.hasAdel }}" hint-placeholder-val="{{ false }}"><div class="alert ok"><span>El adelanto de <b>S/ {{ d.adel }}</b> pasará a <b>saldo a favor</b> de {{ d.cli }}. No vence.</span></div></sc-if>
+<sc-if value="{{ d.noAdel }}" hint-placeholder-val="{{ false }}"><div class="alert info">La clienta no dejó adelanto: solo se libera el horario.</div></sc-if></div>
+<div class="mf"><button class="btn sec" onClick="{{ close }}">Volver</button><button class="btn bad" disabled="{{ cCant }}" onClick="{{ doCancel }}">Cancelar cita</button></div>
+</div></div>
+</sc-if>
+<sc-if value="{{ mEspera }}" hint-placeholder-val="{{ false }}">
+<div class="modal-bg" onClick="{{ close }}"><div class="modal" onClick="{{ stop }}">
+<div class="mh"><div class="sp"><h2 class="h2">Lista de espera</h2><div class="mut sm">Clientas que pidieron una hora sin capacidad. Al liberarse un espacio se les asigna una cita.</div></div><button class="btn ghost sm" onClick="{{ close }}">Cerrar</button></div>
+<div class="mb"><sc-for list="{{ espera }}" as="w" hint-placeholder-count="2"><div class="card row" style="padding:12px 14px"><div class="sp"><div class="b">{{ w.cli }}</div><div class="xs mut">{{ w.srv }} · {{ w.pref }}</div></div><span class="chip {{ w.chip }}">{{ w.est }}</span><sc-if value="{{ w.pend }}"><button class="btn sm" onClick="{{ w.asignar }}">Asignar cita</button><button class="btn sm ghost" onClick="{{ w.descartar }}">Descartar</button></sc-if></div></sc-for>
+<sc-if value="{{ noEspera }}"><div class="mut sm">No hay clientas en espera.</div></sc-if>
+<hr class="sep"><div class="h3">Anotar clienta</div>
+<div class="gf1" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))"><div class="fld"><label class="lbl">CLIENTA</label><select class="inp" value="{{ wf.cid }}" onChange="{{ setWCid }}"><sc-for list="{{ cliOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.t }}</option></sc-for></select></div><div class="fld"><label class="lbl">SERVICIO Y VARIANTE</label><select class="inp" value="{{ wf.sv }}" onChange="{{ setWSv }}"><sc-for list="{{ wvOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.t }}</option></sc-for></select></div><div class="fld"><label class="lbl">FECHA DESEADA</label><input class="inp" type="date" value="{{ wf.fecha }}" onInput="{{ setWFecha }}"></div><div class="fld"><label class="lbl">DESDE</label><input class="inp" type="time" value="{{ wf.desde }}" onInput="{{ setWDesde }}"></div><div class="fld"><label class="lbl">HASTA</label><input class="inp" type="time" value="{{ wf.hasta }}" onInput="{{ setWHasta }}"></div></div>
+<button class="btn" style="align-self:flex-start" disabled="{{ cantW }}" onClick="{{ saveW }}">Anotar en lista de espera</button></div>
+</div></div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { by:'e', ln:'all', modal:null, sel:null, f:{cid:'c1',sid:'s1',vi:0,eid:'e1',dur:40,slot:'',adel:'',medio:'Efectivo',saldo:false}, rslot:'', motivo:'', wf:{cid:'c2',sv:'s8|0',fecha:'2026-10-12',desde:'09:00',hasta:'20:00'} };
+  componentDidMount(){ const p=this.props.app.params; if(p&&p.tab==='nueva') this.setState({modal:'nueva'}); if(p&&p.tab==='espera') this.setState({modal:'espera'}); }
+  L(r){ return (this.props.app.data.limp||{})[r]||10; }
+  m(t){ const [h,mm]=t.split(':').map(Number); return h*60+mm; }
+  t(n){ return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0'); }
+  recFor(area, ign, st, en) {
+    const d = this.props.app.data, pool = area.startsWith('Peluq')?d.rec.slice(0,3):area.startsWith('Manic')?d.rec.slice(3,5):d.rec.slice(5);
+    const cs = this.props.app.citas.filter(c=>c.est!=='cancelada'&&c.id!==ign);
+    return pool.find(r=>!cs.some(c=>c.rec===r && st<this.m(c.ini)+c.dur+this.L(r) && this.m(c.ini)<en+this.L(r))) || null;
+  }
+  slotsFor(eid, area, dur, ign) {
+    const cs = this.props.app.citas.filter(c=>c.est!=='cancelada'&&c.id!==ign), out=[];
+    for (let s=540; s+dur<=1140; s+=30) {
+      const e=s+dur, busy=cs.some(c=>c.e===eid && s<this.m(c.ini)+c.dur+this.L(c.rec) && this.m(c.ini)<e+this.L(c.rec));
+      out.push({s, ok:!busy && !!this.recFor(area,ign,s,e)});
+    }
+    return out;
+  }
+  setF = (o)=>this.setState(s=>({f:{...s.f,...o}}));
+  renderVals() {
+    const a = this.props.app, d = a.data, s = this.state, f = s.f, set = (o)=>this.setState(o);
+    const estTxt = {pendiente:'Pendiente',atencion:'En atención',finalizada:'Finalizada',cancelada:'Cancelada'}, chipOf = {pendiente:'warn',atencion:'dk',finalizada:'ok',cancelada:'bad'};
+    const espOf = (id)=>d.esp.find(e=>e.id===id);
+    const col = {salon:['var(--salon-l)','var(--salon-d)','var(--salon)'], spa:['var(--spa-l)','var(--spa-d)','var(--spa)']};
+    const cits = a.citas.filter(c=>s.ln==='all'||c.l===s.ln);
+    const open = (id)=>()=>set({modal:'det',sel:id});
+    const deco = (c)=>{ const cc=col[c.l], x=this.m(c.ini)-540, canc=c.est==='cancelada';
+      const dark=c.est==='atencion';
+      return {...c, espN:espOf(c.e).n, estTxt:estTxt[c.est], chip:chipOf[c.est], open:open(c.id),
+        st:`position:absolute;left:4px;right:4px;top:${x/60*64+1}px;height:${Math.max(c.dur/60*64-3,30)}px;background:${dark?cc[1]:cc[0]};color:${dark?'#fff':cc[1]};border:1px solid ${cc[2]};border-radius:8px;padding:5px 8px;text-align:left;overflow:hidden;cursor:pointer;font-family:inherit;line-height:1.25;${canc?'opacity:.5;text-decoration:line-through;':''}`}; };
+    const columns = s.by==='e' ? d.esp.filter(e=>s.ln==='all'||e.l===s.ln).map(e=>({n:e.n,color:col[e.l][2],blocks:cits.filter(c=>c.e===e.id).map(deco)}))
+      : d.rec.map(r=>({n:r,color:'var(--mut)',blocks:cits.filter(c=>c.rec===r).map(deco)}));
+    // nueva cita
+    const srv = d.srv.find(x=>x.id===f.sid), vr = srv.v[f.vi]||srv.v[0], cli = a.clientas.find(c=>c.id===f.cid);
+    const dur = +f.dur||srv.dur, sl = this.slotsFor(f.eid, srv.area, dur, null);
+    const slots = sl.map(x=>({t:this.t(x.s),off:!x.ok,cls:f.slot===this.t(x.s)?'':'sec',pick:()=>this.setF({slot:this.t(x.s)})}));
+    const chosen = f.slot ? sl.find(x=>this.t(x.s)===f.slot):null;
+    const nextFree = (()=>{ const n = sl.find(x=>x.ok && (!f.slot || x.s>this.m(f.slot))); return n?this.t(n.s):'—'; })();
+    const adelN = +f.adel||0, saldoCli = cli?cli.saldo:0, usaSaldo = f.saldo && saldoCli>0;
+    const sinAdel = adelN<=0 && !usaSaldo;
+    const adelCaja = !sinAdel && adelN>0 && f.medio==='Efectivo' && !a.caja.abierta;
+    const adelInfo = sinAdel||adelN<=0 ? '' : (f.medio==='QR Izipay' ? 'Se muestra el QR de Izipay para Yape o Plin; el adelanto se registra cuando la pasarela lo aprueba (RF10).' : f.medio==='Enlace de pago' ? 'Se envía a la clienta un enlace de pago de Izipay (vigente 24 h). La cita queda reservada y el adelanto se registra cuando Izipay confirma el pago (RF104).' : 'El adelanto en efectivo entra a la caja del día.');
+    const recAuto = chosen&&chosen.ok ? this.recFor(srv.area,null,this.m(f.slot),this.m(f.slot)+dur) : null;
+    // detalle
+    const AE={EFECTIVO:['Pagado en efectivo','ok'],APROBADA:['Aprobado en Izipay','ok'],PENDIENTE:['Enlace enviado','warn'],SALDO:['Con saldo a favor','info']};
+    const dd = a.citas.find(c=>c.id===s.sel), dv = dd? {...deco(dd), fin:this.t(this.m(dd.ini)+dd.dur), lname:dd.l==='salon'?'Salón':'Spa', canAct:dd.est==='pendiente', noAct:dd.est!=='pendiente', hasAdel:dd.adel>0&&dd.adelEst!=='PENDIENTE', noAdel:!(dd.adel>0)||dd.adelEst==='PENDIENTE', aTxt:dd.paq?'Sesión de paquete':(dd.adel>0?(AE[dd.adelEst]||AE.EFECTIVO)[0]:'Sin adelanto'), aChip:dd.adel>0?(AE[dd.adelEst]||AE.EFECTIVO)[1]:'', linkPend:dd.adelEst==='PENDIENTE'&&dd.est==='pendiente'} : {};
+    const rs = dd ? this.slotsFor(dd.e, d.srv.find(x=>x.n===dd.srv).area, dd.dur, dd.id).filter(x=>this.t(x.s)!==dd.ini) : [];
+    const rSlots = rs.map(x=>({t:this.t(x.s),off:!x.ok,cls:s.rslot===this.t(x.s)?'':'sec',pick:()=>set({rslot:this.t(x.s)})}));
+    const sel = (opts)=>opts;
+    const closeAll = ()=>set({modal:null,sel:null,rslot:'',motivo:''});
+    return {
+      byE:s.by==='e'?'on':'', byR:s.by==='r'?'on':'', setByE:()=>set({by:'e'}), setByR:()=>set({by:'r'}),
+      lAll:s.ln==='all'?'on':'', lSalon:s.ln==='salon'?'on':'', lSpa:s.ln==='spa'?'on':'',
+      setLAll:()=>set({ln:'all'}), setLSalon:()=>set({ln:'salon'}), setLSpa:()=>set({ln:'spa'}),
+      minW:56+columns.length*150, hours:['09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00'], cols:columns,
+      listM:[...cits].sort((x,y)=>x.ini.localeCompare(y.ini)).map(deco),
+      openNueva:()=>set({modal:'nueva',f:{cid:a.clientas[0].id,sid:'s1',vi:0,eid:'e1',dur:40,slot:'',adel:'',medio:'Efectivo',saldo:false}}),
+      close:closeAll, stop:(e)=>e.stopPropagation(),
+      mNueva:s.modal==='nueva', mDet:s.modal==='det', mReprog:s.modal==='reprog', mCancel:s.modal==='cancel',
+      f:{...f,saldoOk:saldoCli>0}, saldoCli,
+      cliOpts:a.clientas.map(c=>({v:c.id,t:c.n+' · '+c.tel})),
+      srvOpts:d.srv.map(x=>({v:x.id,t:x.n+' ('+(x.l==='salon'?'Salón':'Spa')+')'})),
+      varOpts:srv.v.map((v,i)=>({v:i,t:v[0]+' · S/ '+v[1]})),
+      espOpts:d.esp.map(e=>({v:e.id,t:e.n+' · '+e.area})),
+      setCid:(e)=>this.setF({cid:e.target.value,saldo:false}),
+      setSid:(e)=>{ const x=d.srv.find(z=>z.id===e.target.value); this.setF({sid:x.id,vi:0,dur:x.dur,slot:'',eid:(d.esp.find(z=>z.area===x.area)||d.esp[0]).id}); },
+      setVi:(e)=>this.setF({vi:+e.target.value}), setEid:(e)=>this.setF({eid:e.target.value,slot:''}), setDur:(e)=>this.setF({dur:e.target.value,slot:''}),
+      refDur:srv.dur, recName:recAuto||'recurso', slots, noSlots:!sl.some(x=>x.ok), conflict:!!(chosen&&!chosen.ok), nextFree,
+      setAdel:(e)=>this.setF({adel:e.target.value}), setSaldo:(e)=>this.setF({saldo:e.target.checked}),
+      medios:['Efectivo','QR Izipay','Enlace de pago'].map(n=>({n,cls:f.medio===n?'on':'',pick:()=>this.setF({medio:n})})), adelInfo, adelCaja, limpMin:recAuto?this.L(recAuto):'—',
+      saveTxt:!sinAdel&&adelN>0&&f.medio==='Enlace de pago'?'Reservar y enviar enlace':'Confirmar cita',
+      sinAdel, precio:vr[1], resumen:srv.n+' · '+vr[0]+' · '+dur+' min',
+      cantSave:!(chosen&&chosen.ok)||sinAdel||adelCaja,
+      save:()=>{ const id='k'+Date.now(), adEst = usaSaldo?'SALDO':(f.medio==='Efectivo'?'EFECTIVO':(f.medio==='QR Izipay'?'APROBADA':'PENDIENTE'));
+        if(adEst==='APROBADA') a.data.txs.unshift({cod:a.newOp(),f:'12 oct '+new Date().toTimeString().slice(0,5),medio:'Yape',canal:'QR',m:adelN,est:'APROBADA',venta:'Adelanto cita'});
+        a.setCitas(cs=>[...cs,{id,cli:cli.n,cid:cli.id,srv:srv.n,v:vr[0],e:f.eid,ini:f.slot,dur,rec:recAuto,est:'pendiente',l:srv.l,p:vr[1],adel:usaSaldo?Math.min(saldoCli,vr[1]):adelN,adelEst:adEst}]);
+        if(usaSaldo) a.setClientas(cl=>cl.map(c=>c.id===cli.id?{...c,saldo:Math.max(0,c.saldo-vr[1])}:c));
+        closeAll(); a.toast(adEst==='PENDIENTE'?'Cita reservada · enlace de pago de Izipay enviado a '+cli.n:'Cita confirmada · '+cli.n+' · '+f.slot+' · '+recAuto); },
+      noReservar:()=>{ closeAll(); a.toast('Cita sin adelanto: queda como no reservada'); },
+      d:dv, openReprog:()=>set({modal:'reprog',rslot:''}), openCancel:()=>set({modal:'cancel',motivo:''}),
+      simWebhook:()=>{ a.data.txs.unshift({cod:a.newOp(),f:'12 oct '+new Date().toTimeString().slice(0,5),medio:'Tarjeta',canal:'LINK',m:dd.adel,est:'APROBADA',venta:'Adelanto cita'}); a.setCitas(cs=>cs.map(c=>c.id===dd.id?{...c,adelEst:'APROBADA'}:c)); a.toast('Izipay confirmó el pago: adelanto registrado en la cita (evento AdelantoAprobado)'); },
+      nEspera:a.espera.filter(w=>w.est==='PENDIENTE').length, openEspera:()=>set({modal:'espera'}), mEspera:s.modal==='espera',
+      toEspera:()=>set({modal:'espera',wf:{cid:f.cid,sv:f.sid+'|'+f.vi,fecha:'2026-10-12',desde:'09:00',hasta:'20:00'}}),
+      espera:a.espera.map(w=>({...w,pref:(w.fecha||'')+' · '+w.desde+'–'+w.hasta,chip:w.est==='PENDIENTE'?'warn':(w.est==='ASIGNADA'?'ok':''),pend:w.est==='PENDIENTE',
+        asignar:()=>{ a.setEspera(ws=>ws.map(x=>x.id===w.id?{...x,est:'ASIGNADA'}:x)); set({modal:'nueva',f:{...this.state.f,cid:w.cid||this.state.f.cid,slot:''}}); a.toast('Elige el horario liberado para '+w.cli); },
+        descartar:()=>a.setEspera(ws=>ws.map(x=>x.id===w.id?{...x,est:'DESCARTADA'}:x))})), noEspera:a.espera.length===0,
+      wf:s.wf, setWCid:(e)=>set({wf:{...s.wf,cid:e.target.value}}), setWSv:(e)=>set({wf:{...s.wf,sv:e.target.value}}), setWFecha:(e)=>set({wf:{...s.wf,fecha:e.target.value}}), setWDesde:(e)=>set({wf:{...s.wf,desde:e.target.value}}), setWHasta:(e)=>set({wf:{...s.wf,hasta:e.target.value}}),
+      wvOpts:[].concat(...d.srv.map(x=>x.v.map((v,i)=>({v:x.id+'|'+i,t:x.n+' · '+v[0]})))), cantW:!s.wf.fecha||!s.wf.desde||!s.wf.hasta||s.wf.hasta<=s.wf.desde,
+      saveW:()=>{ const c=a.clientas.find(x=>x.id===s.wf.cid), [sid,vi]=s.wf.sv.split('|'), sv=d.srv.find(x=>x.id===sid), M=['','ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'], fx=s.wf.fecha.split('-'); a.setEspera(ws=>[...ws,{id:'w'+Date.now(),cli:c.n,cid:c.id,srv:sv.n+' · '+sv.v[+vi][0],fecha:(+fx[2])+' '+M[+fx[1]],desde:s.wf.desde,hasta:s.wf.hasta,est:'PENDIENTE'}]); a.toast(c.n+' anotada en la lista de espera'); },
+      rSlots, rNone:!rs.some(x=>x.ok), rCant:!s.rslot,
+      doReprog:()=>{ a.setCitas(cs=>cs.map(c=>c.id===dd.id?{...c,ini:s.rslot,rec:this.recFor(d.srv.find(x=>x.n===dd.srv).area,dd.id,this.m(s.rslot),this.m(s.rslot)+dd.dur)||c.rec}:c)); closeAll(); a.toast('Cita reprogramada a las '+s.rslot+' · adelanto conservado'); },
+      motivo:s.motivo, setMotivo:(e)=>set({motivo:e.target.value}), cCant:!s.motivo,
+      doCancel:()=>{ a.setCitas(cs=>cs.map(c=>c.id===dd.id?{...c,est:'cancelada'}:c));
+        if(dd.adel>0&&dd.cid) a.setClientas(cl=>cl.map(c=>c.id===dd.cid?{...c,saldo:c.saldo+dd.adel}:c));
+        closeAll(); a.toast(dd.adel>0?'Cita cancelada · S/ '+dd.adel+' pasan a saldo a favor':'Cita cancelada · horario liberado'); }
+    };
+  }
+}
+</script>
+</body>
+</html>
