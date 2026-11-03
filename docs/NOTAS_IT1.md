@@ -2,15 +2,17 @@
 
 ## Estado
 
-Pantallas listas (12 CUS): `IGU_Login` (CUS50, CUS51, con cambio de clave), inicio y menú por permisos (RF78), `IGU_Usuarios` (CUS52, CUS53), `IGU_Catalogo` (CUS57), `IGU_Recursos` (CUS61), `IGU_Clientas` (CUS01, CUS02), `IGU_Agenda` (CUS05, CUS06, CUS08) e `IGU_Atencion` (CUS11, con Mi agenda y Atención en curso). Faltan las pantallas de 8 CUS: CUS07, CUS13, CUS18 a CUS21, CUS44 y CUS45.
+Pantallas listas (los 20 CUS): `IGU_Login` (CUS50, CUS51, con cambio de clave), inicio y menú por permisos (RF78), `IGU_Usuarios` (CUS52, CUS53), `IGU_Catalogo` (CUS57), `IGU_Recursos` (CUS61), `IGU_Clientas` (CUS01, CUS02), `IGU_Agenda` (CUS05 a CUS08), `IGU_Atencion` (CUS11, con Mi agenda y Atención en curso), `IGU_Cobro` (CUS18 a CUS21), `IGU_VentaRapida` (CUS13) e `IGU_Caja` (CUS44, CUS45).
 
 Comprobado:
 
 - `npm run build` y `npm test -- --watch=false` pasan, con una prueba de componente por página.
 - **Contra el back-end real (localhost:8080):** login con el usuario `recepcion` del script 15, redirección a `/cambio-clave`, 403 RF82 en lo demás, cookie XSRF y logout con su cabecera. Dejó sus filas de auditoría; la clave temporal no se cambió.
-- **En el navegador, con respuestas simuladas:** inicio, usuarios, matriz y catálogo a 1440; recursos a 1440, 834 y 390; agenda a 1440, 834 y 390; Atención en curso a 1440; clientas a 390. Mi agenda y el modal de clientas se recorrieron a 1440 leyendo su contenido, sin revisar la imagen. El login, sin simular, a 1440 y 390.
+- **En el navegador, con respuestas simuladas:** inicio, usuarios, matriz y catálogo a 1440; recursos a 1440, 834 y 390; agenda a 1440, 834 y 390; Atención en curso a 1440; clientas a 390. Mi agenda y el modal de clientas se recorrieron a 1440 leyendo su contenido, sin revisar la imagen. El login, sin simular, a 1440 y 390. Cobros (con QR) a 1440 y 390; atención sin cita a 834; el arqueo de caja y el adelanto con enlace a 1440.
 
-**Sin comprobar contra el back-end real:** las escrituras de CUS52, CUS53, CUS57 y CUS61, ni el cambio de clave completo; tampoco ninguna operación de `IGU_Clientas`, `IGU_Agenda` ni `IGU_Atencion`, porque los usuarios de prueba reciben 403 RF82 hasta cambiar su clave temporal. Hacerlo deja datos en la base local y gasta esa clave.
+**Sin comprobar contra el back-end real:** las escrituras de CUS52, CUS53, CUS57 y CUS61, ni el cambio de clave completo; tampoco ninguna operación de `IGU_Clientas`, `IGU_Agenda`, `IGU_Atencion`, `IGU_Cobro`, `IGU_VentaRapida` ni `IGU_Caja`, porque los usuarios de prueba reciben 403 RF82 hasta cambiar su clave temporal. Hacerlo deja datos en la base local y gasta esa clave.
+
+**Sin comprobar en un navegador real:** el diálogo de impresión del PDF (CUS20) y de la proforma (CUS21), y el escaneo del QR con una aplicación de pago. Las pruebas solo verifican que se pide el PDF y se llama a imprimir.
 
 ## Dudas
 
@@ -36,6 +38,13 @@ Comprobado:
 5. **Tipos de documento.** El draw.io de CUS02 pide `GET /api/v1/tipos-documento` (CUS65), pero no está en el contrato ni en el back-end. `core/api/tipos-documento.ts` copia el script 07 y **supone los ids 1 a 5 por orden de inserción**: si la base los tiene distintos, la consulta y el registro usarán otro tipo. ¿Se expone ese endpoint?
 6. **Quién es «yo» en Mi agenda.** `SesionDTO` no trae `idPersonal`, así que la especialista elige su código en un selector armado con la agenda del día, y solo aparece quien tenga franjas ese día. ¿Se agrega `idPersonal` a la sesión? Además, hoy cualquier usuario con esos permisos puede iniciar la cita de otra especialista.
 7. **Atención ya iniciada.** No hay `GET` de la atención de una cita. El id se guarda en `sessionStorage`: en otra pestaña o equipo, o al cerrar la pestaña, no se puede continuar ni finalizar esa atención desde el front-end. ¿Se agrega `GET /atenciones?idCita=`?
+
+8. **Aprobación del cobro digital.** No hay `GET` de la transacción. «Verificar aprobación» reenvía el pago con `idTransaccion`, como dice el 202 del contrato: es manual porque cada intento sin aprobar responde 422 y el interceptor lo avisaría. Ese 422 (RF103) tampoco distingue «aún no» de «rechazado». ¿Se agrega `GET /pagos/transacciones/{id}`?
+9. **Quitar un cobro en espera.** «Quitar» solo deja de esperarlo en la pantalla, porque el contrato no permite anular la transacción: si la clienta paga después, Izipay la aprueba sin venta que la reciba. ¿Se agrega la anulación?
+10. **Venta y caja abiertas.** No hay `GET` de la venta ni de la caja abierta. Ambas se guardan en `sessionStorage`: en otra pestaña o equipo, una venta abierta no se puede retomar, y la caja se retoma escribiendo su código.
+11. **Medios de pago.** `core/api/medios-pago.ts` copia el script 12 y **supone los ids 1 a 4 por orden de inserción**, igual que los tipos de documento (Duda 5).
+12. **Estado SUNAT pendiente.** No hay `GET` del comprobante: la pantalla muestra el estado del cierre y no se entera del reenvío posterior (RN46). Solo el arqueo avisa cuántos quedan pendientes.
+13. **Pago digital en CUS13.** El contrato dice que, con Izipay real, un pago digital aún no se puede cerrar en `/ventas/rapidas` (DF-51). La pantalla lo ofrece, porque el draw.io lee `canal`, con un aviso. ¿Se quita hasta resolver DF-51?
 
 ## Diferencias encontradas
 
@@ -66,11 +75,24 @@ Comprobado:
 | 23 | Prototipo frente al contrato (consentimiento) | El prototipo pide consentimiento obligatorio y aparte acepta comunicaciones; el DTO solo trae `aceptaComunicaciones`, y el back-end pone la fecha. | Dos casillas: la obligatoria no se envía, solo impide guardar (RN27). |
 | 24 | Figma frente al contrato (agenda) | 4:29 muestra nombres de clienta, especialista, recurso y servicio, y colores y filtro por línea; `BloqueAgendaDTO` solo trae ids. | Se muestran «Cita 950», «Especialista 4», «Variante 2». Sin filtro Salón/Spa. Los colores van por estado. |
 | 25 | Figma frente al back-end (agenda) | La leyenda trae «Cancelada», pero `V_AGENDA_BLOQUES` excluye las canceladas. | Leyenda sin «Cancelada». |
-| 26 | Prototipo frente al alcance (agenda) | La nueva cita cobra el adelanto en el mismo modal; es CUS07, que no se pidió aquí. Reprogramar y cancelar son otros CUS. | Solo se agenda. El adelanto queda para CUS07. |
+| 26 | Prototipo frente al encargo (agenda) | La nueva cita cobra el adelanto en el mismo modal, con QR y saldo a favor; el encargo pide efectivo o enlace, y el contrato solo tiene esas dos operaciones. Reprogramar y cancelar son otros CUS. | Modal propio de adelanto (CUS07), abierto desde la cita o al terminar de agendar. No hay `GET` del adelanto: se ofrece en toda cita PENDIENTE. |
 | 27 | Figma frente al contrato (lista de espera) | «Lista de espera (1)» abre la lista; no hay `GET`. | El contador y la lista muestran solo lo anotado en la pantalla, con las horas libres que devuelve el `POST`. |
 | 28 | Figma frente al contrato (atención) | 4:137 permite cambiar servicio, variante y tiempo durante la atención, y muestra clienta, precio y sesiones del paquete. `PATCH .../fin` solo recibe observaciones y `AtencionDTO` no trae esos datos. | El tiempo se declara al iniciar. Se muestran ids; el paquete se informa al finalizar, si vuelve `idClientePaquete`. |
 | 29 | Figma y draw.io (botón) | «Finalizar atención» frente a «Clic en Finalizar». | Manda el draw.io. |
 | 30 | Encargo frente a Figma (atención) | 4:137 trae «Recomendar producto» (CUS12). | No se construyó: es de la Iteración 2. |
+| 31 | Figma frente al contrato (cobros) | 4:65 lista «Por cobrar» y «Ventas y comprobantes»; no hay `GET` de atenciones por cobrar ni de ventas. | Se escribe el código de la atención, como en `Leer(idAtencion)`. Al finalizar una atención, «Ir a cobrar» lo trae puesto. |
+| 32 | Encargo frente a Figma (cobros) | Figma incluye anulación, nota de crédito, venta de productos, comisión y pago con paquete. | Ocultos, como pide el encargo; son otros CUS o no tienen campo. El paquete lo descuenta el back-end al finalizar. |
+| 33 | draw.io (CUS18 y CUS19) | «Clic en Cerrar venta» y «Clic en Emitir comprobante» llaman al mismo `POST .../cierre`. | Un solo botón, «Cerrar venta y emitir comprobante». |
+| 34 | Prototipo frente a RN09 (proforma) | «Guardar e imprimir» y el número PF-0042 suponen guardarla; `U2.md` y el contrato dicen que no se guarda. | «Emitir proforma» e «Imprimir», sin número. Los ítems se escriben porque `DetalleVentaDTO` no trae `idVariante`. Solo Servicio y Paquete: el contrato admite PRODUCTO, pero `Item` no tiene `idProducto` y el back-end lo rechaza. |
+| 35 | Prototipo frente al draw.io (comprador) | El prototipo consulta DNI en el cobro; CUS19 solo tiene «Consultar RUC». | Solo RUC; el DNI se escribe a mano. |
+| 36 | draw.io frente al back-end (adelanto) | El adelanto de la cita solo se aplica en `PATCH .../descuentos`, y el draw.io lo hace al hacer clic. Sin ese clic se cobraría de más. | Al crear la venta se llama una vez a ese `PATCH` sin datos; «Aplicar descuentos» queda para promoción y saldo. |
+| 37 | Encargo frente al contrato (QR) | Se pide QR, pero el contrato solo entrega la URL `enlacePago`. | El QR se dibuja en el navegador con `uqr` (decisión 22). Yape y Plin proponen QR; tarjeta, enlace; se puede cambiar. |
+| 38 | Figma frente al contrato (sin cita) | 4:53 elige servicio, variante y especialista en tarjetas con nombre y precio; no hay esas lecturas. El botón es «Iniciar atención» y el cobro va después. | Código de la variante, selectores con ids y monto escrito (el back-end lo compara, RN11). El botón es «Cobrar», como el draw.io, y todo ocurre en una pantalla (RF20). |
+| 39 | Figma frente al contrato (caja) | 4:89 muestra «Movimientos del día», y «Registrar egreso» parece guardarlo al momento; los egresos solo viajan en el cierre. | Sin movimientos. Los egresos se escriben en el arqueo, como `Leer(concepto, monto)*`, para no dar por registrado lo que no lo está. |
+| 40 | Figma y draw.io (caja) | «Cerrar caja y arquear» frente a «Clic en Cerrar caja». La aprobación de la diferencia, «Último cierre» y la caja de ayer son de CUS46 o no tienen lectura. | Manda el draw.io; lo demás no se construyó. |
+| 41 | Prototipo frente al contrato (observación) | El prototipo pide una observación por cierre; `Medio.observacion` es por medio de pago. | Una por cada medio con diferencia. |
+| 42 | `openapi.yaml` frente al back-end (permisos) | El adelanto pide `AGENDA:EDITAR`; la consulta de RUC, los libres y la entrega del comprobante piden `VENTAS:VER`. Nada de esto está en el contrato (Duda 1). | Se agregaron a `PERMISOS` y esos botones se ocultan sin el permiso. |
+| 43 | Contrato (RN08) | El umbral de la boleta (`UMBRAL_BOLETA_DOC`) no se expone. | S/ 700 solo decide el aviso; quien exige los datos es el back-end. |
 
 ## Decisiones tomadas
 
@@ -95,3 +117,10 @@ Comprobado:
 19. **Horas y selectores de la cita.** Especialista y recurso solo ofrecen los ids que la hora libre elegida permite. Los selectores de filtro acumulan los ids vistos, porque no hay lista de personal ni de recursos.
 20. **Bloques de la rejilla.** Las franjas `LIBRE` solo sirven para armar las columnas. Dos bloques que se cruzan en una columna se dibujarían encimados; el back-end impide los cruces.
 21. **Formularios.** El tiempo exacto se pide al iniciar, en un modal, y no se calcula de la franja, porque su fin incluye la limpieza del recurso.
+22. **Librería `uqr`.** No es de interfaz: solo codifica el QR, sin dependencias y en ESM. Sin ella habría que escribir el codificador o enviar el enlace de pago a un servicio externo.
+23. **Un pago por envío.** `cobrosPendientes` no dice de qué medio ni de qué monto es cada cobro. Enviar uno a la vez evita cruzarlos al reenviarlos. Además, el monto no puede superar lo que falta, sin contar lo que espera a Izipay (RN11).
+24. **RNF29 en CUS13.** Con cliente de paso, efectivo y boleta bastan 5 clics: nombre, variante, monto, «Cobrar» e «Imprimir comprobante». Los libres se consultan al salir de la variante y proponen especialista, recurso y duración. Elegir otro valor suma un clic por campo. La prueba cuenta cada campo como un clic, aunque con el teclado sean menos.
+25. **Contado digital.** En el arqueo, el contado de Yape, Plin y tarjeta se toma de `aprobadoPasarela` y es de solo lectura (RF64). El efectivo empieza vacío, para obligar a contarlo.
+26. **Esperado del efectivo.** En el arqueo se le restan los egresos escritos, que es lo que hará Oracle al cerrar (ejemplo del contrato: 160 esperado, 10 de egreso, 150 al cerrar).
+27. **Imprimir el comprobante.** El PDF se abre en un `iframe` oculto: `window.open` después de la petición lo bloquearían las ventanas emergentes.
+28. **Plan de commits de cobro y caja.** Para no pasar de 8 commits, la prueba de `IGU_Agenda` y `IGU_Atencion` va en el commit de `agenda`.
