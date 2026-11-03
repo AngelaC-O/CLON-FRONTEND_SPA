@@ -1,0 +1,255 @@
+<div class="col" style="gap: 16px; max-width: 1100px">
+  <div class="row">
+    <div class="sp">
+      <h1 class="h1">Caja diaria</h1>
+      <div class="mut">{{ fechaLarga() }} · Sede {{ idSede() }}</div>
+    </div>
+    @if (actual.actual()) {
+      <span class="chip ok alto">
+        <span class="dot"></span>
+        {{ horaApertura() ? 'Abierta desde ' + horaApertura() : 'Abierta' }}
+      </span>
+    } @else {
+      <span class="chip warn alto"><span class="dot"></span>Sin caja abierta</span>
+    }
+  </div>
+
+  @if (error(); as mensaje) {
+    <div class="alert bad" role="alert">{{ mensaje }}</div>
+  }
+
+  @if (cerrada(); as caja) {
+    <div class="card col">
+      <div class="row">
+        <h2 class="h2 sp">Cierre de la caja {{ caja.idCaja }}</h2>
+        <span class="chip ok">Cerrada</span>
+      </div>
+      <div class="tw">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Medio</th>
+              <th class="r">Esperado</th>
+              <th class="r">Contado</th>
+              <th class="r">Diferencia</th>
+              <th>Observación</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (arqueo of caja.arqueos; track arqueo.idMedioPago) {
+              <tr>
+                <td class="b">{{ nombreMedio(arqueo.idMedioPago) }}</td>
+                <td class="r num">{{ soles(arqueo.montoEsperado) }}</td>
+                <td class="r num">{{ soles(arqueo.montoContado) }}</td>
+                <td class="r b num" [class]="claseDiferencia(arqueo.diferencia)">
+                  {{ textoDiferencia(arqueo.diferencia) }}
+                </td>
+                <td class="sm">{{ arqueo.observacion }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  @if (actual.actual(); as caja) {
+    @if (esperado(); as datos) {
+      <div class="gf1">
+        @for (medio of datos.medios; track medio.idMedioPago) {
+          <div class="card">
+            <div class="mut sm">
+              {{ nombreMedio(medio.idMedioPago) }}
+              {{ esEfectivo(medio) ? 'en caja (esperado)' : '(Izipay)' }}
+            </div>
+            <div class="kpi num">
+              {{ soles(esEfectivo(medio) ? medio.esperado : medio.aprobadoPasarela) }}
+            </div>
+            <div class="xs mut">
+              @if (esEfectivo(medio)) {
+                Inicial {{ soles(datos.montoInicial) }} + ventas − egresos
+              } @else {
+                Aprobado en la pasarela · esperado {{ soles(medio.esperado) }}
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+    <div class="card row">
+      <div class="sp">
+        <div class="b">Caja {{ caja.idCaja }}</div>
+        <div class="xs mut">Monto inicial: {{ soles(caja.montoInicial) }}</div>
+      </div>
+      @if (puedeCerrar()) {
+        <button class="btn lg bad" type="button" [disabled]="enviando()" (click)="cerrarCaja()">
+          Cerrar caja
+        </button>
+      }
+    </div>
+  } @else {
+    <div class="gf2">
+      @if (puedeAbrir()) {
+        <form class="card col" [formGroup]="formApertura" (ngSubmit)="abrir()">
+          <h2 class="h2">Abrir caja</h2>
+          <div class="fld">
+            <label class="lbl" for="cajaMontoInicial">MONTO INICIAL EN EFECTIVO (S/)</label>
+            <input
+              class="inp"
+              id="cajaMontoInicial"
+              style="min-height: 56px; font-size: 20px"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="0.00"
+              [formControl]="apertura"
+            />
+          </div>
+          @if (yaAbierta()) {
+            <div class="alert warn" role="status">
+              La sede ya tiene una caja abierta. Retómala con su código.
+            </div>
+          }
+          <button class="btn lg" type="submit" [disabled]="enviando()">Abrir caja</button>
+        </form>
+      }
+      @if (puedeVer()) {
+        <form class="card col" [formGroup]="formCodigo" (ngSubmit)="continuar()">
+          <h2 class="h2">Retomar una caja abierta</h2>
+          <div class="xs mut">
+            Si se abrió en otra pestaña o equipo, escribe su código para verla y cerrarla.
+          </div>
+          <div class="fld">
+            <label class="lbl" for="cajaCodigo">CÓDIGO DE LA CAJA</label>
+            <input class="inp" id="cajaCodigo" type="number" min="1" [formControl]="codigo" />
+          </div>
+          <button class="btn sec" type="submit" [disabled]="enviando()">Retomar caja</button>
+        </form>
+      }
+    </div>
+  }
+</div>
+
+@if (filas(); as arqueo) {
+  <app-modal titulo="Cierre y arqueo" [ancho]="true" (cerrar)="filas.set(null)">
+    <div class="mb">
+      @if (errorCierre(); as mensaje) {
+        <div class="alert bad" role="alert">{{ mensaje }}</div>
+      }
+      <div class="mut sm">
+        Cuenta el efectivo. Yape, Plin y tarjeta se toman de lo aprobado en Izipay (RF64).
+      </div>
+
+      <div class="h3">Egresos del día</div>
+      <div class="xs mut">
+        Gasto menor o devolución en efectivo. Se resta del efectivo esperado.
+      </div>
+      @for (egreso of egresos.controls; track egreso; let i = $index) {
+        <div class="row nw" style="align-items: flex-end; gap: 8px" [formGroup]="egreso">
+          <div class="fld sp">
+            <label class="lbl" [for]="'egresoConcepto' + i">CONCEPTO</label>
+            <input class="inp" [id]="'egresoConcepto' + i" formControlName="concepto" />
+          </div>
+          <div class="fld" style="width: 130px">
+            <label class="lbl" [for]="'egresoMonto' + i">MONTO (S/)</label>
+            <input
+              class="inp"
+              type="number"
+              min="0"
+              step="0.01"
+              [id]="'egresoMonto' + i"
+              formControlName="monto"
+            />
+          </div>
+          <button
+            class="btn ghost sm"
+            type="button"
+            style="min-height: 44px"
+            (click)="quitarEgreso(i)"
+          >
+            Quitar
+          </button>
+        </div>
+      }
+      <button
+        class="btn sec sm"
+        type="button"
+        style="align-self: flex-start"
+        (click)="agregarEgreso()"
+      >
+        + Egreso
+      </button>
+
+      <div class="tw">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Medio</th>
+              <th class="r">Esperado</th>
+              <th>Contado / Izipay (S/)</th>
+              <th class="r">Diferencia</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (fila of arqueo; track fila.medio.idMedioPago) {
+              <tr>
+                <td class="b">
+                  {{ nombreMedio(fila.medio.idMedioPago) }}
+                  <div class="xs mut">
+                    {{ fila.efectivo ? 'Contado en caja' : 'Aprobado en Izipay' }}
+                  </div>
+                </td>
+                <td class="r num">{{ soles(esperadoDe(fila)) }}</td>
+                <td>
+                  <input
+                    class="inp"
+                    style="max-width: 140px"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    [attr.aria-label]="'Contado en ' + nombreMedio(fila.medio.idMedioPago)"
+                    [id]="'contado' + fila.medio.idMedioPago"
+                    [readOnly]="!fila.efectivo"
+                    [formControl]="fila.contado"
+                  />
+                </td>
+                <td class="r b num" [class]="claseDiferencia(diferenciaDe(fila))">
+                  {{ textoDiferencia(diferenciaDe(fila)) }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @for (fila of arqueo; track fila.medio.idMedioPago) {
+        @if (conDiferencia(fila)) {
+          <div class="fld">
+            <label class="lbl" [for]="'observacion' + fila.medio.idMedioPago">
+              OBSERVACIÓN DE {{ fila.medio.medioPago }} (OBLIGATORIA)
+            </label>
+            <textarea
+              class="inp"
+              maxlength="300"
+              [id]="'observacion' + fila.medio.idMedioPago"
+              [formControl]="fila.observacion"
+            ></textarea>
+          </div>
+        }
+      }
+
+      @if (pendientes().length) {
+        <div class="alert warn" role="status">
+          Hay {{ pendientes().length }} comprobante(s) pendientes de envío a SUNAT. El sistema los
+          seguirá reenviando (RN46).
+        </div>
+      }
+    </div>
+    <div class="mf">
+      <button class="btn sec" type="button" (click)="filas.set(null)">Cancelar</button>
+      <button class="btn bad" type="button" [disabled]="enviando()" (click)="confirmarCierre()">
+        Confirmar cierre
+      </button>
+    </div>
+  </app-modal>
+}
