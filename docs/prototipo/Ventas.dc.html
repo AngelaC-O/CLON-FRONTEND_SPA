@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div class="col" style="gap:14px">
+<div class="row"><div class="seg"><button class="{{ fAll }}" onClick="{{ setAll }}">Todas</button><button class="{{ fOk }}" onClick="{{ setOk }}">Cerradas</button><button class="{{ fAn }}" onClick="{{ setAn }}">Anuladas</button><button class="{{ fPe }}" onClick="{{ setPe }}">Pendientes SUNAT</button></div><input class="inp sp" style="min-width:200px;max-width:340px" value="{{ q }}" onInput="{{ setQ }}" placeholder="Buscar clienta o comprobante"></div>
+<sc-if value="{{ nPend }}" hint-placeholder-val="{{ false }}"><div class="alert warn"><span class="sp"><b>{{ nPend }} comprobante(s) pendiente(s) de envío a SUNAT.</b> El sistema los reenvía solo; el plazo es de 3 días desde la emisión (RN46).</span><button class="btn sm" onClick="{{ reenviar }}">Reenviar ahora</button></div></sc-if>
+<div class="card cp0"><div class="tw"><table class="tbl"><thead><tr><th>Fecha</th><th>Clienta</th><th>Comprobante</th><th>SUNAT</th><th class="no-m">Medio</th><th class="r">Total</th><th>Estado</th><th></th></tr></thead><tbody>
+<sc-for list="{{ rows }}" as="v" hint-placeholder-count="5"><tr class="{{ v.rc }}"><td class="num sm">{{ v.f }}</td><td class="b {{ v.sc }}">{{ v.cli }}</td><td class="num {{ v.sc }}"><div>{{ v.comp }}</div><sc-if value="{{ v.nc }}"><div class="xs">NC {{ v.nc }}</div></sc-if></td><td><span class="chip {{ v.sChip }}">{{ v.sunat }}</span></td><td class="no-m sm">{{ v.medio }}</td><td class="r b num {{ v.sc }}">S/ {{ v.tot }}</td><td><span class="chip {{ v.chip }}">{{ v.estTxt }}</span></td><td class="r"><div class="row nw" style="gap:6px;justify-content:flex-end"><button class="btn sm ghost" onClick="{{ v.entregar }}">Entregar</button><sc-if value="{{ v.can }}"><button class="btn sm sec" onClick="{{ v.anular }}">Anular</button></sc-if></div></td></tr></sc-for>
+</tbody></table></div></div>
+<div class="xs mut">Una venta cerrada nunca se elimina: se anula con nota de crédito electrónica (RN12). Las anuladas quedan fuera de reportes, caja y conciliación (RN33).</div>
+<sc-if value="{{ modal }}" hint-placeholder-val="{{ false }}"><div class="modal-bg" onClick="{{ closeM }}"><div class="modal" onClick="{{ stop }}">
+<div class="mh"><div class="sp"><h2 class="h2">Anular venta</h2><div class="mut sm">{{ sel.comp }} · {{ sel.cli }} · S/ {{ selTot }} · {{ sel.medio }}</div></div></div>
+<div class="mb">
+<div class="g2"><div class="fld"><label class="lbl">MOTIVO (OBLIGATORIO)</label><input class="inp" value="{{ motivo }}" onInput="{{ setMotivo }}" placeholder="Ej. Se cobró dos veces"></div>
+<div class="fld"><label class="lbl">CÓDIGO DE MOTIVO SUNAT</label><select class="inp" value="{{ cod }}" onChange="{{ setCod }}"><option value="01">01 · Anulación de la operación</option><option value="02">02 · Anulación por error en el RUC</option><option value="06">06 · Devolución total</option></select></div></div>
+<sc-if value="{{ needAuth }}"><div class="alert warn">Requiere la autorización de la Administradora (RN32).</div><div class="g2"><div class="fld"><label class="lbl">USUARIO ADMINISTRADORA</label><input class="inp" value="{{ au }}" onInput="{{ setAu }}" placeholder="patricia.vargas"></div><div class="fld"><label class="lbl">CONTRASEÑA</label><input class="inp" type="password" value="{{ ap }}" onInput="{{ setAp }}"></div></div></sc-if>
+<sc-if value="{{ isAdm }}"><label class="row" style="gap:10px"><input type="checkbox" checked="{{ auth }}" onChange="{{ setAuth }}"><span>Autorizo esta anulación y la devolución (Administradora)</span></label></sc-if>
+<div class="fld"><label class="lbl">DEVOLUCIÓN DEL DINERO (RN44)</label><div class="col" style="gap:6px"><sc-for list="{{ devOpts }}" as="o" hint-placeholder-count="2"><label class="row" style="gap:10px"><input type="radio" name="dev" checked="{{ o.on }}" onChange="{{ o.pick }}"><span>{{ o.t }}</span></label></sc-for></div></div>
+<div class="alert info"><span>Al confirmar, el sistema emite la nota de crédito <b>{{ ncNext }}</b> y la envía a SUNAT por APISPERU; revierte la comisión, el stock de productos y las sesiones de paquete.</span></div></div>
+<div class="mf"><button class="btn sec" onClick="{{ closeM }}">Cancelar</button><button class="btn bad" disabled="{{ cantAn }}" onClick="{{ doAnular }}">Anular y emitir nota de crédito</button></div>
+</div></div></sc-if>
+<sc-if value="{{ ent }}" hint-placeholder-val="{{ false }}"><div class="modal-bg" onClick="{{ closeM }}"><div class="modal n" onClick="{{ stop }}"><div class="mh"><div class="sp"><h2 class="h2">Entregar comprobante</h2><div class="mut sm">{{ ent.comp }} · {{ ent.cli }} · S/ {{ entTot }}</div></div></div>
+<div class="mb"><div class="ph" style="height:120px">[ representación impresa con código QR ]</div>
+<div class="fld"><label class="lbl">CORREO DE LA CLIENTA</label><input class="inp" value="{{ mail }}" onInput="{{ setMail }}" placeholder="clienta@correo.com"></div></div>
+<div class="mf"><button class="btn sec" onClick="{{ print }}">Imprimir</button><button class="btn sec" onClick="{{ wa }}">Enlace para WhatsApp</button><button class="btn" disabled="{{ cantMail }}" onClick="{{ sendMail }}">Enviar por correo</button></div></div></div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  RESET = { sel:null, motivo:'', cod:'01', au:'', ap:'', auth:false, dev:'', ent:null, mail:'' };
+  state = { f:'all', q:'', ...this.RESET };
+  renderVals() {
+    const a = this.props.app, s = this.state, set=(o)=>this.setState(o);
+    const q = s.q.trim().toLowerCase();
+    const list = a.ventas.filter(v=>(s.f==='all'||(s.f==='ok'?v.est==='cerrada':s.f==='an'?v.est==='anulada':v.sunat==='PENDIENTE')) && (!q||v.cli.toLowerCase().includes(q)||v.comp.toLowerCase().includes(q)));
+    const sel = a.ventas.find(v=>v.id===s.sel), ent = a.ventas.find(v=>v.id===s.ent);
+    const isAdm = a.role==='D';
+    const authed = isAdm ? s.auth : (s.au.trim()==='patricia.vargas' && s.ap==='admin123');
+    const dig = sel ? Object.keys(sel.pagos||{}).filter(m=>(a.data.medios.find(x=>x.n===m)||{}).pas) : [];
+    const devOpts = sel ? [[dig.length?'medio':'caja', dig.length?'Por el mismo medio: '+dig.join(' y ')+' por Izipay'+(Object.keys(sel.pagos).includes('Efectivo')?' y efectivo desde la caja':'')+' (transacción DEVOLUCION)':'Efectivo desde la caja del día'],['saldo','Saldo a favor de la clienta (si ella lo elige)']] : [];
+    const dev = s.dev || (devOpts[0]||[])[0];
+    const sunatChip = {ACEPTADO:'ok',PENDIENTE:'warn',ENVIADO:'info',OBSERVADO:'warn',RECHAZADO:'bad'};
+    const estTxt={cerrada:'Cerrada',anulada:'Anulada'}, chip={cerrada:'ok',anulada:'bad'};
+    const nPend = a.ventas.filter(v=>v.sunat==='PENDIENTE'&&v.est==='cerrada').length;
+    const ncTipo = sel&&sel.comp.startsWith('F')?'NC FACTURA':'NC BOLETA';
+    return {
+      fAll:s.f==='all'?'on':'', fOk:s.f==='ok'?'on':'', fAn:s.f==='an'?'on':'', fPe:s.f==='pe'?'on':'', setAll:()=>set({f:'all'}), setOk:()=>set({f:'ok'}), setAn:()=>set({f:'an'}), setPe:()=>set({f:'pe'}),
+      q:s.q, setQ:(e)=>set({q:e.target.value}), nPend,
+      reenviar:()=>{ a.setVentas(vs=>vs.map(v=>v.sunat==='PENDIENTE'?{...v,sunat:'ACEPTADO'}:v)); a.toast('Reenvío a SUNAT por APISPERU: comprobantes ACEPTADOS con su CDR'); },
+      rows:list.map(v=>({...v,nc:v.nc||'',estTxt:estTxt[v.est],chip:chip[v.est],sChip:sunatChip[v.sunat]||'',rc:v.est==='anulada'?'anul':'',sc:v.est==='anulada'?'strk':'',can:v.est!=='anulada',tot:Number(v.tot).toFixed(2),
+        anular:()=>set({...this.RESET,sel:v.id}), entregar:()=>set({...this.RESET,ent:v.id})})),
+      modal:!!sel, sel:sel||{}, selTot:sel?Number(sel.tot).toFixed(2):'', closeM:()=>set(this.RESET), stop:(e)=>e.stopPropagation(),
+      motivo:s.motivo, setMotivo:(e)=>set({motivo:e.target.value}), cod:s.cod, setCod:(e)=>set({cod:e.target.value}),
+      needAuth:!isAdm, isAdm, au:s.au, ap:s.ap, setAu:(e)=>set({au:e.target.value}), setAp:(e)=>set({ap:e.target.value}), auth:s.auth, setAuth:(e)=>set({auth:e.target.checked}),
+      devOpts:devOpts.map(o=>({t:o[1],on:dev===o[0],pick:()=>set({dev:o[0]})})), ncNext:sel?a.peekSerie(ncTipo):'',
+      cantAn:!s.motivo.trim()||!authed,
+      doAnular:()=>{ const nc=a.nextSerie(ncTipo);
+        if(dev==='medio') dig.forEach(m=>a.data.txs.unshift({cod:a.newOp(),f:'12 oct '+new Date().toTimeString().slice(0,5),medio:m,canal:'API',m:sel.pagos[m],est:'APROBADA',venta:nc,tipo:'DEVOLUCION'}));
+        if(dev==='saldo'){ const c=a.clientas.find(x=>x.n===sel.cli); if(c) a.setClientas(cl=>cl.map(x=>x.id===c.id?{...x,saldo:x.saldo+Number(sel.tot)}:x)); }
+        a.setVentas(vs=>vs.map(v=>v.id===sel.id?{...v,est:'anulada',nc,dev:dev==='saldo'?'Saldo a favor':'Mismo medio'}:v)); set(this.RESET);
+        a.toast('Venta anulada · nota de crédito '+nc+' ACEPTADA por SUNAT · '+(dev==='saldo'?'monto abonado como saldo a favor':(dig.length?'devolución registrada en Izipay':'devolución en efectivo desde caja'))); },
+      ent:ent||null, entTot:ent?Number(ent.tot).toFixed(2):'', mail:s.mail, setMail:(e)=>set({mail:e.target.value}), cantMail:!/^\S+@\S+\.\S+$/.test(s.mail),
+      print:()=>window.print(), wa:()=>{ a.toast('Enlace del comprobante '+ent.comp+' copiado para WhatsApp'); set(this.RESET); }, sendMail:()=>{ a.toast('Comprobante '+ent.comp+' enviado a '+s.mail); set(this.RESET); }
+    };
+  }
+}
+</script>
+</body>
+</html>

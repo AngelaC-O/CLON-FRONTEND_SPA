@@ -1,0 +1,50 @@
+<div class="login">
+  <div class="hero">
+    <div class="h2 marca-login">Cautiva Spa</div>
+    <div class="ph foto">[ foto del salón · cabina spa ]</div>
+    <div>
+      <div class="h1 lema">Salón y Spa,<br />un solo sistema.</div>
+      <p class="mut" style="max-width: 380px">
+        BackOffice de Cautiva Spa E.I.R.L. · Pichanaki, Junín
+      </p>
+    </div>
+  </div>
+  <div class="forma">
+    <form class="col" [formGroup]="formulario" (ngSubmit)="ingresar()">
+      <div class="h2 marca-login">Cautiva Spa</div>
+      <div>
+        <h1 class="h1">Iniciar sesión</h1>
+        <div class="mut">Ingresa con tu usuario del BackOffice.</div>
+      </div>
+      @if (error(); as mensaje) {
+        <div class="alert bad" role="alert">{{ mensaje }}</div>
+      }
+      <div class="fld">
+        <label class="lbl" for="nombreUsuario">USUARIO</label>
+        <input
+          class="inp"
+          id="nombreUsuario"
+          formControlName="nombreUsuario"
+          placeholder="nombre.apellido"
+          autocomplete="username"
+        />
+      </div>
+      <div class="fld">
+        <label class="lbl" for="clave">CONTRASEÑA</label>
+        <input
+          class="inp"
+          id="clave"
+          type="password"
+          formControlName="clave"
+          placeholder="••••••••"
+          autocomplete="current-password"
+        />
+      </div>
+      <button class="btn lg blk" type="submit" [disabled]="enviando()">Ingresar</button>
+      <div class="xs mut">
+        La sesión se cierra tras 30 minutos sin actividad. Tras 5 intentos fallidos seguidos la
+        cuenta se bloquea y solo la Administradora la restablece.
+      </div>
+    </form>
+  </div>
+</div>

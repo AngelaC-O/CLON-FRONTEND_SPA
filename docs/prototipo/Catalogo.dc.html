@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div class="col" style="gap:16px">
+<div class="row"><div class="sp"><h1 class="h1">Catálogo y configuración</h1><div class="mut">Lo que solo define la dueña: servicios con variantes de precio fijo, paquetes, promociones, recursos, medios de pago, series de comprobante y parámetros del negocio (CUS57–CUS63, CUS65).</div></div><sc-if value="{{ addTxt }}"><button class="btn lg" onClick="{{ addCta }}">{{ addTxt }}</button></sc-if></div>
+<div class="tabs" style="overflow-x:auto"><sc-for list="{{ tabs }}" as="t" hint-placeholder-count="7"><button class="tab {{ t.cls }}" onClick="{{ t.pick }}">{{ t.n }}</button></sc-for></div>
+
+<sc-if value="{{ tS }}" hint-placeholder-val="{{ true }}">
+<div class="row" style="gap:8px"><sc-for list="{{ areas }}" as="ar" hint-placeholder-count="6"><button class="btn sm {{ ar.cls }}" onClick="{{ ar.pick }}">{{ ar.n }}</button></sc-for></div>
+<div class="gf2"><sc-for list="{{ srvs }}" as="x" hint-placeholder-count="4"><div class="card col" style="gap:10px"><div class="row"><div class="sp"><div class="h3" style="font-size:17px">{{ x.n }}</div><div class="xs mut">{{ x.area }} · ref. {{ x.dur }} min</div></div><span class="chip {{ x.l }}">{{ x.lname }}</span></div>
+<div class="col" style="gap:6px"><sc-for list="{{ x.vars }}" as="v" hint-placeholder-count="2"><div class="row sm"><span class="sp">{{ v.n }}</span><b class="num">S/ {{ v.p }}</b></div></sc-for></div><button class="btn sec sm" onClick="{{ x.edit }}">Editar servicio</button></div></sc-for></div>
+<div class="xs mut">Las cinco áreas son fijas: Peluquería y Estilismo, Manicura y Pedicura y Depilación (línea Salón); Cuidado Facial y Cabina Spa (línea Spa). Un cambio de precio se guarda en el historial de precios y no afecta ventas cerradas ni citas con adelanto confirmado.</div></sc-if>
+
+<sc-if value="{{ tP }}"><div class="gf2"><sc-for list="{{ paqs }}" as="p" hint-placeholder-count="2"><div class="card col" style="gap:8px"><div class="row"><div class="h3 sp" style="font-size:17px">{{ p.n }}</div><span class="chip {{ p.tChip }}">{{ p.tipo }}</span><span class="chip spa">{{ p.ses }} sesiones</span></div><div class="sm mut">Incluye: {{ p.inc }}</div><div class="kpi num" style="font-size:28px">S/ {{ p.precio }}</div><div class="xs mut">S/ {{ p.por }} por sesión · vigencia {{ p.vig }} · cada atención descuenta una sesión y no genera comisión (RN36–RN38)</div></div></sc-for></div></sc-if>
+
+<sc-if value="{{ tPr }}"><div class="card cp0"><div class="tw"><table class="tbl"><thead><tr><th>Promoción</th><th>Descuento</th><th class="no-m">Vigencia</th><th>Estado</th></tr></thead><tbody><sc-for list="{{ promos }}" as="p" hint-placeholder-count="3"><tr><td class="b">{{ p.n }}</td><td class="num">{{ p.v }}</td><td class="no-m sm">{{ p.vig }}</td><td><span class="chip {{ p.chip }}">{{ p.est }}</span></td></tr></sc-for></tbody></table></div></div><div class="xs mut">Solo la dueña crea descuentos y promociones (RN25).</div></sc-if>
+
+<sc-if value="{{ tR }}"><div class="card cp0"><div class="tw"><table class="tbl"><thead><tr><th>Recurso</th><th>Tipo</th><th class="r">Limpieza</th><th class="no-m">Servicios asociados</th><th>Estado</th></tr></thead><tbody><sc-for list="{{ recs }}" as="r" hint-placeholder-count="7"><tr><td class="b">{{ r.n }}</td><td class="sm">{{ r.tipo }}</td><td class="r"><input class="inp" style="width:72px;text-align:right" type="number" min="0" max="30" value="{{ r.limp }}" onInput="{{ r.setL }}"> <span class="xs mut">min</span></td><td class="no-m sm mut">{{ r.srv }}</td><td><button class="chip {{ r.chip }}" style="border:0;cursor:pointer;height:30px" onClick="{{ r.tog }}">{{ r.est }}</button></td></tr></sc-for></tbody></table></div></div><div class="xs mut">Cada recurso tiene su propio tiempo de limpieza, de 0 a 30 minutos (RN03), que la agenda bloquea después de cada servicio. Un recurso en mantenimiento deja de aparecer en la agenda. La zona de hidroterapia se registra como un recurso más.</div></sc-if>
+
+<sc-if value="{{ tM }}"><div class="card cp0"><div class="tw"><table class="tbl"><thead><tr><th>Medio de pago</th><th>Cómo se cobra</th><th>Usa pasarela</th><th>Estado</th></tr></thead><tbody><sc-for list="{{ medios }}" as="m" hint-placeholder-count="4"><tr><td class="b">{{ m.n }}</td><td class="sm">{{ m.canal }}</td><td><span class="chip {{ m.pChip }}">{{ m.pas }}</span></td><td><button class="chip {{ m.chip }}" style="border:0;cursor:pointer;height:30px" onClick="{{ m.tog }}">{{ m.est }}</button></td></tr></sc-for></tbody></table></div></div>
+<div class="alert info"><span class="sp">Pasarela: <b>Izipay</b> · ambiente <b>{{ amb }}</b>. Yape y Plin por QR en recepción; tarjeta y adelantos por enlace de pago; el POS se activará cuando la empresa tenga el terminal. El sistema no guarda datos de tarjetas (RN43).</span><button class="btn sm sec" onClick="{{ probarIz }}">Probar conexión</button></div></sc-if>
+
+<sc-if value="{{ tSer }}"><div class="card cp0"><div class="tw"><table class="tbl"><thead><tr><th>Tipo</th><th>Serie</th><th class="r">Último número</th><th>Siguiente</th><th>Estado</th></tr></thead><tbody><sc-for list="{{ series }}" as="x" hint-placeholder-count="4"><tr><td class="b">{{ x.tipo }}</td><td class="num">{{ x.serie }}</td><td class="r num">{{ x.ult }}</td><td class="num">{{ x.next }}</td><td><span class="chip ok">Activa</span></td></tr></sc-for></tbody></table></div></div>
+<div class="alert info"><span class="sp">Series nuevas confirmadas por la contadora (B001, F001, BC01, FC01). Oracle asigna el correlativo sin saltos por sede (RN47). Los comprobantes se firman con el CDT registrado en APISPERU; el sistema solo guarda el token.</span><button class="btn sm sec" onClick="{{ probarAp }}">Probar APISPERU</button></div></sc-if>
+
+<sc-if value="{{ tPar }}"><div class="card cp0"><div class="tw"><table class="tbl"><thead><tr><th>Código</th><th class="no-m">Descripción</th><th class="r">Valor</th><th class="no-m">Vigente desde</th><th></th></tr></thead><tbody><sc-for list="{{ pars }}" as="p" hint-placeholder-count="6"><tr><td class="num sm b">{{ p.c }}</td><td class="no-m sm">{{ p.d }}</td><td class="r"><sc-if value="{{ p.ed }}"><input class="inp" style="width:96px;text-align:right" value="{{ p.nv }}" onInput="{{ p.setV }}"></sc-if><sc-if value="{{ p.ro }}"><b class="num">{{ p.v }}</b></sc-if> <span class="xs mut">{{ p.u }}</span></td><td class="no-m sm mut">{{ p.f }}</td><td class="r"><sc-if value="{{ p.ro }}"><button class="btn sm ghost" onClick="{{ p.edit }}">Cambiar</button></sc-if><sc-if value="{{ p.ed }}"><button class="btn sm" onClick="{{ p.save }}">Guardar</button></sc-if></td></tr></sc-for></tbody></table></div></div>
+<div class="xs mut">Cada cambio crea una nueva vigencia con la fecha y el usuario (auditoría). Los cálculos usan el valor vigente: margen de productos, RMV de la planilla, plazo de envío a SUNAT, cierre de sesión e intentos de bloqueo.</div></sc-if>
+
+<sc-if value="{{ mSrv }}" hint-placeholder-val="{{ false }}"><div class="modal-bg" onClick="{{ closeM }}"><div class="modal" onClick="{{ stop }}"><div class="mh"><h2 class="h2 sp">{{ mTitle }}</h2></div><div class="mb"><div class="gf1" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))"><div class="fld"><label class="lbl">NOMBRE</label><input class="inp" value="{{ e.n }}" onInput="{{ setN }}"></div><div class="fld"><label class="lbl">ÁREA</label><select class="inp" value="{{ e.area }}" onChange="{{ setArea }}"><sc-for list="{{ areaOpts }}" as="o" hint-placeholder-count="5"><option>{{ o }}</option></sc-for></select></div><div class="fld"><label class="lbl">DURACIÓN REFERENCIAL (MIN)</label><input class="inp" type="number" min="5" max="600" value="{{ e.dur }}" onInput="{{ setDur }}"></div></div>
+<div class="row"><span class="xs mut">Línea según el área:</span><span class="chip {{ eL }}">{{ lname }}</span></div>
+<div class="h3">Variantes y precio fijo (RN40)</div><sc-for list="{{ evars }}" as="v" hint-placeholder-count="2"><div class="row nw"><input class="inp" value="{{ v.n }}" onInput="{{ v.setN }}" placeholder="Variante"><input class="inp" style="width:120px" type="number" value="{{ v.p }}" onInput="{{ v.setP }}"><button class="btn ghost sm" onClick="{{ v.del }}">Quitar</button></div></sc-for><button class="btn sec sm" style="align-self:flex-start" onClick="{{ addVar }}">+ Variante</button></div><div class="mf"><button class="btn sec" onClick="{{ closeM }}">Cancelar</button><button class="btn" disabled="{{ cantS }}" onClick="{{ saveS }}">Guardar y versionar precios</button></div></div></div></sc-if>
+
+<sc-if value="{{ mGen }}" hint-placeholder-val="{{ false }}"><div class="modal-bg" onClick="{{ closeM }}"><div class="modal n" onClick="{{ stop }}"><div class="mh"><h2 class="h2 sp">{{ gTitle }}</h2></div><div class="mb">
+<sc-if value="{{ gTipo }}"><div class="fld"><label class="lbl">{{ gTipoLbl }}</label><div class="seg"><sc-for list="{{ gTipos }}" as="t" hint-placeholder-count="2"><button class="{{ t.cls }}" onClick="{{ t.pick }}">{{ t.n }}</button></sc-for></div></div></sc-if>
+<sc-for list="{{ gfields }}" as="x" hint-placeholder-count="3"><div class="fld"><label class="lbl">{{ x.l }}</label><input class="inp" value="{{ x.v }}" onInput="{{ x.set }}" placeholder="{{ x.ph }}"></div></sc-for></div><div class="mf"><button class="btn sec" onClick="{{ closeM }}">Cancelar</button><button class="btn" disabled="{{ cantG }}" onClick="{{ saveG }}">Guardar</button></div></div></div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  AREAS = ['Peluquería y Estilismo','Manicura y Pedicura','Depilación','Cuidado Facial','Cabina Spa'];
+  TIPO = {'Sillón':'SILLON','Mesa manicura':'MESA_MANICURA','Cabina Spa':'CABINA','Camilla':'CAMILLA','Estación':'ESTACION','Lavacabezas':'LAVACABEZAS','Hidroterapia':'HIDROTERAPIA'};
+  state = { tab:'s', area:'Todas', modal:null, e:null, g:{n:'',a:'',b:'',c:'',t:''}, edPar:null, nv:'',
+    paqs:[{n:'Membresía Spa',tipo:'MEMBRESIA',ses:6,inc:'Masaje relajante o limpieza facial básica',precio:420,vig:'180 días'},{n:'Paquete Manicura',tipo:'PAQUETE',ses:4,inc:'Manicura semipermanente',precio:120,vig:'90 días'},{n:'Cabina Relax',tipo:'PAQUETE',ses:3,inc:'Masaje descontracturante',precio:270,vig:'sin vencimiento'}],
+    promos:[{n:'Promo octubre',v:'−10 %',vig:'01 oct – 31 oct 2026',est:'ACTIVA'},{n:'Cumpleaños',v:'−S/ 10',vig:'01 ene – 31 dic 2026',est:'ACTIVA'},{n:'Dos por uno cejas',v:'−50 %',vig:'01 sep – 30 sep 2026',est:'INACTIVA'}],
+    off:{}, moff:{}, tick:0 };
+  componentDidMount(){ const p=this.props.app.params; const m={s:'s',p:'p',pr:'pr',r:'r',mp:'m',ser:'ser',par:'par'}; if(p&&p.tab&&m[p.tab]) this.setState({tab:m[p.tab]}); }
+  renderVals() {
+    const a = this.props.app, D = a.data, s = this.state, set=(o)=>this.setState(o), e = s.e||{};
+    const lineOf=(ar)=>['Cuidado Facial','Cabina Spa'].includes(ar)?'spa':'salon';
+    const srvs = D.srv.filter(x=>s.area==='Todas'||x.area===s.area).map(x=>({...x,lname:x.l==='salon'?'Salón':'Spa',vars:x.v.map(v=>({n:v[0],p:v[1]})),edit:()=>set({modal:'srv',e:{id:x.id,n:x.n,area:x.area,dur:x.dur,v:x.v.map(v=>[v[0],v[1]])}})}));
+    const tab = s.tab, g = s.g, closeM=()=>set({modal:null});
+    const upV=(i,k,val)=>set({e:{...e,v:e.v.map((v,j)=>j===i?(k===0?[val,v[1]]:[v[0],val]):v)}});
+    const tipoOf=(n)=>this.TIPO[Object.keys(this.TIPO).find(k=>n.startsWith(k))]||'SILLON';
+    const gDef = tab==='p'?{t:'Nuevo paquete o membresía',tl:'TIPO',tipos:[['PAQUETE','Paquete'],['MEMBRESIA','Membresía']],f:[['NOMBRE','n',''],['SESIONES','a','6'],['SERVICIOS INCLUIDOS','b','Masaje relajante'],['PRECIO (S/)','c','420']]}
+      : tab==='r'?{t:'Registrar recurso (CUS61)',tl:'TIPO DE RECURSO',tipos:[['SILLON','Sillón'],['ESTACION','Estación'],['CAMILLA','Camilla'],['CABINA','Cabina'],['MESA_MANICURA','Mesa manicura'],['HIDROTERAPIA','Hidroterapia']],f:[['NOMBRE','n','Ej. Camilla 1'],['MINUTOS DE LIMPIEZA (0 A 30)','a','15']]}
+      : {t:'Nueva promoción',tl:'TIPO DE DESCUENTO',tipos:[['PORCENTAJE','Porcentaje'],['MONTO','Monto fijo']],f:[['NOMBRE','n','Promo verano'],['VALOR','a','10'],['VIGENCIA','b','01 nov – 30 nov 2026']]};
+    const rec = D.rec.map(n=>({n,tipo:tipoOf(n),limp:(D.limp||{})[n]??10,setL:(ev)=>{ const v=Math.max(0,Math.min(30,+ev.target.value||0)); D.limp[n]=v; set({tick:s.tick+1}); },
+      srv:n.startsWith('Sill')?'Corte, tinte, peinado':n.startsWith('Mesa')?'Manicura, pedicura':n.startsWith('Cabina')?'Masajes, limpieza facial, depilación':'—',est:s.off[n]?'MANTENIMIENTO':'DISPONIBLE',chip:s.off[n]?'warn':'ok',tog:()=>{ set({off:{...s.off,[n]:!s.off[n]}}); a.toast(s.off[n]?n+' disponible nuevamente':n+' en mantenimiento: ya no aparece en la agenda'); }}));
+    const amb = 'sandbox (pruebas)';
+    return {
+      tabs:[['s','Servicios'],['p','Paquetes y membresías'],['pr','Promociones'],['r','Recursos'],['m','Medios de pago'],['ser','Series de comprobante'],['par','Parámetros']].map(t=>({n:t[1],cls:tab===t[0]?'on':'',pick:()=>set({tab:t[0]})})),
+      tS:tab==='s', tP:tab==='p', tPr:tab==='pr', tR:tab==='r', tM:tab==='m', tSer:tab==='ser', tPar:tab==='par',
+      addTxt:{s:'+ Servicio',p:'+ Paquete',pr:'+ Promoción',r:'+ Recurso'}[tab]||'',
+      addCta:()=>{ if(tab==='s') set({modal:'srv',e:{id:'',n:'',area:this.AREAS[0],dur:45,v:[['',0]]}}); else set({modal:'gen',g:{n:'',a:'',b:'',c:'',t:gDef.tipos[0][0]}}); },
+      areas:['Todas',...this.AREAS].map(n=>({n,cls:s.area===n?'':'sec',pick:()=>set({area:n})})), srvs,
+      paqs:s.paqs.map(p=>({...p,tChip:p.tipo==='MEMBRESIA'?'spa':'',por:(p.precio/p.ses).toFixed(2)})), promos:s.promos.map(p=>({...p,chip:p.est==='ACTIVA'?'ok':''})), recs:rec,
+      medios:D.medios.map(m=>({...m,pas:m.pas?'Sí · Izipay':'No · caja',pChip:m.pas?'info':'',est:s.moff[m.n]?'INACTIVO':'ACTIVO',chip:s.moff[m.n]?'':'ok',tog:()=>{ if(m.n==='Efectivo'){a.toast('El efectivo no se puede desactivar');return;} m.act=!!s.moff[m.n]; set({moff:{...s.moff,[m.n]:!s.moff[m.n]}}); a.toast(m.n+(s.moff[m.n]?' activado':' desactivado: ya no aparece en Cobros')); }})),
+      amb, probarIz:()=>a.toast('Izipay sandbox respondió OK · credenciales TEST válidas'), probarAp:()=>a.toast('APISPERU respondió OK · token de facturación y consulta DNI/RUC vigentes'),
+      series:D.series.map(x=>({...x,next:x.serie+'-'+String(x.ult+1).padStart(5,'0')})),
+      pars:D.params.map(p=>({...p,ed:s.edPar===p.c,ro:s.edPar!==p.c,nv:s.nv,setV:(ev)=>set({nv:ev.target.value}),edit:()=>set({edPar:p.c,nv:p.v}),
+        save:()=>{ if(s.nv===''||isNaN(+s.nv)){a.toast('Ingresa un valor numérico');return;} p.v=s.nv; p.f='12 oct 2026'; set({edPar:null}); a.toast(p.c+' = '+s.nv+' '+p.u+' · nueva vigencia registrada en auditoría'); }})),
+      mSrv:s.modal==='srv', mGen:s.modal==='gen', closeM, stop:(ev)=>ev.stopPropagation(), mTitle:e.id?'Editar '+e.n:'Nuevo servicio', e, eL:lineOf(e.area), lname:lineOf(e.area)==='salon'?'Salón':'Spa',
+      setN:(ev)=>set({e:{...e,n:ev.target.value}}), setArea:(ev)=>set({e:{...e,area:ev.target.value}}), setDur:(ev)=>set({e:{...e,dur:ev.target.value}}), areaOpts:this.AREAS,
+      evars:(e.v||[]).map((v,i)=>({n:v[0],p:v[1],setN:(ev)=>upV(i,0,ev.target.value),setP:(ev)=>upV(i,1,ev.target.value),del:()=>set({e:{...e,v:e.v.filter((_,j)=>j!==i)}})})),
+      addVar:()=>set({e:{...e,v:[...e.v,['',0]]}}), cantS:!(e.n||'').trim()||!(e.v||[]).length||(e.v||[]).some(v=>!String(v[0]).trim()||!(+v[1]>0))||!(+e.dur>=5&&+e.dur<=600),
+      saveS:()=>{ const row={id:e.id||'s'+Date.now(),n:e.n.trim(),area:e.area,l:lineOf(e.area),dur:+e.dur||45,v:e.v.map(v=>[v[0].trim(),+v[1]])}; const i=D.srv.findIndex(x=>x.id===row.id); if(i>=0) D.srv[i]=row; else D.srv.push(row); closeM(); a.toast('Servicio guardado · historial de precios actualizado · auditoría registrada'); },
+      gTitle:gDef.t, gTipo:true, gTipoLbl:gDef.tl, gTipos:gDef.tipos.map(t=>({n:t[1],cls:g.t===t[0]?'on':'',pick:()=>set({g:{...g,t:t[0]}})})),
+      gfields:gDef.f.map((x,i)=>{ const k=['n','a','b','c'][i]; return {l:x[0],v:g[k],ph:x[2],set:(ev)=>set({g:{...g,[k]:ev.target.value}})}; }),
+      cantG:!g.n.trim()||!String(g.a).trim()||(tab==='r'&&!(+g.a>=0&&+g.a<=30))||(tab==='r'&&D.rec.includes(g.n.trim())),
+      saveG:()=>{ if(tab==='p') set({paqs:[...s.paqs,{n:g.n,tipo:g.t,ses:+g.a||1,inc:g.b,precio:+g.c||0,vig:'sin vencimiento'}],modal:null});
+        else if(tab==='r'){ D.rec.push(g.n.trim()); D.limp[g.n.trim()]=+g.a; this.TIPO[g.n.trim()]=g.t; set({modal:null}); }
+        else set({promos:[...s.promos,{n:g.n,v:g.t==='PORCENTAJE'?'−'+g.a+' %':'−S/ '+g.a,vig:g.b||'—',est:'ACTIVA'}],modal:null}); a.toast('Guardado · auditoría registrada'); }
+    };
+  }
+}
+</script>
+</body>
+</html>

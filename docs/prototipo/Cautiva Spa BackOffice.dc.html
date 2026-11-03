@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#FAF6F1;--ink:#2A2220;--mut:#6B5E58;--line:#E8DED5;--pri:#3A2A30;--salon:oklch(.62 .1 350);--salon-d:oklch(.44 .11 350);--salon-l:oklch(.95 .03 350);--spa:oklch(.62 .1 175);--spa-d:oklch(.4 .08 175);--spa-l:oklch(.95 .03 175);--ok:oklch(.45 .1 150);--ok-l:oklch(.95 .04 150);--warn:oklch(.46 .1 70);--warn-l:oklch(.96 .05 85);--bad:oklch(.46 .15 27);--bad-l:oklch(.95 .03 27);--info:oklch(.44 .1 250);--info-l:oklch(.95 .03 250)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 14px/1.45 'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--salon-d)}a:hover{color:var(--pri)}
+button{font-family:inherit}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px}
+.cp0{padding:0;overflow:hidden}
+.h1{font:400 34px/1.1 'Instrument Serif',serif;margin:0;letter-spacing:-.01em}
+.h2{font:400 24px/1.15 'Instrument Serif',serif;margin:0}
+.h3{font:600 15px/1.3 'DM Sans',sans-serif;margin:0}
+.mut{color:var(--mut)}.sm{font-size:12.5px}.xs{font-size:11.5px}.b{font-weight:600}.num{font-variant-numeric:tabular-nums}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.col{display:flex;flex-direction:column;gap:12px}.sp{flex:1}.nw{flex-wrap:nowrap}
+.grid{display:grid;gap:16px}.gf{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}.gf1{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}.gf2{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))}
+.g2{display:grid;gap:14px;grid-template-columns:repeat(2,minmax(0,1fr))}
+.gs{display:grid;gap:16px;grid-template-columns:minmax(0,1fr) 360px;align-items:start}
+.btn{min-height:44px;padding:0 18px;border-radius:10px;border:1px solid var(--pri);background:var(--pri);color:#fff;font:600 14px 'DM Sans',sans-serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;white-space:nowrap}
+.btn:hover{filter:brightness(1.15);color:#fff}.btn:disabled{opacity:.45;cursor:not-allowed;filter:none}
+.btn.sec{background:#fff;color:var(--pri);border-color:#D6CABF}.btn.sec:hover{background:#F6EFE8;color:var(--pri);filter:none}
+.btn.ghost{background:transparent;color:var(--pri);border-color:transparent}.btn.ghost:hover{background:#F1E9E1;filter:none;color:var(--pri)}
+.btn.lg{min-height:58px;font-size:16px;padding:0 26px;border-radius:14px}.btn.sm{min-height:36px;padding:0 12px;font-size:13px;border-radius:8px}
+.btn.bad{background:var(--bad);border-color:var(--bad)}.btn.salon{background:var(--salon-d);border-color:var(--salon-d)}.btn.spa{background:var(--spa-d);border-color:var(--spa-d)}.btn.blk{width:100%}
+.inp{width:100%;min-height:44px;border:1px solid #D6CABF;border-radius:10px;padding:0 12px;font:400 14px 'DM Sans',sans-serif;background:#fff;color:var(--ink)}
+.inp:focus{outline:2px solid var(--salon);outline-offset:1px;border-color:transparent}
+textarea.inp{padding:10px 12px;min-height:80px;resize:vertical}
+.lbl{display:block;font:600 12px 'DM Sans',sans-serif;color:var(--mut);margin-bottom:6px;letter-spacing:.02em}
+.fld{display:flex;flex-direction:column}
+.chip{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:99px;font:600 11.5px 'DM Sans',sans-serif;background:#F1E9E1;color:var(--mut);white-space:nowrap}
+.chip.ok{background:var(--ok-l);color:var(--ok)}.chip.warn{background:var(--warn-l);color:var(--warn)}.chip.bad{background:var(--bad-l);color:var(--bad)}.chip.info{background:var(--info-l);color:var(--info)}.chip.salon{background:var(--salon-l);color:var(--salon-d)}.chip.spa{background:var(--spa-l);color:var(--spa-d)}.chip.dk{background:var(--pri);color:#fff}
+.dot{width:8px;height:8px;border-radius:50%;background:currentColor;display:inline-block;flex:none}
+.tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line);margin-bottom:16px;scrollbar-width:none}
+.tab{padding:12px 16px;border:0;background:none;font:600 14px 'DM Sans',sans-serif;color:var(--mut);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;min-height:44px}
+.tab.on{color:var(--pri);border-bottom-color:var(--salon)}
+.seg{display:inline-flex;background:#F1E9E1;border-radius:10px;padding:3px;gap:2px}
+.seg button{min-height:38px;padding:0 14px;border:0;background:transparent;border-radius:8px;font:600 13px 'DM Sans',sans-serif;color:var(--mut);cursor:pointer}
+.seg button.on{background:#fff;color:var(--pri);box-shadow:0 1px 3px rgba(60,40,30,.15)}
+.tw{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.tbl th{text-align:left;font:600 11.5px 'DM Sans',sans-serif;color:var(--mut);letter-spacing:.04em;text-transform:uppercase;padding:10px 14px;border-bottom:1px solid var(--line);white-space:nowrap;background:#FCF9F6}
+.tbl td{padding:12px 14px;border-bottom:1px solid #F0E8E0;vertical-align:middle}
+.tbl tr.clk{cursor:pointer}.tbl tr.clk:hover td{background:#FCF9F6}
+.tbl .r{text-align:right}
+.modal-bg{position:fixed;inset:0;background:rgba(42,34,32,.5);z-index:50;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:#fff;border-radius:18px;width:100%;max-width:640px;max-height:92vh;overflow:auto;display:flex;flex-direction:column}
+.modal.w{max-width:860px}.modal.n{max-width:460px}
+.mh{padding:20px 24px 12px;display:flex;align-items:flex-start;gap:12px}.mb{padding:4px 24px 20px;display:flex;flex-direction:column;gap:14px}.mf{padding:14px 24px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;position:sticky;bottom:0;background:#fff}
+.toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:var(--pri);color:#fff;padding:12px 18px;border-radius:12px;z-index:90;font-weight:500;box-shadow:0 8px 30px rgba(0,0,0,.25);max-width:90vw}
+.alert{padding:12px 14px;border-radius:10px;font-size:13.5px;display:flex;gap:10px;align-items:flex-start}
+.alert.bad{background:var(--bad-l);color:var(--bad)}.alert.warn{background:var(--warn-l);color:var(--warn)}.alert.ok{background:var(--ok-l);color:var(--ok)}.alert.info{background:var(--info-l);color:var(--info)}
+.kpi{font:400 34px/1 'Instrument Serif',serif}
+.bar{height:8px;background:#F1E9E1;border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;border-radius:9px;background:var(--salon)}
+.ph{background:repeating-linear-gradient(135deg,#F3EAE1 0 10px,#EDE2D8 10px 20px);color:var(--mut);font:500 11px ui-monospace,Menlo,monospace;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;border-radius:12px}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--salon-l);color:var(--salon-d);display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:none}
+.avatar.spa{background:var(--spa-l);color:var(--spa-d)}
+.anul{color:var(--bad)}.anul td{background:#FDF6F5}.anul .strk{text-decoration:line-through}
+.sep{border:0;border-top:1px solid var(--line);margin:4px 0;width:100%}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.app{display:grid;grid-template-columns:252px minmax(0,1fr);min-height:100vh}
+.side{position:sticky;top:0;height:100vh;overflow:auto;background:#fff;border-right:1px solid var(--line);padding:18px 12px;display:flex;flex-direction:column;gap:2px}
+.nv{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border-radius:10px;border:0;background:none;color:var(--ink);font:500 14px 'DM Sans',sans-serif;cursor:pointer;text-align:left;width:100%}
+.nv:hover{background:#F6EFE8}.nv.on{background:var(--pri);color:#fff}
+.grp{font:600 10.5px 'DM Sans',sans-serif;color:var(--mut);letter-spacing:.09em;text-transform:uppercase;padding:16px 12px 6px}
+.main{padding:22px 32px 48px;min-width:0}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:22px;flex-wrap:wrap}
+.bnav{display:none;position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);z-index:40;padding:4px 4px calc(4px + env(safe-area-inset-bottom));justify-content:space-around}
+.bn{flex:1;min-height:56px;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:600 10.5px 'DM Sans',sans-serif;color:var(--mut);cursor:pointer;border-radius:10px;min-width:0}
+.bn.on{color:var(--salon-d)}
+.only-m{display:none}.mbrand{display:none}
+.menu{position:absolute;right:0;top:48px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 40px rgba(60,40,30,.18);width:280px;padding:10px;z-index:60;display:flex;flex-direction:column;gap:2px}
+.mi{display:flex;align-items:center;min-height:42px;padding:0 12px;border-radius:8px;border:0;background:none;font:500 14px 'DM Sans',sans-serif;cursor:pointer;text-align:left;width:100%;color:var(--ink)}.mi:hover{background:#F6EFE8}.mi.on{background:var(--salon-l);color:var(--salon-d)}
+.login{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);min-height:100vh}
+@media(max-width:1099px){
+.app{grid-template-columns:76px minmax(0,1fr)}.side{padding:14px 10px;align-items:center}.nvl,.grp,.brandt{display:none}.nv{justify-content:center;width:52px;padding:0}.main{padding:20px 22px 48px}
+.gs{grid-template-columns:minmax(0,1fr)}.h1{font-size:30px}}
+@media(max-width:699px){
+.app{grid-template-columns:minmax(0,1fr)}.side{display:none}.bnav{display:flex}.main{padding:14px 14px 100px}
+.only-m{display:flex}.no-m{display:none!important}.mbrand{display:flex}
+.modal-bg{align-items:flex-end;padding:0}.modal,.modal.w,.modal.n{max-width:none;border-radius:20px 20px 0 0;max-height:94vh}.mh,.mb{padding-left:16px;padding-right:16px}.mf{padding:12px 16px}.mf .btn{flex:1}
+.login{grid-template-columns:1fr}.login .hero{display:none}
+.g2{grid-template-columns:minmax(0,1fr)}.h1{font-size:28px}.kpi{font-size:28px}.card{padding:14px}
+.toast{bottom:84px}.menu{position:fixed;left:12px;right:12px;top:auto;bottom:76px;width:auto}}
+</style>
+</helmet>
+<sc-if value="{{ loggedOut }}" hint-placeholder-val="{{ true }}">
+<div class="login">
+<div class="hero" style="background:linear-gradient(160deg,#F4E4E1,#E9EFEA);padding:48px;display:flex;flex-direction:column;justify-content:space-between">
+<div class="h2" style="font-size:30px">Cautiva Spa</div>
+<div class="ph" style="height:340px;background:rgba(255,255,255,.45);border-radius:22px">[ foto del salón · cabina spa ]</div>
+<div><div class="h1" style="font-size:44px">Salón y Spa,<br>un solo sistema.</div><p class="mut" style="max-width:380px">BackOffice de Cautiva Spa E.I.R.L. · Pichanaki, Junín</p></div>
+</div>
+<div style="display:flex;align-items:center;justify-content:center;padding:28px">
+<div style="width:100%;max-width:400px" class="col">
+<div class="h2" style="font-size:30px">Cautiva Spa</div>
+<div><h1 class="h1">Iniciar sesión</h1><div class="mut">Ingresa con tu usuario del BackOffice.</div></div>
+<sc-if value="{{ loginErr }}" hint-placeholder-val="{{ false }}"><div class="alert bad" role="alert">{{ loginErr }}</div></sc-if>
+<div class="fld"><label class="lbl">USUARIO</label><input class="inp" value="{{ lu }}" onInput="{{ setLu }}" placeholder="nombre.apellido" autocomplete="off"></div>
+<div class="fld"><label class="lbl">CONTRASEÑA</label><input class="inp" type="password" value="{{ lp }}" onInput="{{ setLp }}" placeholder="••••••••" onKeyDown="{{ loginKey }}"></div>
+<button class="btn lg blk" onClick="{{ doLogin }}">Entrar</button>
+<a href="#" onClick="{{ forgot }}" class="sm">¿Olvidaste tu contraseña?</a>
+<hr class="sep">
+<div class="xs mut b" style="letter-spacing:.06em">ENTRAR RÁPIDO (DEMO)</div>
+<div class="g2">
+<sc-for list="{{ demoUsers }}" as="u" hint-placeholder-count="4"><button class="btn sec" style="flex-direction:column;align-items:flex-start;gap:0;min-height:56px;padding:8px 12px" onClick="{{ u.pick }}"><span>{{ u.rolName }}</span><span class="xs mut">{{ u.user }}</span></button></sc-for>
+</div>
+<div class="xs mut">La sesión se cierra tras 30 minutos sin actividad. Tras 5 intentos fallidos seguidos la cuenta se bloquea y solo la Administradora la restablece.</div>
+<a href="#" onClick="{{ openIndex }}" class="sm b">Ver mapa de los 67 casos de uso →</a>
+</div></div></div>
+</sc-if>
+<sc-if value="{{ loggedIn }}" hint-placeholder-val="{{ false }}">
+<div class="app">
+<aside class="side">
+<div class="row nw" style="padding:4px 8px 10px"><span class="avatar" style="background:var(--pri);color:#fff;font-family:'Instrument Serif',serif;font-size:18px">C</span><span class="h2 brandt">Cautiva Spa</span></div>
+<sc-for list="{{ navRows }}" as="r" hint-placeholder-count="10">
+<sc-if value="{{ r.isG }}"><div class="grp">{{ r.label }}</div></sc-if>
+<sc-if value="{{ r.isI }}"><button class="nv {{ r.cls }}" title="{{ r.label }}" onClick="{{ r.go }}"><svg class="ic" viewBox="0 0 24 24"><path d="{{ r.d }}"></path></svg><span class="nvl">{{ r.label }}</span></button></sc-if>
+</sc-for>
+</aside>
+<div class="main">
+<div class="top" style="position:relative">
+<div class="mbrand row nw"><span class="avatar" style="background:var(--pri);color:#fff;font-family:'Instrument Serif',serif;font-size:18px">C</span><span class="h2">Cautiva Spa</span></div>
+<span class="chip no-m" style="height:32px;padding:0 14px"><svg class="ic" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M12 21s-7-6-7-11a7 7 0 0114 0c0 5-7 11-7 11z"></path></svg>Sede Pichanaki Centro</span>
+<span class="sp"></span>
+<button class="chip {{ cajaCls }}" style="height:32px;padding:0 14px;border:0;cursor:pointer" onClick="{{ goCaja }}"><span class="dot"></span>{{ cajaTxt }}</button>
+<button class="row nw" style="background:none;border:0;cursor:pointer;gap:10px;padding:0;min-height:44px" onClick="{{ toggleMenu }}"><span class="avatar">{{ initials }}</span><span class="no-m" style="text-align:left;line-height:1.2"><span class="b" style="display:block;font-size:13px">{{ userName }}</span><span class="xs mut">{{ roleName }}</span></span></button>
+<sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+<div class="menu">
+<div class="xs mut b" style="padding:8px 12px 4px;letter-spacing:.06em">VER COMO (DEMO)</div>
+<sc-for list="{{ roleOpts }}" as="o" hint-placeholder-count="4"><button class="mi {{ o.cls }}" onClick="{{ o.pick }}">{{ o.name }}</button></sc-for>
+<hr class="sep">
+<button class="mi" onClick="{{ openIndex }}">Mapa de casos de uso (67 CUS)</button>
+<button class="mi" onClick="{{ tryDenied }}">Probar acceso denegado</button>
+<button class="mi bad" onClick="{{ logout }}">Cerrar sesión</button>
+</div>
+</sc-if>
+</div>
+<sc-if value="{{ s.inicio }}"><dc-import name="Inicio" app="{{ app }}" hint-size="100%,600px"></dc-import></sc-if>
+<sc-if value="{{ s.agenda }}"><dc-import name="Agenda" app="{{ app }}" hint-size="100%,600px"></dc-import></sc-if>
+<sc-if value="{{ s.clientas }}"><dc-import name="Clientas" app="{{ app }}" hint-size="100%,600px"></dc-import></sc-if>
+<sc-if value="{{ s.sincita }}"><dc-import name="SinCita" app="{{ app }}" hint-size="100%,600px"></dc-import></sc-if>
+<sc-if value="{{ s.miagenda }}"><dc-import name="Atencion" app="{{ app }}" mode="agenda" hint-size="100%,600px"></dc-import></sc-if>
+<sc-if value="{{ s.atencion }}"><dc-import name="Atencion" app="{{ app }}" mode="curso" hint-size="100%,600px"></dc-import></sc-if>
+<sc-if value="{{ s.cobros }}"><dc-import name="Cobros" app="{{ app }}" hint-size="100%,600px"></dc-import></sc-if>
+<sc-if value="{{ s.ventaprod }}"><dc-import name="VentaProductos" app="{{ app }}" hint-size="100%,600px"></dc-import></sc-if>
+<sc-if value="{{ s.caja }}"><dc-import name="Caja" app="{{ app }}" hint-size="100%,600px"></dc-import></sc-if>
+<sc-if value="{{ s.asistencia }}"><dc-import name="Asistencia" app="{{ app }}" hint-size="100%,600px"></dc-import></sc-if>
+<sc-if value="{{ s.recordatorios }}"><dc-import name="Recordatorios" app="{{ app }}" hint-size="100%,600px"></dc-import></sc-if>
+<sc-if value="{{ s.productos }}"><dc-import name="Almacen" app="{{ app }}" mode="productos" hint-size="100%,600px"></dc-import></sc-if>
+<sc-if value="{{ s.kardex }}"><dc-import name="Almacen" app="{{ app }}" mode="kardex" hint-size="100%,600px"></dc-import></sc-if>
+<sc-if value="{{ s.compras }}"><dc-import name="Compras" app="{{ app }}" hint-size="100%,600px"></dc-import></sc-if>
+<sc-if value="{{ s.catalogo }}"><dc-import name="Catalogo" app="{{ app }}" hint-size="100%,600px"></dc-import></sc-if>
+<sc-if value="{{ s.personal }}"><dc-import name="Personal" app="{{ app }}" hint-size="100%,600px"></dc-import></sc-if>
+<sc-if value="{{ s.planilla }}"><dc-import name="Planilla" app="{{ app }}" hint-size="100%,600px"></dc-import></sc-if>
+<sc-if value="{{ s.reportes }}"><dc-import name="Reportes" app="{{ app }}" hint-size="100%,600px"></dc-import></sc-if>
+<sc-if value="{{ s.conciliacion }}"><dc-import name="Conciliacion" app="{{ app }}" hint-size="100%,600px"></dc-import></sc-if>
+<sc-if value="{{ s.usuarios }}"><dc-import name="Usuarios" app="{{ app }}" hint-size="100%,600px"></dc-import></sc-if>
+<sc-if value="{{ s.sedes }}"><dc-import name="Sedes" app="{{ app }}" hint-size="100%,600px"></dc-import></sc-if>
+<sc-if value="{{ s.denied }}">
+<div class="card" style="max-width:520px;margin:40px auto;text-align:center;padding:40px 28px">
+<div class="kpi" style="color:var(--bad)">Acceso denegado</div>
+<p class="mut">Tu rol <b>{{ roleName }}</b> no tiene permiso para abrir <b>{{ deniedName }}</b>. El intento quedó registrado en la auditoría ({{ userName }} · {{ nowTxt }}).</p>
+<button class="btn" onClick="{{ goHome }}">Volver a mi inicio</button>
+</div>
+</sc-if>
+<sc-if value="{{ s.indice }}">
+<div class="col">
+<div><h1 class="h1">Mapa de casos de uso</h1><div class="mut">Los 67 CUS del BackOffice (un verbo concreto y un solo objeto del dominio). «Abrir» cambia al rol que ejecuta cada caso y abre su pantalla. Prioridad validada por la dueña el 24/10/2026.</div></div>
+<div class="row"><div class="seg"><button class="{{ fAll }}" onClick="{{ setFAll }}">Todos</button><button class="{{ fPri }}" onClick="{{ setFPri }}">Primarios</button><button class="{{ fSec }}" onClick="{{ setFSec }}">Secundarios</button><button class="{{ fV2 }}" onClick="{{ setFV2 }}">Versión 2</button></div><input class="inp sp" style="max-width:320px" value="{{ qIdx }}" onInput="{{ setQIdx }}" placeholder="Buscar CUS, nombre o módulo"></div>
+<div class="card cp0 tw"><table class="tbl"><thead><tr><th>CUS</th><th>Caso de uso</th><th class="no-m">Actor</th><th class="no-m">Módulo</th><th>Prioridad</th><th></th></tr></thead><tbody>
+<sc-for list="{{ indexRows }}" as="x" hint-placeholder-count="21"><tr><td class="b">{{ x.c }}</td><td>{{ x.n }}<sc-if value="{{ x.v2 }}"> <span class="chip warn">Versión 2</span></sc-if></td><td class="mut sm no-m">{{ x.a }}</td><td class="sm no-m">{{ x.m }}</td><td><span class="chip {{ x.pc }}">{{ x.p }}</span></td><td class="r"><button class="btn sm sec" onClick="{{ x.open }}">Abrir</button></td></tr></sc-for>
+</tbody></table></div>
+</div></sc-if>
+</div>
+<nav class="bnav">
+<sc-for list="{{ bottomItems }}" as="b" hint-placeholder-count="4"><button class="bn {{ b.cls }}" onClick="{{ b.go }}"><svg class="ic" viewBox="0 0 24 24"><path d="{{ b.d }}"></path></svg>{{ b.short }}</button></sc-for>
+<button class="bn" onClick="{{ openMore }}"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>Más</button>
+</nav>
+<sc-if value="{{ moreOpen }}" hint-placeholder-val="{{ false }}">
+<div class="modal-bg" onClick="{{ closeMore }}"><div class="modal n" onClick="{{ stop }}"><div class="mh"><h2 class="h2 sp">Todos los módulos</h2><button class="btn ghost sm" onClick="{{ closeMore }}">Cerrar</button></div><div class="mb" style="gap:2px">
+<sc-for list="{{ moreRows }}" as="r" hint-placeholder-count="10"><sc-if value="{{ r.isG }}"><div class="grp" style="padding-left:0">{{ r.label }}</div></sc-if><sc-if value="{{ r.isI }}"><button class="nv {{ r.cls }}" onClick="{{ r.go }}"><svg class="ic" viewBox="0 0 24 24"><path d="{{ r.d }}"></path></svg>{{ r.label }}</button></sc-if></sc-for>
+</div></div></div>
+</sc-if>
+</sc-if>
+<sc-if value="{{ toastMsg }}" hint-placeholder-val="{{ false }}"><div class="toast" role="status">{{ toastMsg }}</div></sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  NAV = [
+    ['inicio','Inicio','Inicio','RD','Recepción','M3 11l9-8 9 8M5 10v10h14V10'],
+    ['agenda','Agenda','Agenda','RD','Recepción','M4 6h16v14H4zM4 10h16M8 3v4M16 3v4'],
+    ['clientas','Clientas','Clientas','RD','Recepción','M9 11a3 3 0 100-6 3 3 0 000 6zM3 20c0-3.5 3-6 6-6s6 2.5 6 6M17 8a3 3 0 010 6M21 20c0-2.5-1.5-4.5-4-5.2'],
+    ['sincita','Atención sin cita','Sin cita','RD','Recepción','M13 2L4 14h7l-1 8 9-12h-7z'],
+    ['cobros','Cobros y comprobantes','Cobros','RD','Recepción','M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6'],
+    ['ventaprod','Venta de productos','Productos','RD','Recepción','M5 8h14l-1 12H6zM9 8V6a3 3 0 016 0v2'],
+    ['caja','Caja','Caja','RD','Recepción','M3 7h18v12H3zM3 11h18M7 15h4'],
+    ['asistencia','Asistencia','Asistencia','RD','Recepción','M12 21a9 9 0 100-18 9 9 0 000 18zM12 7v5l3 2'],
+    ['recordatorios','Recordatorios y membresías','Recordar','RD','Recepción','M6 16v-5a6 6 0 0112 0v5l2 2H4zM10 21h4'],
+    ['miagenda','Mi agenda','Mi agenda','ED','Especialista','M4 6h16v14H4zM4 10h16M8 3v4M16 3v4'],
+    ['atencion','Atención en curso','En curso','ED','Especialista','M8 5v14l11-7z'],
+    ['productos','Productos e insumos','Productos','AD','Almacén','M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10'],
+    ['kardex','Kardex','Kardex','AD','Almacén','M6 3h12v18H6zM9 8h6M9 12h6M9 16h4'],
+    ['compras','Compras y proveedores','Compras','AD','Almacén','M3 4h3l2 12h10l2-8H7M9 20a1 1 0 100 .01M17 20a1 1 0 100 .01'],
+    ['catalogo','Catálogo y configuración','Catálogo','D','Administración','M3 12V3h9l9 9-9 9zM7.5 7.5h.01'],
+    ['personal','Personal','Personal','D','Administración','M3 5h18v14H3zM8 11a2 2 0 100-4 2 2 0 000 4zM5 16c0-1.5 1.5-2.5 3-2.5s3 1 3 2.5M14 9h5M14 13h5'],
+    ['planilla','Planilla','Planilla','D','Administración','M3 7h18v10H3zM12 14a2 2 0 100-4 2 2 0 000 4z'],
+    ['reportes','Reportes','Reportes','D','Administración','M4 20V10M10 20V4M16 20v-8M22 20H2'],
+    ['conciliacion','Conciliación','Conciliar','D','Administración','M4 12l5 5L20 6'],
+    ['usuarios','Usuarios y seguridad','Usuarios','D','Administración','M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z'],
+    ['sedes','Sedes y canales en línea','Sedes','D','Administración','M12 21s-7-6-7-11a7 7 0 0114 0c0 5-7 11-7 11zM12 12a2 2 0 100-4 2 2 0 000 4z']
+  ];
+  ROLES = {R:'Recepcionista',E:'Especialista Técnica',A:'Encargada de Almacén',D:'Administradora'};
+  USERS = {R:['carmen.soto','recep123','Carmen Soto'],E:['valeria.rios','esp123','Valeria Ríos'],A:['rocio.medina','alm123','Rocío Medina'],D:['patricia.vargas','admin123','Patricia Vargas']};
+  HOME = {R:'inicio',E:'miagenda',A:'productos',D:'inicio'};
+  // [código, nombre, actor, primario(1/0), pantalla, rol que lo abre, módulo, pestaña, versión 2]
+  INDEX = [
+    ['CUS01','Buscar Clienta','Recepcionista',1,'clientas','R','agenda'],
+    ['CUS02','Registrar Clienta','Recepcionista',1,'clientas','R','agenda','nueva'],
+    ['CUS03','Consultar Ficha de Clienta','Recepcionista',1,'clientas','R','agenda'],
+    ['CUS04','Actualizar Clienta','Recepcionista',1,'clientas','R','agenda'],
+    ['CUS05','Programar Cita','Recepcionista',1,'agenda','R','agenda','nueva'],
+    ['CUS06','Registrar Lista de Espera','Recepcionista',1,'agenda','R','agenda','espera'],
+    ['CUS07','Registrar Adelanto de Reserva','Recepcionista',1,'agenda','R','agenda'],
+    ['CUS08','Consultar Agenda','Recepcionista',1,'agenda','R','agenda'],
+    ['CUS09','Reprogramar Cita','Recepcionista',1,'agenda','R','agenda'],
+    ['CUS10','Cancelar Cita','Recepcionista',1,'agenda','R','agenda'],
+    ['CUS11','Registrar Atención','Especialista Técnica',1,'miagenda','E','agenda'],
+    ['CUS12','Registrar Recomendación de Producto','Especialista Técnica',1,'atencion','E','agenda'],
+    ['CUS13','Registrar Atención sin Cita','Recepcionista',1,'sincita','R','agenda / ventas'],
+    ['CUS14','Enviar Recordatorio de Cita','Recepcionista',0,'recordatorios','R','agenda','r'],
+    ['CUS15','Consultar Clientas Inactivas','Administradora',0,'recordatorios','D','agenda','i'],
+    ['CUS16','Registrar Membresía','Administradora',0,'recordatorios','D','agenda','m'],
+    ['CUS17','Reservar Cita en Línea','Clienta',0,'sedes','D','agenda','res',1],
+    ['CUS18','Cobrar Venta','Recepcionista',1,'cobros','R','ventas'],
+    ['CUS19','Emitir Comprobante Electrónico','Recepcionista',1,'cobros','R','ventas'],
+    ['CUS20','Entregar Comprobante','Recepcionista',1,'cobros','R','ventas','hist'],
+    ['CUS21','Emitir Proforma','Recepcionista',1,'cobros','R','ventas'],
+    ['CUS22','Anular Venta','Recepcionista',1,'cobros','R','ventas','hist'],
+    ['CUS23','Emitir Nota de Crédito','Administradora',1,'cobros','D','ventas','hist'],
+    ['CUS24','Devolver Pago Digital','Administradora',1,'cobros','D','pagos','hist'],
+    ['CUS25','Buscar Producto','Recepcionista',1,'ventaprod','R','ventas'],
+    ['CUS26','Vender Producto','Recepcionista',1,'ventaprod','R','ventas'],
+    ['CUS27','Registrar Pedido en Línea','Clienta',0,'sedes','D','ventas','tie',1],
+    ['CUS28','Registrar Proveedor','Encargada de Almacén',0,'compras','A','inventario','prov'],
+    ['CUS29','Registrar Requerimiento de Compra','Encargada de Almacén',0,'compras','A','inventario','req'],
+    ['CUS30','Evaluar Requerimiento de Compra','Administradora',0,'compras','D','inventario','req'],
+    ['CUS31','Registrar Compra','Encargada de Almacén',0,'compras','A','inventario','req'],
+    ['CUS32','Registrar Producto','Encargada de Almacén',1,'productos','A','inventario'],
+    ['CUS33','Registrar Salida de Insumos','Encargada de Almacén',1,'productos','A','inventario'],
+    ['CUS34','Registrar Ajuste de Inventario','Encargada de Almacén',1,'productos','A','inventario'],
+    ['CUS35','Consultar Kardex','Encargada de Almacén',1,'kardex','A','inventario'],
+    ['CUS36','Registrar Personal','Administradora',0,'personal','D','personal'],
+    ['CUS37','Actualizar Personal','Administradora',0,'personal','D','personal'],
+    ['CUS38','Desactivar Personal','Administradora',0,'personal','D','personal'],
+    ['CUS39','Registrar Asistencia','Recepcionista',0,'asistencia','R','personal'],
+    ['CUS40','Corregir Asistencia','Administradora',0,'asistencia','D','personal','corr'],
+    ['CUS41','Registrar Adelanto de Sueldo','Administradora',1,'planilla','D','personal','adel'],
+    ['CUS42','Calcular Planilla','Administradora',1,'planilla','D','personal'],
+    ['CUS43','Generar Recibo de Pago','Administradora',1,'planilla','D','personal'],
+    ['CUS44','Abrir Caja','Recepcionista',1,'caja','R','caja'],
+    ['CUS45','Cerrar Caja','Recepcionista',1,'caja','R','caja'],
+    ['CUS46','Aprobar Cierre de Caja','Administradora',1,'caja','D','caja'],
+    ['CUS47','Conciliar Ventas del Mes','Administradora',1,'conciliacion','D','caja'],
+    ['CUS48','Generar Reporte Gerencial','Administradora',1,'reportes','D','reportes'],
+    ['CUS49','Exportar Reporte','Administradora',1,'reportes','D','reportes','r'],
+    ['CUS50','Iniciar Sesión','Personal del Spa',1,'login','R','seguridad'],
+    ['CUS51','Cerrar Sesión','Personal del Spa',1,'login','R','seguridad'],
+    ['CUS52','Registrar Usuario','Administradora',1,'usuarios','D','seguridad'],
+    ['CUS53','Asignar Rol','Administradora',1,'usuarios','D','seguridad'],
+    ['CUS54','Restablecer Contraseña','Administradora',1,'usuarios','D','seguridad'],
+    ['CUS55','Consultar Auditoría','Administradora',1,'usuarios','D','seguridad','aud'],
+    ['CUS56','Registrar Incidente de Seguridad','Administradora',0,'usuarios','D','seguridad','inc'],
+    ['CUS57','Registrar Servicio','Administradora',1,'catalogo','D','catalogo','s'],
+    ['CUS58','Actualizar Servicio','Administradora',1,'catalogo','D','catalogo','s'],
+    ['CUS59','Registrar Paquete','Administradora',1,'catalogo','D','catalogo','p'],
+    ['CUS60','Registrar Promoción','Administradora',1,'catalogo','D','catalogo','pr'],
+    ['CUS61','Registrar Recurso','Administradora',1,'catalogo','D','sedes','r'],
+    ['CUS62','Configurar Medio de Pago','Administradora',1,'catalogo','D','pagos','mp'],
+    ['CUS63','Configurar Serie de Comprobante','Administradora',1,'catalogo','D','ventas','ser'],
+    ['CUS64','Registrar Sede','Administradora',0,'sedes','D','sedes','sed'],
+    ['CUS65','Configurar Parámetro del Negocio','Administradora',1,'catalogo','D','seguridad','par'],
+    ['CUS66','Registrar Categoría de Producto','Encargada de Almacén',1,'productos','A','inventario','cat'],
+    ['CUS67','Publicar Canal en Línea','Administradora',0,'sedes','D','sedes','pub',1]
+  ];
+  D = {
+    esp: [
+      {id:'e1',n:'Valeria Ríos',area:'Peluquería y Estilismo',l:'salon'},
+      {id:'e2',n:'Milagros Ayala',area:'Peluquería y Estilismo',l:'salon'},
+      {id:'e3',n:'Yesenia Lazo',area:'Manicura y Pedicura',l:'salon'},
+      {id:'e4',n:'Daniela Cárdenas',area:'Cabina Spa',l:'spa'},
+      {id:'e5',n:'Pamela Torres',area:'Cuidado Facial',l:'spa'}
+    ],
+    srv: [
+      {id:'s1',n:'Corte de cabello',area:'Peluquería y Estilismo',l:'salon',dur:40,v:[['Normal',20],['Degradado',30],['Niña',15]]},
+      {id:'s2',n:'Tinte',area:'Peluquería y Estilismo',l:'salon',dur:120,v:[['Raíz',70],['Largo medio',110],['Largo',150]]},
+      {id:'s3',n:'Peinado',area:'Peluquería y Estilismo',l:'salon',dur:45,v:[['Ondas',40],['Recogido',60]]},
+      {id:'s4',n:'Manicura',area:'Manicura y Pedicura',l:'salon',dur:50,v:[['Clásica',25],['Semipermanente',35]]},
+      {id:'s5',n:'Pedicura',area:'Manicura y Pedicura',l:'salon',dur:60,v:[['Clásica',30],['Spa',45]]},
+      {id:'s6',n:'Depilación con cera',area:'Depilación',l:'salon',dur:40,v:[['Axilas',15],['Bikini',30],['Piernas',40]]},
+      {id:'s7',n:'Limpieza facial',area:'Cuidado Facial',l:'spa',dur:60,v:[['Básica',60],['Profunda',90]]},
+      {id:'s8',n:'Masaje',area:'Cabina Spa',l:'spa',dur:60,v:[['Relajante',80],['Descontracturante',100],['Piedras calientes',120]]}
+    ],
+    kmov: [],
+    staff: [
+      {id:'t1',n:'Valeria Ríos',dni:'43120987',tel:'964 220 118',cargo:'Especialista Técnica',areas:['Peluquería y Estilismo'],mod:'Mixto',sueldo:1230,com:30,act:true,eid:'e1',ver:true,hor:'Lun–Sáb 09:00–18:00'},
+      {id:'t2',n:'Milagros Ayala',dni:'45233190',tel:'951 330 772',cargo:'Especialista Técnica',areas:['Peluquería y Estilismo','Manicura y Pedicura'],mod:'Mixto',sueldo:1230,com:30,act:true,eid:'e2',ver:true,hor:'Lun–Sáb 09:00–18:00'},
+      {id:'t3',n:'Yesenia Lazo',dni:'71455820',tel:'987 118 450',cargo:'Especialista Técnica',areas:['Manicura y Pedicura','Depilación'],mod:'Mixto',sueldo:1230,com:30,act:true,eid:'e3',ver:true,hor:'Mar–Dom 10:00–19:00'},
+      {id:'t4',n:'Daniela Cárdenas',dni:'46781234',tel:'912 804 331',cargo:'Especialista Técnica',areas:['Cabina Spa'],mod:'Comisión',sueldo:0,com:40,act:true,eid:'e4',ver:false,hor:'Lun–Sáb 10:00–19:00'},
+      {id:'t5',n:'Pamela Torres',dni:'70112398',tel:'999 410 276',cargo:'Especialista Técnica',areas:['Cuidado Facial','Depilación'],mod:'Mixto',sueldo:1230,com:30,act:true,eid:'e5',ver:true,hor:'Lun–Sáb 09:00–18:00'},
+      {id:'t6',n:'Carmen Soto',dni:'44556677',tel:'955 221 908',cargo:'Recepcionista',areas:[],mod:'Fijo',sueldo:1200,com:0,act:true,ver:true,hor:'Lun–Sáb 08:30–17:30'},
+      {id:'t7',n:'Rocío Medina',dni:'47889900',tel:'943 665 120',cargo:'Encargada de Almacén',areas:[],mod:'Fijo',sueldo:1300,com:0,act:true,ver:true,hor:'Lun–Vie 09:00–18:00'},
+      {id:'t8',n:'Patricia Vargas',dni:'40112233',tel:'964 000 111',cargo:'Administradora',areas:[],mod:'Fijo',sueldo:3500,com:0,act:true,ver:true,hor:'Lun–Sáb 09:00–18:00'}
+    ],
+    rec: ['Sillón 1','Sillón 2','Sillón 3','Mesa manicura 1','Mesa manicura 2','Cabina Spa 1','Cabina Spa 2'],
+    // minutos_limpieza de cada RECURSO (hasta 30, RN03)
+    limp: {'Sillón 1':10,'Sillón 2':10,'Sillón 3':10,'Mesa manicura 1':10,'Mesa manicura 2':10,'Cabina Spa 1':20,'Cabina Spa 2':20},
+    cats: ['Cabello','Uñas','Spa'],
+    prod: [
+      {id:'p1',cod:'SH-001',n:'Shampoo reparador 350 ml',cat:'Cabello',u:'Unidad',st:14,min:5,pv:33,cost:22,uso:'VENTA'},
+      {id:'p2',cod:'MA-002',n:'Mascarilla capilar 250 g',cat:'Cabello',u:'Unidad',st:3,min:6,pv:39,cost:26,uso:'VENTA'},
+      {id:'p3',cod:'AC-003',n:'Aceite de argán 60 ml',cat:'Cabello',u:'Unidad',st:8,min:4,pv:60,cost:30,uso:'VENTA',prem:true},
+      {id:'p4',cod:'ES-004',n:'Esmalte semipermanente',cat:'Uñas',u:'Unidad',st:25,min:10,pv:13.5,cost:9,uso:'VENTA'},
+      {id:'p5',cod:'CR-005',n:'Crema corporal hidratante',cat:'Spa',u:'Unidad',st:0,min:4,pv:36,cost:24,uso:'VENTA'},
+      {id:'p6',cod:'AE-006',n:'Aceite esencial de lavanda',cat:'Spa',u:'Unidad',st:9,min:3,pv:28.5,cost:19,uso:'VENTA'},
+      {id:'p7',cod:'CE-007',n:'Cera depilatoria 1 kg',cat:'Spa',u:'Kilo',st:4,min:2,pv:0,cost:48,uso:'INSUMO'}
+    ],
+    // Medios de pago (MEDIO_PAGO): el efectivo nunca usa la pasarela
+    medios: [{n:'Efectivo',pas:false,act:true,canal:'Caja'},{n:'Yape',pas:true,act:true,canal:'QR Izipay'},{n:'Plin',pas:true,act:true,canal:'QR Izipay'},{n:'Tarjeta',pas:true,act:true,canal:'Enlace de pago Izipay (POS cuando haya terminal)'}],
+    // SERIE_COMPROBANTE: Oracle asigna el correlativo siguiente
+    series: [{tipo:'BOLETA',serie:'B001',ult:234,act:true},{tipo:'FACTURA',serie:'F001',ult:45,act:true},{tipo:'NC BOLETA',serie:'BC01',ult:12,act:true},{tipo:'NC FACTURA',serie:'FC01',ult:3,act:true}],
+    // PARAMETRO
+    params: [
+      {c:'IGV_PORCENTAJE',d:'IGV aplicado (Amazonía exonerada)',v:'0',u:'%',f:'01 ene 2026'},
+      {c:'RMV_MONTO',d:'Remuneración mínima vigente',v:'1230',u:'S/',f:'01 oct 2026'},
+      {c:'MARGEN_PRODUCTO',d:'Margen sobre el costo de un producto',v:'50',u:'%',f:'01 ene 2026'},
+      {c:'MARGEN_PREMIUM',d:'Margen de un producto premium',v:'100',u:'%',f:'01 ene 2026'},
+      {c:'UMBRAL_DATOS_BOLETA',d:'Boleta que exige datos del comprador',v:'700',u:'S/',f:'01 ene 2026'},
+      {c:'LIMPIEZA_MAX_MIN',d:'Tiempo máximo de limpieza de un recurso',v:'30',u:'min',f:'01 ene 2026'},
+      {c:'CPE_PLAZO_ENVIO_DIAS',d:'Plazo para enviar un comprobante a SUNAT',v:'3',u:'días',f:'21 oct 2026'},
+      {c:'LINK_PAGO_VIGENCIA_HORAS',d:'Vigencia del enlace de pago del adelanto',v:'24',u:'h',f:'21 oct 2026'},
+      {c:'SESION_INACTIVIDAD_MIN',d:'Cierre de sesión por inactividad',v:'30',u:'min',f:'01 ene 2026'},
+      {c:'INTENTOS_BLOQUEO',d:'Intentos fallidos antes de bloquear la cuenta',v:'5',u:'',f:'01 ene 2026'}
+    ],
+    // TRANSACCION_PASARELA del día (Izipay)
+    txs: [
+      {cod:'IZ-000184301',f:'12 oct 09:40',medio:'Yape',canal:'QR',m:55,est:'APROBADA',venta:'B001-00232'},
+      {cod:'IZ-000184277',f:'11 oct 17:20',medio:'Tarjeta',canal:'LINK',m:98,est:'APROBADA',venta:'F001-00045'}
+    ],
+    nextOp: 184330
+  };
+  state = {
+    logged:false, role:'R', screen:'inicio', params:null, lu:'', lp:'', loginErr:'', fails:0, menuOpen:false, moreOpen:false, toastMsg:'', denied:'', fIdx:'all', qIdx:'',
+    caja:{abierta:true,inicial:100,hora:'08:52',egresos:[]},
+    clientas:[
+      {id:'c1',n:'Lucía Paredes',tel:'964 120 331',dni:'45120987',email:'lucia.p@gmail.com',cumple:'14 mar',obs:'Alergia al amoníaco. Prefiere tardes.',ult:'10 oct',saldo:0,com:true,orig:'VERIFICADO',cons:'02 feb 2026',paq:[{n:'Membresía Spa · 6 sesiones',u:2,t:6}]},
+      {id:'c2',n:'Marisol Quispe',tel:'951 884 207',dni:'',email:'',cumple:'02 ago',obs:'',ult:'05 oct',saldo:30,com:true,orig:'MANUAL',cons:'15 mar 2026',paq:[]},
+      {id:'c3',n:'Karina Huamán',tel:'987 330 145',dni:'70233451',email:'karina.h@hotmail.com',cumple:'21 nov',obs:'Semipermanente cada 3 semanas.',ult:'21 sep',saldo:0,com:true,orig:'VERIFICADO',cons:'10 ene 2026',paq:[{n:'Paquete Manicura · 4 sesiones',u:3,t:4}]},
+      {id:'c4',n:'Rosa Mendoza',tel:'912 450 678',dni:'',email:'',cumple:'',obs:'',ult:'30 sep',saldo:0,com:false,orig:'MANUAL',cons:'20 abr 2026',paq:[]},
+      {id:'c5',n:'Andrea Salazar',tel:'999 215 880',dni:'74125896',email:'andrea.s@gmail.com',cumple:'09 ene',obs:'Piel sensible.',ult:'02 oct',saldo:50,com:true,orig:'VERIFICADO',cons:'05 may 2026',paq:[]},
+      {id:'c6',n:'Elena Gómez',tel:'955 702 114',dni:'',email:'',cumple:'',obs:'',ult:'28 sep',saldo:0,com:true,orig:'MANUAL',cons:'11 jun 2026',paq:[]},
+      {id:'c7',n:'Jimena Rojas',tel:'943 118 592',dni:'',email:'',cumple:'30 jun',obs:'',ult:'12 sep',saldo:0,com:true,orig:'MANUAL',cons:'30 jun 2026',paq:[]}
+    ],
+    citas:[
+      {id:'k1',cli:'Lucía Paredes',cid:'c1',srv:'Corte de cabello',v:'Degradado',e:'e1',ini:'09:00',dur:40,rec:'Sillón 1',est:'finalizada',l:'salon',p:30,adel:10,adelEst:'EFECTIVO'},
+      {id:'k10',cli:'Sofía Ramos',cid:null,srv:'Corte de cabello',v:'Normal',e:'e2',ini:'09:00',dur:40,rec:'Sillón 2',est:'finalizada',l:'salon',p:20,adel:20,adelEst:'EFECTIVO'},
+      {id:'k3',cli:'Karina Huamán',cid:'c3',srv:'Manicura',v:'Semipermanente',e:'e3',ini:'09:30',dur:50,rec:'Mesa manicura 1',est:'pendiente',l:'salon',p:35,adel:15,adelEst:'APROBADA'},
+      {id:'k2',cli:'Marisol Quispe',cid:'c2',srv:'Tinte',v:'Raíz',e:'e1',ini:'10:00',dur:120,rec:'Sillón 1',est:'atencion',l:'salon',p:70,adel:20,adelEst:'EFECTIVO'},
+      {id:'k4',cli:'Rosa Mendoza',cid:'c4',srv:'Masaje',v:'Descontracturante',e:'e4',ini:'10:00',dur:100,rec:'Cabina Spa 1',est:'pendiente',l:'spa',p:100,adel:30,adelEst:'APROBADA'},
+      {id:'k5',cli:'Andrea Salazar',cid:'c5',srv:'Limpieza facial',v:'Profunda',e:'e5',ini:'11:00',dur:90,rec:'Cabina Spa 2',est:'pendiente',l:'spa',p:90,adel:30,adelEst:'PENDIENTE'},
+      {id:'k6',cli:'Elena Gómez',cid:'c6',srv:'Pedicura',v:'Spa',e:'e3',ini:'11:00',dur:60,rec:'Mesa manicura 2',est:'pendiente',l:'salon',p:45,adel:20,adelEst:'EFECTIVO'},
+      {id:'k8',cli:'Carla Díaz',cid:null,srv:'Depilación con cera',v:'Piernas',e:'e5',ini:'14:00',dur:40,rec:'Cabina Spa 2',est:'cancelada',l:'salon',p:40,adel:15,adelEst:'EFECTIVO'},
+      {id:'k7',cli:'Jimena Rojas',cid:'c7',srv:'Peinado',v:'Ondas',e:'e2',ini:'15:00',dur:45,rec:'Sillón 2',est:'pendiente',l:'salon',p:40,adel:20,adelEst:'APROBADA'},
+      {id:'k9',cli:'Lucía Paredes',cid:'c1',srv:'Masaje',v:'Relajante',e:'e4',ini:'16:00',dur:60,rec:'Cabina Spa 1',est:'pendiente',l:'spa',p:80,adel:0,paq:true}
+    ],
+    espera:[{id:'w1',cli:'Elena Gómez',cid:'c6',srv:'Masaje · Relajante',fecha:'12 oct',desde:'17:00',hasta:'20:00',est:'PENDIENTE'}],
+    cobros:[
+      {id:'a1',cli:'Lucía Paredes',cid:'c1',esp:'Valeria Ríos',eid:'e1',l:'salon',lin:[{t:'Corte de cabello · Degradado',p:30,tipo:'srv'}],adel:10,saldo:0,hora:'09:42'},
+      {id:'a2',cli:'Sofía Ramos',cid:null,esp:'Milagros Ayala',eid:'e2',l:'salon',lin:[{t:'Corte de cabello · Normal',p:20,tipo:'srv'}],adel:20,saldo:0,hora:'09:48'}
+    ],
+    ventas:[
+      {id:'v1',f:'12 oct 09:15',cli:'Cliente de paso',tot:20,medio:'Efectivo',pagos:{Efectivo:20},comp:'B001-00233',sunat:'ACEPTADO',est:'cerrada',l:'salon'},
+      {id:'v2',f:'12 oct 09:40',cli:'Carla Díaz',tot:55,medio:'Yape',pagos:{Yape:55},tx:{Yape:'IZ-000184301'},comp:'B001-00234',sunat:'PENDIENTE',est:'cerrada',l:'spa'},
+      {id:'v3',f:'11 oct 17:20',cli:'Elena Gómez',tot:98,medio:'Tarjeta',pagos:{Tarjeta:98},tx:{Tarjeta:'IZ-000184277'},comp:'F001-00045',sunat:'ACEPTADO',est:'cerrada',l:'salon'},
+      {id:'v4',f:'11 oct 15:05',cli:'Rosa Mendoza',tot:120,medio:'Efectivo + Yape',pagos:{Efectivo:60,Yape:60},comp:'B001-00229',sunat:'ACEPTADO',est:'anulada',nc:'BC01-00012',dev:'Saldo a favor',l:'spa'},
+      {id:'v5',f:'11 oct 12:30',cli:'Andrea Salazar',tot:90,medio:'Plin',pagos:{Plin:90},comp:'B001-00228',sunat:'ACEPTADO',est:'cerrada',l:'spa'},
+      {id:'v6',f:'10 oct 18:10',cli:'Jimena Rojas',tot:76,medio:'Efectivo',pagos:{Efectivo:76},comp:'B001-00226',sunat:'ACEPTADO',est:'cerrada',l:'salon'},
+      {id:'v7',f:'10 oct 11:45',cli:'Lucía Paredes',tot:150,medio:'Tarjeta',pagos:{Tarjeta:150},comp:'B001-00224',sunat:'OBSERVADO',est:'cerrada',l:'salon'}
+    ]
+  };
+  now() { return '12 oct 2026 · ' + new Date().toTimeString().slice(0,5); }
+  toast = (m) => { this.setState({toastMsg:m}); clearTimeout(this._t); this._t = setTimeout(()=>this.setState({toastMsg:''}),3200); };
+  allowed(id) { const r = this.state.role; const n = this.NAV.find(x=>x[0]===id); return !n || n[3].includes(r); }
+  go = (id, params) => {
+    const alias = {cobro:'cobros',ventas:'cobros'};
+    const sid = alias[id] || id;
+    if (!this.allowed(sid)) { this.setState({screen:'denied',denied:(this.NAV.find(x=>x[0]===sid)||[0,sid])[1],menuOpen:false,moreOpen:false}); return; }
+    this.setState({screen:sid,params:params||null,menuOpen:false,moreOpen:false});
+    window.scrollTo(0,0);
+  };
+  enter(role) { this.setState({logged:true,role,screen:this.HOME[role],loginErr:'',fails:0,lp:'',params:null,menuOpen:false}); }
+  doLogin = () => {
+    const {lu,lp,fails} = this.state, MAX = 5;
+    if (fails >= MAX) { this.setState({loginErr:'Cuenta bloqueada por '+MAX+' intentos fallidos seguidos. Pide a la Administradora que restablezca tu contraseña.'}); return; }
+    const hit = Object.keys(this.USERS).find(k=>this.USERS[k][0]===lu.trim().toLowerCase() && this.USERS[k][1]===lp);
+    if (hit) { this.enter(hit); return; }
+    const f = fails+1;
+    this.setState({fails:f,loginErr: f>=MAX ? 'Cuenta bloqueada por '+MAX+' intentos fallidos seguidos. Solo la Administradora puede restablecerla.' : 'Usuario o contraseña incorrectos. Intento '+f+' de '+MAX+'.'});
+  };
+  renderVals() {
+    const s = this.state, role = s.role, app = this;
+    const setS = (o)=>this.setState(o);
+    const navFor = (r)=>{ const rows=[]; let g=''; this.NAV.filter(n=>n[3].includes(r)).forEach(n=>{ if(n[4]!==g){g=n[4];rows.push({isG:true,label:g});} rows.push({isI:true,id:n[0],label:n[1],short:n[2],d:n[5]}); }); return rows; };
+    const cur = s.screen==='cobro'?'cobros':s.screen;
+    const decorate = (rows)=>rows.map(r=>r.isI?{...r,cls:r.id===cur?'on':'',go:()=>this.go(r.id)}:r);
+    const navRows = decorate(navFor(role));
+    const items = navRows.filter(r=>r.isI);
+    const scr = {}; scr[s.screen==='cobro'?'cobros':s.screen]=true;
+    const caja = s.caja;
+    const store = {
+      role, roleName:this.ROLES[role], user:this.USERS[role][2], data:this.D, params:s.params, caja,
+      citas:s.citas, clientas:s.clientas, cobros:s.cobros, ventas:s.ventas, espera:s.espera,
+      go:this.go, toast:this.toast, now:()=>this.now(),
+      setCitas:(f)=>setS(st=>({citas:typeof f==='function'?f(st.citas):f})),
+      setClientas:(f)=>setS(st=>({clientas:typeof f==='function'?f(st.clientas):f})),
+      setCobros:(f)=>setS(st=>({cobros:typeof f==='function'?f(st.cobros):f})),
+      setVentas:(f)=>setS(st=>({ventas:typeof f==='function'?f(st.ventas):f})),
+      setEspera:(f)=>setS(st=>({espera:typeof f==='function'?f(st.espera):f})),
+      setCaja:(c)=>setS({caja:c}),
+      newOp:()=>'IZ-000'+(++this.D.nextOp),
+      nextSerie:(tipo)=>{ const x=this.D.series.find(z=>z.tipo===tipo&&z.act); x.ult+=1; return x.serie+'-'+String(x.ult).padStart(5,'0'); },
+      peekSerie:(tipo)=>{ const x=this.D.series.find(z=>z.tipo===tipo&&z.act); return x.serie+'-'+String(x.ult+1).padStart(5,'0'); },
+      param:(c)=>+((this.D.params.find(p=>p.c===c)||{}).v||0)
+    };
+    const nm = this.USERS[role][2];
+    const q = s.qIdx.trim().toLowerCase();
+    const idxAll = this.INDEX.filter(x=>(s.fIdx==='all'||(s.fIdx==='pri'?x[3]:s.fIdx==='sec'?!x[3]:!!x[8])) && (!q || (x[0]+' '+x[1]+' '+x[6]).toLowerCase().includes(q)));
+    return {
+      loggedOut:!s.logged, loggedIn:s.logged, loginErr:s.loginErr, lu:s.lu, lp:s.lp,
+      setLu:(e)=>setS({lu:e.target.value}), setLp:(e)=>setS({lp:e.target.value}),
+      loginKey:(e)=>{ if(e.key==='Enter') this.doLogin(); }, doLogin:this.doLogin,
+      forgot:(e)=>{e.preventDefault(); setS({loginErr:'Contraseña olvidada: solo la Administradora puede restablecerla desde «Usuarios y seguridad». Al entrar, el sistema te pedirá cambiarla.'});},
+      demoUsers:['R','E','A','D'].map(r=>({rolName:this.ROLES[r],user:this.USERS[r][0],pick:()=>this.enter(r)})),
+      openIndex:(e)=>{ e&&e.preventDefault&&e.preventDefault(); setS(st=>({logged:true,role:st.logged?st.role:'D',screen:'indice',menuOpen:false})); },
+      navRows, moreRows:navRows,
+      bottomItems:items.slice(0,4).map(r=>({...r})),
+      s:{...scr, indice:s.screen==='indice'}, app:store,
+      initials:nm.split(' ').map(w=>w[0]).join(''), userName:nm, roleName:this.ROLES[role],
+      cajaCls:caja.abierta?'ok':'warn', cajaTxt:caja.abierta?'Caja abierta':'Caja cerrada',
+      goCaja:()=>this.go('caja'),
+      toggleMenu:()=>setS(st=>({menuOpen:!st.menuOpen})),
+      roleOpts:['R','E','A','D'].map(r=>({name:this.ROLES[r],cls:r===role?'on':'',pick:()=>setS({role:r,screen:this.HOME[r],menuOpen:false,params:null})})),
+      tryDenied:()=>{ const t = role==='D'?null:'planilla'; if(!t){ setS({role:'R',screen:'denied',denied:'Planilla',menuOpen:false}); } else this.go(t); },
+      logout:()=>{ setS({logged:false,menuOpen:false,lu:'',lp:'',screen:'inicio'}); this.toast('Sesión cerrada · quedó registrada en la auditoría'); },
+      deniedName:s.denied||'este módulo', nowTxt:this.now(), goHome:()=>this.go(this.HOME[role]),
+      openMore:()=>setS({moreOpen:true}), closeMore:()=>setS({moreOpen:false}), stop:(e)=>e.stopPropagation(),
+      fAll:s.fIdx==='all'?'on':'', fPri:s.fIdx==='pri'?'on':'', fSec:s.fIdx==='sec'?'on':'', fV2:s.fIdx==='v2'?'on':'',
+      setFAll:()=>setS({fIdx:'all'}), setFPri:()=>setS({fIdx:'pri'}), setFSec:()=>setS({fIdx:'sec'}), setFV2:()=>setS({fIdx:'v2'}),
+      qIdx:s.qIdx, setQIdx:(e)=>setS({qIdx:e.target.value}),
+      indexRows:idxAll.map(x=>({c:x[0],n:x[1],a:x[2],m:x[6],v2:!!x[8],p:x[3]?'PRIMARIO':'SECUNDARIO',pc:x[3]?'dk':'',open:()=>{
+        if(x[4]==='login'){ setS({logged:false,menuOpen:false,lu:'',lp:'',loginErr:''}); return; }
+        setS({logged:true,role:x[5],screen:x[4],params:x[7]?{tab:x[7]}:null,menuOpen:false}); window.scrollTo(0,0); }})),
+      toastMsg:s.toastMsg
+    };
+  }
+}
+</script>
+</body>
+</html>

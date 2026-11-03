@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div class="col" style="gap:16px">
+<div class="row"><div class="sp"><h1 class="h1">{{ title }}</h1><div class="mut">{{ sub }}</div></div>
+<sc-if value="{{ isProd }}" hint-placeholder-val="{{ true }}"><button class="btn sec" onClick="{{ openCat }}">Categorías</button><button class="btn sec" onClick="{{ openMov }}">Salida o ajuste</button><button class="btn lg" onClick="{{ openNew }}">+ Producto</button></sc-if></div>
+<sc-if value="{{ isProd }}" hint-placeholder-val="{{ true }}">
+<div class="row"><input class="inp sp" style="max-width:380px" value="{{ q }}" onInput="{{ setQ }}" placeholder="Buscar por código, nombre o marca"><div class="seg"><sc-for list="{{ usos }}" as="u" hint-placeholder-count="3"><button class="{{ u.cls }}" onClick="{{ u.pick }}">{{ u.n }}</button></sc-for></div><span class="chip warn">{{ nLow }} en stock mínimo o menos</span></div>
+<sc-if value="{{ nLow }}" hint-placeholder-val="{{ false }}"><div class="alert warn"><span class="sp">Alerta de stock mínimo (RN16): {{ lowTxt }}.</span><button class="btn sm sec" onClick="{{ goCompras }}">Crear requerimiento</button></div></sc-if>
+<div class="card cp0"><div class="tw"><table class="tbl"><thead><tr><th>Código</th><th>Producto</th><th class="no-m">Categoría</th><th class="no-m">Uso</th><th class="r">Stock</th><th class="r no-m">Mín.</th><th class="r">P. venta</th><sc-if value="{{ isAdm }}"><th class="r no-m">Costo</th></sc-if><th>Estado</th></tr></thead><tbody>
+<sc-for list="{{ rows }}" as="p" hint-placeholder-count="6"><tr class="clk" onClick="{{ p.kardex }}"><td class="num sm">{{ p.cod }}</td><td class="b">{{ p.n }}</td><td class="no-m">{{ p.cat }}</td><td class="no-m"><span class="chip {{ p.uChip }}">{{ p.usoTxt }}</span></td><td class="r b num">{{ p.st }}</td><td class="r no-m num">{{ p.min }}</td><td class="r num">{{ p.pvTxt }}</td><sc-if value="{{ p.showCost }}"><td class="r no-m num">S/ {{ p.cost }}</td></sc-if><td><span class="chip {{ p.chip }}">{{ p.est }}</span></td></tr></sc-for>
+</tbody></table></div></div></sc-if>
+<sc-if value="{{ isKardex }}" hint-placeholder-val="{{ false }}">
+<div class="row"><select class="inp" style="max-width:340px" value="{{ pid }}" onChange="{{ setPid }}"><sc-for list="{{ pOpts }}" as="o" hint-placeholder-count="4"><option value="{{ o.v }}">{{ o.t }}</option></sc-for></select><div class="seg"><sc-for list="{{ periods }}" as="p" hint-placeholder-count="3"><button class="{{ p.cls }}" onClick="{{ p.pick }}">{{ p.n }}</button></sc-for></div><span class="sp"></span><button class="btn sec" onClick="{{ exportK }}">Exportar Excel</button></div>
+<div class="row"><div class="card" style="flex:1;min-width:150px"><div class="mut sm">Stock actual</div><div class="kpi num">{{ cur.st }}</div></div><div class="card" style="flex:1;min-width:150px"><div class="mut sm">Mínimo</div><div class="kpi num">{{ cur.min }}</div></div><div class="card" style="flex:1;min-width:150px"><div class="mut sm">Estado</div><span class="chip {{ cur.chip }}">{{ cur.est }}</span></div></div>
+<div class="card cp0"><div class="tw"><table class="tbl"><thead><tr><th>Fecha</th><th>Tipo</th><th class="no-m">Motivo u origen</th><th class="r">Entrada</th><th class="r">Salida</th><th class="r">Saldo</th><th class="no-m">Usuario</th></tr></thead><tbody>
+<sc-for list="{{ krows }}" as="r" hint-placeholder-count="5"><tr><td class="num sm">{{ r.f }}</td><td><span class="chip {{ r.chip }}">{{ r.tipo }}</span></td><td class="no-m sm">{{ r.mot }}</td><td class="r num ok">{{ r.ent }}</td><td class="r num bad">{{ r.sal }}</td><td class="r b num">{{ r.saldo }}</td><td class="no-m sm mut">{{ r.u }}</td></tr></sc-for></tbody></table></div></div></sc-if>
+<sc-if value="{{ mNew }}" hint-placeholder-val="{{ false }}"><div class="modal-bg" onClick="{{ closeM }}"><div class="modal" onClick="{{ stop }}"><div class="mh"><h2 class="h2 sp">Registrar producto o insumo</h2></div><div class="mb"><div class="gf1" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+<sc-for list="{{ nf }}" as="x" hint-placeholder-count="6"><div class="fld"><label class="lbl">{{ x.l }}</label><input class="inp" value="{{ x.v }}" onInput="{{ x.set }}" placeholder="{{ x.ph }}"></div></sc-for>
+<div class="fld"><label class="lbl">CATEGORÍA</label><select class="inp" value="{{ nw.cat }}" onChange="{{ setNCat }}"><sc-for list="{{ catOpts }}" as="o" hint-placeholder-count="3"><option>{{ o }}</option></sc-for></select></div>
+<div class="fld"><label class="lbl">UNIDAD</label><select class="inp" value="{{ nw.u }}" onChange="{{ setNU }}"><option>Unidad</option><option>Kilo</option><option>Litro</option><option>Caja</option></select></div></div>
+<div class="fld"><label class="lbl">TIPO DE USO (RN13)</label><div class="seg"><sc-for list="{{ nUsos }}" as="u" hint-placeholder-count="2"><button class="{{ u.cls }}" onClick="{{ u.pick }}">{{ u.n }}</button></sc-for></div></div>
+<sc-if value="{{ isAdm }}"><div class="gf1" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))"><div class="fld"><label class="lbl">COSTO (S/)</label><input class="inp" type="number" min="0" value="{{ nw.cost }}" onInput="{{ setNCost }}"></div><sc-if value="{{ nVenta }}"><label class="row" style="gap:10px"><input type="checkbox" checked="{{ nw.prem }}" onChange="{{ setNPrem }}"><span>Producto premium</span></label><div class="fld"><label class="lbl">PRECIO DE VENTA (CALCULADO)</label><div class="inp" style="display:flex;align-items:center;background:#F6F0EA">S/ {{ nPv }} <span class="xs mut" style="margin-left:6px">costo + {{ nMargen }} %</span></div></div></sc-if></div></sc-if>
+<sc-if value="{{ notAdm }}"><div class="alert info">El costo y el precio de venta solo los ve la Administradora (RN24): se toman del costo de la compra y del margen vigente (RN14).</div></sc-if>
+<div class="xs mut">Se crea el kardex del producto con stock inicial 0; el stock entra con la compra (CUS31).</div></div><div class="mf"><button class="btn sec" onClick="{{ closeM }}">Cancelar</button><button class="btn" disabled="{{ cantNew }}" onClick="{{ saveNew }}">Guardar producto</button></div></div></div></sc-if>
+<sc-if value="{{ mMov }}" hint-placeholder-val="{{ false }}"><div class="modal-bg" onClick="{{ closeM }}"><div class="modal n" onClick="{{ stop }}"><div class="mh"><h2 class="h2 sp">Salida de insumos o ajuste</h2></div><div class="mb">
+<div class="fld"><label class="lbl">PRODUCTO</label><select class="inp" value="{{ mv.pid }}" onChange="{{ setMvP }}"><sc-for list="{{ mvOpts }}" as="o" hint-placeholder-count="4"><option value="{{ o.v }}">{{ o.t }}</option></sc-for></select></div>
+<div class="fld"><label class="lbl">TIPO</label><select class="inp" value="{{ mv.tipo }}" onChange="{{ setMvT }}"><option>Salida de insumos</option><option>Ajuste por conteo</option></select></div>
+<div class="xs mut">{{ mvNote }}</div><div class="fld"><label class="lbl">CANTIDAD {{ mvHint }}</label><input class="inp" type="number" value="{{ mv.q }}" onInput="{{ setMvQ }}"></div>
+<div class="fld"><label class="lbl">MOTIVO (OBLIGATORIO)</label><input class="inp" value="{{ mv.mot }}" onInput="{{ setMvM }}" placeholder="{{ mvPh }}"></div>
+<div class="row sm"><span class="mut">Stock actual {{ mvStock }} → resultante</span><b class="num {{ mvCc }}">{{ mvResult }}</b></div>
+<sc-if value="{{ mvErr }}"><div class="alert bad">{{ mvErr }}</div></sc-if><div class="xs mut">Las entradas solo vienen de una compra (CUS31) y las salidas por venta las registra el cobro. Todo movimiento queda en el kardex con fecha, cantidad y usuario (RN18).</div></div><div class="mf"><button class="btn sec" onClick="{{ closeM }}">Cancelar</button><button class="btn" disabled="{{ mvCant }}" onClick="{{ saveMov }}">Guardar movimiento</button></div></div></div></sc-if>
+<sc-if value="{{ mCat }}" hint-placeholder-val="{{ false }}"><div class="modal-bg" onClick="{{ closeM }}"><div class="modal n" onClick="{{ stop }}"><div class="mh"><div class="sp"><h2 class="h2">Categorías de producto</h2><div class="mut sm">CUS66 · el nombre es único.</div></div></div><div class="mb"><div class="col" style="gap:6px"><sc-for list="{{ catRows }}" as="c" hint-placeholder-count="3"><div class="row"><span class="sp b">{{ c.n }}</span><span class="xs mut">{{ c.k }} producto(s)</span></div></sc-for></div><hr class="sep"><div class="row nw" style="align-items:flex-end;gap:8px"><div class="fld sp"><label class="lbl">NUEVA CATEGORÍA</label><input class="inp" value="{{ nCat }}" onInput="{{ setNCatName }}" placeholder="Ej. Rostro"></div><button class="btn" style="min-height:44px" disabled="{{ cantCat }}" onClick="{{ saveCat }}">Agregar</button></div><sc-if value="{{ catDup }}"><div class="alert bad">Ya existe una categoría con ese nombre.</div></sc-if></div><div class="mf"><button class="btn sec" onClick="{{ closeM }}">Cerrar</button></div></div></div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  NW = {cod:'',n:'',marca:'',cat:'Cabello',u:'Unidad',min:'',cost:'',uso:'VENTA',prem:false};
+  state = { q:'', uso:'ALL', modal:null, nw:{...this.NW}, mv:{pid:'p7',tipo:'Salida de insumos',q:'',mot:''}, pid:'p1', per:'mes', nCat:'' };
+  componentDidMount(){ const p=this.props.app.params; if(p&&p.tab==='cat') this.setState({modal:'cat'}); }
+  renderVals() {
+    const a = this.props.app, s = this.state, set=(o)=>this.setState(o), D = a.data, P = D.prod, mode = this.props.mode, isAdm = a.role==='D';
+    const est = (p)=>p.st<=0?['Agotado','bad']:(p.st<=p.min?['Stock bajo','warn']:['Disponible','ok']);
+    const q = s.q.trim().toLowerCase();
+    const rows = P.filter(p=>(s.uso==='ALL'||p.uso===s.uso)&&(!q||p.n.toLowerCase().includes(q)||p.cod.toLowerCase().includes(q)||(p.marca||'').toLowerCase().includes(q))).map(p=>({...p,usoTxt:p.uso==='VENTA'?'Venta':'Insumo',uChip:p.uso==='VENTA'?'info':'',pvTxt:p.uso==='VENTA'?'S/ '+p.pv+(p.prem?' ★':''):'—',est:est(p)[0],chip:est(p)[1],showCost:isAdm,kardex:()=>{ set({pid:p.id}); a.go('kardex'); }}));
+    const cur = {...(P.find(p=>p.id===s.pid)||P[0])}; const ce = est(cur); cur.est=ce[0]; cur.chip=ce[1];
+    // kardex
+    const delta = (m)=>m.delta!==undefined?m.delta:(m.tipo==='Entrada'?m.q:-m.q);
+    const real = D.kmov.filter(m=>m.pid===cur.id);
+    let run = cur.st; const seq = [];
+    real.forEach(m=>{ seq.push({...m,delta:delta(m),saldo:run}); run -= delta(m); });
+    const r2 = run+2-6; const seed = r2>=0 ? [{f:'10 oct 18:10',tipo:'Salida',mot:'Venta B001-00226',delta:-2,u:'Carmen Soto'},{f:'03 oct 10:20',tipo:'Entrada',mot:'Compra F-2201',delta:6,u:'Rocío Medina'},{f:'01 oct 08:00',tipo:'Entrada',mot:'Saldo inicial',delta:r2,u:'Sistema'}] : [{f:'01 oct 08:00',tipo:'Entrada',mot:'Saldo inicial',delta:run,u:'Sistema'}];
+    seed.forEach(m=>{ seq.push({...m,saldo:run}); run -= m.delta; });
+    const days = {hoy:0,sem:7,mes:30}[s.per];
+    const krows = seq.filter(m=>m.delta!==0||true).filter((m,i)=>s.per==='mes'||(s.per==='hoy'?m.f.startsWith('12 oct'):(m.f.startsWith('12 oct')||m.f.startsWith('11 oct')||m.f.startsWith('10 oct')||m.f.startsWith('0')&&false))).map(m=>({f:m.f,tipo:m.tipo,chip:m.tipo==='Entrada'?'ok':(m.tipo==='Ajuste'?'warn':'info'),mot:m.mot,ent:m.delta>0?m.delta:'',sal:m.delta<0?-m.delta:'',saldo:m.saldo,u:m.u}));
+    // movimiento
+    const mv = s.mv, isAj = mv.tipo==='Ajuste por conteo', isIn = false, mvP = isAj?P:P.filter(p=>p.uso==='INSUMO'), mp = mvP.find(p=>p.id===mv.pid)||mvP[0], qn = +mv.q||0;
+    const dl = isAj?qn:-Math.abs(qn), result = mp.st+dl;
+    const marg = (pr)=>a.param(pr?'MARGEN_PREMIUM':'MARGEN_PRODUCTO');
+    const mvErr = result<0?'La salida deja stock negativo. Stock disponible: '+mp.st+'.':(isAj&&!mv.mot.trim()&&qn!==0?'Un ajuste sin motivo no se guarda.':'');
+    const nw = s.nw, setN=(k)=>(e)=>set({nw:{...nw,[k]:e.target.value}}), setM=(k)=>(e)=>set({mv:{...mv,[k]:e.target.value}});
+    const closeM = ()=>set({modal:null});
+    return {
+      title:mode==='productos'?'Productos e insumos':'Kardex', sub:mode==='productos'?'Productos de venta e insumos, con stock mínimo y alertas (CUS32–CUS34, CUS66). Toca un producto para ver su kardex.':'Entradas (compras), salidas (ventas e insumos) y ajustes con saldo, fecha y usuario (CUS35).',
+      isProd:mode==='productos', isKardex:mode==='kardex', isAdm, notAdm:!isAdm,
+      usos:[['ALL','Todos'],['VENTA','Venta'],['INSUMO','Insumo']].map(u=>({n:u[1],cls:s.uso===u[0]?'on':'',pick:()=>set({uso:u[0]})})),
+      lowTxt:P.filter(p=>p.st<=p.min).map(p=>p.n+' ('+p.st+'/'+p.min+')').join(', '), goCompras:()=>a.go('compras',{tab:'req'}),
+      openCat:()=>set({modal:'cat',nCat:''}), mCat:s.modal==='cat', nCat:s.nCat, setNCatName:(e)=>set({nCat:e.target.value}), catRows:D.cats.map(c=>({n:c,k:P.filter(p=>p.cat===c).length})),
+      catDup:D.cats.some(c=>c.toLowerCase()===s.nCat.trim().toLowerCase()), cantCat:!s.nCat.trim()||D.cats.some(c=>c.toLowerCase()===s.nCat.trim().toLowerCase()),
+      saveCat:()=>{ D.cats.push(s.nCat.trim()); a.toast('Categoría «'+s.nCat.trim()+'» registrada'); set({nCat:''}); },
+      catOpts:D.cats, setNCat:setN('cat'), setNU:setN('u'), setNCost:setN('cost'), setNPrem:(e)=>set({nw:{...nw,prem:e.target.checked}}), nVenta:nw.uso==='VENTA',
+      nUsos:[['VENTA','Venta a clientas'],['INSUMO','Insumo de servicios']].map(u=>({n:u[1],cls:nw.uso===u[0]?'on':'',pick:()=>set({nw:{...nw,uso:u[0]}})})),
+      nMargen:marg(nw.prem), nPv:(Math.round((+nw.cost||0)*(1+marg(nw.prem)/100)*100)/100).toFixed(2), q:s.q, setQ:(e)=>set({q:e.target.value}), rows, nLow:P.filter(p=>p.st<=p.min).length,
+      openNew:()=>set({modal:'new',nw:{...this.NW}}), openMov:()=>set({modal:'mov',mv:{pid:'p7',tipo:'Salida de insumos',q:'',mot:''}}),
+      pOpts:P.map(p=>({v:p.id,t:p.cod+' · '+p.n})), mvOpts:mvP.map(p=>({v:p.id,t:p.cod+' · '+p.n+' · stock '+p.st})), pid:s.pid, setPid:(e)=>set({pid:e.target.value}), cur,
+      periods:[['hoy','Hoy'],['sem','7 días'],['mes','Mes']].map(x=>({n:x[1],cls:s.per===x[0]?'on':'',pick:()=>set({per:x[0]})})), krows, exportK:()=>a.toast('Kardex exportado a Excel'),
+      mNew:s.modal==='new', mMov:s.modal==='mov', closeM, stop:(e)=>e.stopPropagation(),
+      nf:[['CÓDIGO (ÚNICO)','cod','AA-000'],['NOMBRE','n',''],['MARCA','marca',''],['STOCK MÍNIMO','min','0']].map(x=>({l:x[0],v:nw[x[1]],set:setN(x[1]),ph:x[2]})), nw,
+      cantNew:!nw.cod.trim()||!nw.n.trim()||!nw.cat||P.some(p=>p.cod.toLowerCase()===nw.cod.trim().toLowerCase())||(isAdm&&!(+nw.cost>0)),
+      saveNew:()=>{ const cost=+nw.cost||0, pv=nw.uso==='VENTA'?Math.round(cost*(1+marg(nw.prem)/100)*100)/100:0; P.push({id:'p'+Date.now(),cod:nw.cod.trim().toUpperCase(),n:nw.n.trim(),marca:nw.marca.trim(),cat:nw.cat,u:nw.u,st:0,min:+nw.min||0,pv,cost,uso:nw.uso,prem:nw.prem}); closeM(); a.toast('Producto registrado ('+(nw.uso==='VENTA'?'venta':'insumo')+') · kardex creado'); },
+      mv, setMvP:setM('pid'), setMvT:(e)=>set({mv:{...mv,tipo:e.target.value,pid:e.target.value==='Ajuste por conteo'?mv.pid:'p7'}}), setMvQ:setM('q'), setMvM:setM('mot'), mvStock:mp.st, mvResult:result, mvCc:result<0?'bad':'', mvErr,
+      mvHint:isAj?'(+ SOBRA, − FALTA)':'('+(mp.u||'Unidad').toUpperCase()+')', mvCant:!qn||!mv.mot.trim()||result<0,
+      mvNote:isAj?'Ajuste de inventario (CUS34): diferencia entre el conteo físico y el stock del sistema; exige motivo.':'Salida de insumos (CUS33): consumo interno en los servicios; solo productos de uso INSUMO.', mvPh:isAj?'Ej. Conteo físico de fin de mes':'Ej. Uso en depilaciones de la semana',
+      saveMov:()=>{ const hh=new Date().toTimeString().slice(0,5); mp.st=result; D.kmov.unshift({f:'12 oct '+hh,pid:mp.id,prod:mp.n,tipo:isAj?'Ajuste':'Salida',mot:mv.mot.trim(),q:Math.abs(qn),delta:dl,saldo:result,u:a.user}); closeM(); a.toast('Movimiento registrado · saldo '+result); }
+    };
+  }
+}
+</script>
+</body>
+</html>
