@@ -68,6 +68,14 @@ export const MENU: ItemMenu[] = [
     permisos: [PERMISOS.cajaVer, PERMISOS.cajaCrear, PERMISOS.cajaEditar],
   },
   {
+    ruta: '/agenda/mi-agenda',
+    etiqueta: 'Mi agenda',
+    corta: 'Mi agenda',
+    grupo: 'Especialista',
+    icono: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4',
+    permisos: [PERMISOS.atencionCrear, PERMISOS.atencionEditar],
+  },
+  {
     ruta: '/agenda/atencion',
     etiqueta: 'Atención en curso',
     corta: 'En curso',

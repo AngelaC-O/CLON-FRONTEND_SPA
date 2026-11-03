@@ -86,18 +86,33 @@ button {
   gap: var(--e-14);
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
+.gs {
+  display: grid;
+  gap: var(--e-16);
+  grid-template-columns: minmax(0, 1fr) 360px;
+  align-items: start;
+}
 .eyebrow {
   font-weight: 600;
   letter-spacing: 0.08em;
+}
+.only-m {
+  display: none;
 }
 @media (max-width: 1099px) {
   .h1 {
     font-size: 30px;
   }
+  .gs {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 @media (max-width: 699px) {
   .no-m {
     display: none !important;
+  }
+  .only-m {
+    display: block;
   }
   .g2 {
     grid-template-columns: minmax(0, 1fr);
