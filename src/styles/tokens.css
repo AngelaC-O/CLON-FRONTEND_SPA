@@ -1,0 +1,81 @@
+/* Tokens del prototipo (docs/prototipo/Cautiva Spa BackOffice.dc.html). */
+:root {
+  /* Colores */
+  --bg: #faf6f1;
+  --ink: #2a2220;
+  --mut: #6b5e58;
+  --line: #e8ded5;
+  --pri: #3a2a30;
+  --salon: oklch(0.62 0.1 350);
+  --salon-d: oklch(0.44 0.11 350);
+  --salon-l: oklch(0.95 0.03 350);
+  --spa: oklch(0.62 0.1 175);
+  --spa-d: oklch(0.4 0.08 175);
+  --spa-l: oklch(0.95 0.03 175);
+  --ok: oklch(0.45 0.1 150);
+  --ok-l: oklch(0.95 0.04 150);
+  --warn: oklch(0.46 0.1 70);
+  --warn-l: oklch(0.96 0.05 85);
+  --bad: oklch(0.46 0.15 27);
+  --bad-l: oklch(0.95 0.03 27);
+  --info: oklch(0.44 0.1 250);
+  --info-l: oklch(0.95 0.03 250);
+  --sup: #fff;
+  --linea-fuerte: #d6cabf;
+  --linea-suave: #f0e8e0;
+  --relleno: #f1e9e1;
+  --relleno-hover: #f6efe8;
+  --relleno-tabla: #fcf9f6;
+  --relleno-anulado: #fdf6f5;
+  --velo: rgba(42, 34, 32, 0.5);
+  --hero: linear-gradient(160deg, #f4e4e1, #e9efea);
+
+  /* Tipografía */
+  --fuente: 'DM Sans', system-ui, sans-serif;
+  --fuente-titulo: 'Instrument Serif', serif;
+  --texto-xs: 11.5px;
+  --texto-sm: 12.5px;
+  --texto: 14px;
+  --texto-h3: 15px;
+  --texto-h2: 24px;
+  --texto-marca: 30px;
+  --texto-h1: 34px;
+  --texto-hero: 44px;
+
+  /* Espaciado */
+  --e-2: 2px;
+  --e-4: 4px;
+  --e-6: 6px;
+  --e-8: 8px;
+  --e-10: 10px;
+  --e-12: 12px;
+  --e-14: 14px;
+  --e-16: 16px;
+  --e-18: 18px;
+  --e-20: 20px;
+  --e-22: 22px;
+  --e-24: 24px;
+  --e-28: 28px;
+  --e-32: 32px;
+  --e-48: 48px;
+
+  /* Radios */
+  --r-8: 8px;
+  --r-10: 10px;
+  --r-12: 12px;
+  --r-14: 14px;
+  --r-18: 18px;
+  --r-20: 20px;
+  --r-22: 22px;
+  --r-pill: 99px;
+
+  /* Sombras */
+  --sombra-seg: 0 1px 3px rgba(60, 40, 30, 0.15);
+  --sombra-toast: 0 8px 30px rgba(0, 0, 0, 0.25);
+  --sombra-menu: 0 12px 40px rgba(60, 40, 30, 0.18);
+
+  /* Medidas del menú */
+  --ancho-menu: 252px;
+  --ancho-menu-iconos: 76px;
+  --alto-control: 44px;
+}

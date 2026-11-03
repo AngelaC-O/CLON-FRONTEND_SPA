@@ -1,12 +1,12 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { NotificacionesService } from './core/notificaciones/notificaciones.service';
 
 @Component({
   imports: [RouterOutlet],
   selector: 'app-root',
-  styleUrl: './app.css',
   templateUrl: './app.html',
 })
 export class App {
-  protected readonly title = signal('Synapsis_Spa_Cautiva_Front-End');
+  protected readonly notificaciones = inject(NotificacionesService);
 }
