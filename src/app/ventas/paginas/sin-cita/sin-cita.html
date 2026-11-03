@@ -1,0 +1,171 @@
+<div class="col" style="gap: 16px; max-width: 1100px">
+  <div>
+    <h1 class="h1">Atención sin cita</h1>
+    <div class="mut">
+      Para quien llega sin reserva: ocupa a la especialista y al recurso igual que una cita (RN34).
+    </div>
+  </div>
+
+  @if (venta(); as cerrada) {
+    <div class="card col" style="max-width: 560px">
+      <app-comprobante-emitido [venta]="cerrada" />
+      <button class="btn" type="button" style="align-self: flex-start" (click)="nueva()">
+        Nueva atención
+      </button>
+    </div>
+  } @else {
+    <form class="gs" [formGroup]="formulario" (ngSubmit)="cobrar()">
+      <div class="col" style="gap: 16px">
+        <div class="card col">
+          <div class="h3">1 · Clienta</div>
+          <div class="seg" role="group" aria-label="Tipo de clienta">
+            <button type="button" [class.on]="!registrada()" (click)="elegirClienta(false)">
+              Cliente de paso
+            </button>
+            <button type="button" [class.on]="registrada()" (click)="elegirClienta(true)">
+              Clienta registrada
+            </button>
+          </div>
+          @if (registrada()) {
+            <app-selector-clienta (cambio)="clienta.set($event)" />
+          } @else {
+            <div class="fld">
+              <label class="lbl" for="rapidaPaso">NOMBRE DEL CLIENTE DE PASO *</label>
+              <input
+                class="inp"
+                id="rapidaPaso"
+                placeholder="Ej. Jorge (corte de caballero)"
+                formControlName="nombreClientePaso"
+              />
+            </div>
+            <div class="xs mut">Solo se pide el nombre (RN35).</div>
+          }
+        </div>
+
+        <div class="card col">
+          <div class="h3">2 · Servicio y disponibles ahora</div>
+          <div class="fld">
+            <label class="lbl" for="rapidaVariante">CÓDIGO DE LA VARIANTE</label>
+            <input
+              class="inp"
+              id="rapidaVariante"
+              type="number"
+              min="1"
+              formControlName="idVariante"
+              (change)="verLibres()"
+            />
+          </div>
+          @if (libres(); as lista) {
+            @if (libre(); as hora) {
+              <div class="g2">
+                <div class="fld">
+                  <label class="lbl" for="rapidaPersonal">ESPECIALISTA</label>
+                  <select class="inp" id="rapidaPersonal" formControlName="idPersonal">
+                    @for (id of hora.idsPersonal; track id) {
+                      <option [ngValue]="id">Especialista {{ id }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="fld">
+                  <label class="lbl" for="rapidaRecurso">RECURSO</label>
+                  <select class="inp" id="rapidaRecurso" formControlName="idRecurso">
+                    @for (id of hora.idsRecurso; track id) {
+                      <option [ngValue]="id">Recurso {{ id }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="fld">
+                  <label class="lbl" for="rapidaDuracion">DURACIÓN (MIN)</label>
+                  <input
+                    class="inp"
+                    id="rapidaDuracion"
+                    type="number"
+                    min="1"
+                    formControlName="tiempoDeclaradoMin"
+                  />
+                </div>
+              </div>
+            } @else if (lista.length === 0) {
+              <div class="alert warn" role="status">
+                No hay especialista o recurso libres ahora. La clienta puede esperar o agendar una
+                cita.
+              </div>
+            }
+          }
+        </div>
+
+        <div class="card col">
+          <div class="h3">3 · Cobro</div>
+          <div class="seg" role="group" aria-label="Medio de pago">
+            @for (medio of medios; track medio.id) {
+              <button
+                type="button"
+                [class.on]="formulario.controls.idMedioPago.value === medio.id"
+                (click)="elegirMedio(medio.id)"
+              >
+                {{ medio.etiqueta }}
+              </button>
+            }
+          </div>
+          @if (esDigital()) {
+            <div class="fld" style="max-width: 200px">
+              <label class="lbl" for="rapidaCanal">CANAL</label>
+              <select class="inp" id="rapidaCanal" formControlName="canal">
+                <option value="QR">QR</option>
+                <option value="LINK">Enlace</option>
+              </select>
+            </div>
+            <div class="alert warn">
+              Un pago digital sin aprobar no cierra aquí: nada queda registrado. Si Izipay no lo
+              aprueba al instante, cobra en efectivo (RN42).
+            </div>
+          }
+          <div class="fld" style="max-width: 260px">
+            <label class="lbl" for="rapidaMonto">MONTO (S/)</label>
+            <input
+              class="inp"
+              id="rapidaMonto"
+              type="number"
+              min="0"
+              step="0.01"
+              formControlName="monto"
+            />
+          </div>
+        </div>
+
+        <div class="card col">
+          <div class="h3">4 · Comprobante electrónico</div>
+          <app-datos-comprador
+            [formulario]="comprador"
+            [importe]="formulario.controls.monto.value ?? 0"
+          />
+        </div>
+      </div>
+
+      <div class="card col" style="position: sticky; top: 16px">
+        <h2 class="h2">Resumen</h2>
+        @if (error(); as mensaje) {
+          <div class="alert bad" role="alert">{{ mensaje }}</div>
+        }
+        <div class="row">
+          <span class="sp mut">IGV 0 % · Amazonía exonerada (RN06)</span>
+          <span class="num">S/ 0.00</span>
+        </div>
+        <div class="row">
+          <span class="sp b">Total</span>
+          <span class="kpi num" style="font-size: 30px">
+            {{ soles(formulario.controls.monto.value) }}
+          </span>
+        </div>
+        <div class="xs mut">
+          El monto debe coincidir con el precio de la variante (RN11). Toda venta lleva boleta o
+          factura electrónica (RN07).
+        </div>
+        <button class="btn lg blk" type="submit" [disabled]="enviando()">Cobrar</button>
+        <div class="xs mut" style="text-align: center">
+          Registra la atención, el cobro y el comprobante a la vez.
+        </div>
+      </div>
+    </form>
+  }
+</div>
