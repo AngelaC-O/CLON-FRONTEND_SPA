@@ -1,10 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { medioPago } from '../../../core/api/medios-pago';
+import { ListasService } from '../../../core/api/listas.service';
+import { etiquetaMedio } from '../../../core/api/medios';
+import { MedioPagoDTO } from '../../../core/api/modelos.generados';
 import { redondear, soles } from '../../../core/api/moneda';
 import { mensajeDelProblema } from '../../../core/api/problema';
 import { NotificacionesService } from '../../../core/notificaciones/notificaciones.service';
+import { CajaAbiertaService } from '../../../core/sesion/caja-abierta.service';
 import { PERMISOS } from '../../../core/sesion/permisos';
 import { SesionService } from '../../../core/sesion/sesion.service';
 import { Modal } from '../../../layout/modal/modal';
@@ -14,7 +17,6 @@ import {
   EsperadoDTO,
   EsperadoMedioDTO,
 } from '../../modelos/caja.modelos';
-import { CajaActualService } from '../../servicios/caja-actual.service';
 import { CajaService } from '../../servicios/caja.service';
 
 const MEDIO_EFECTIVO = 'EFECTIVO';
@@ -26,7 +28,10 @@ interface FilaArqueo {
   observacion: FormControl<string>;
 }
 
-/** IGU_Caja, nodo 4:89: CUS44 y CUS45. La aprobación de la diferencia es CUS46 (otra iteración). */
+/**
+ * IGU_Caja, nodo 4:89: CUS44 y CUS45. La caja abierta sale de GET /cajas/abierta (Duda 10 de
+ * NOTAS_IT1), la misma que muestra la cabecera. La revisión y la reapertura son CUS46.
+ */
 @Component({
   selector: 'app-caja',
   imports: [ReactiveFormsModule, Modal],
@@ -37,12 +42,15 @@ export class Caja implements OnInit {
   private readonly notificaciones = inject(NotificacionesService);
   private readonly servicio = inject(CajaService);
   private readonly sesion = inject(SesionService);
-  protected readonly actual = inject(CajaActualService);
+  private readonly listas = inject(ListasService);
+  private readonly abierta = inject(CajaAbiertaService);
+  /** null mientras se consulta o si la sede no tiene caja abierta. */
+  protected readonly caja = computed(() => this.abierta.actual() ?? null);
+  protected readonly consultando = computed(() => this.abierta.actual() === undefined);
+  private readonly medios = signal<MedioPagoDTO[]>([]);
 
   protected readonly soles = soles;
-  protected readonly horaApertura = computed(
-    () => this.actual.actual()?.fechaApertura?.slice(11, 16) ?? '',
-  );
+  protected readonly horaApertura = computed(() => this.caja()?.fechaApertura?.slice(11, 16) ?? '');
   protected readonly idSede = computed(() => this.sesion.sesion()?.idSede);
   protected readonly puedeAbrir = computed(() => this.sesion.tienePermiso(PERMISOS.cajaCrear));
   protected readonly puedeVer = computed(() => this.sesion.tienePermiso(PERMISOS.cajaVer));
@@ -57,25 +65,17 @@ export class Caja implements OnInit {
   protected readonly enviando = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly errorCierre = signal<string | null>(null);
-  protected readonly yaAbierta = signal(false);
 
   protected readonly apertura = this.fb.control<number | null>(null, [
     Validators.required,
     Validators.min(0),
   ]);
-  protected readonly codigo = this.fb.control<number | null>(null, [
-    Validators.required,
-    Validators.min(1),
-  ]);
   protected readonly formApertura = this.fb.group({ montoInicial: this.apertura });
-  protected readonly formCodigo = this.fb.group({ idCaja: this.codigo });
   protected readonly egresos = this.fb.array<ReturnType<Caja['nuevoEgreso']>>([]);
 
   ngOnInit(): void {
-    const idCaja = this.actual.actual()?.idCaja;
-    if (idCaja && this.puedeVer()) {
-      this.cargarEsperado(idCaja);
-    }
+    this.listas.mediosPago().subscribe((medios) => this.medios.set(medios));
+    this.consultarAbierta();
   }
 
   protected fechaLarga(): string {
@@ -83,7 +83,10 @@ export class Caja implements OnInit {
   }
 
   protected nombreMedio(idMedioPago?: number): string {
-    return medioPago(idMedioPago)?.etiqueta ?? `Medio ${idMedioPago}`;
+    return etiquetaMedio(
+      this.medios().find((m) => m.idMedioPago === idMedioPago),
+      idMedioPago,
+    );
   }
 
   protected esEfectivo(medio: EsperadoMedioDTO): boolean {
@@ -97,11 +100,10 @@ export class Caja implements OnInit {
       return;
     }
     this.iniciar();
-    this.yaAbierta.set(false);
     this.servicio.abrir({ montoInicial }).subscribe({
       next: (caja) => {
         this.enviando.set(false);
-        this.actual.establecer(caja);
+        this.abierta.establecer(caja);
         this.cerrada.set(null);
         this.apertura.reset();
         this.notificaciones.mostrar(`Caja abierta con ${soles(montoInicial)}.`);
@@ -111,42 +113,17 @@ export class Caja implements OnInit {
       },
       error: (error: HttpErrorResponse) => {
         this.enviando.set(false);
-        // El mensaje de la regla ya lo muestra el interceptor.
-        this.yaAbierta.set(error.status === 409);
-      },
-    });
-  }
-
-  /** Sin GET de la caja abierta: en otra pestaña o equipo se retoma por su código. */
-  protected continuar(): void {
-    const idCaja = this.codigo.value;
-    if (!idCaja || this.codigo.invalid) {
-      this.error.set('Escribe el código de la caja.');
-      return;
-    }
-    this.iniciar();
-    this.servicio.calcularEsperado(idCaja).subscribe({
-      next: (esperado) => {
-        this.enviando.set(false);
-        if (esperado.estado === 'ABIERTA') {
-          this.esperado.set(esperado);
-          this.actual.establecer({
-            idCaja,
-            estado: esperado.estado,
-            montoInicial: esperado.montoInicial,
-          });
-          this.codigo.reset();
-        } else {
-          this.error.set(`La caja ${idCaja} ya está cerrada.`);
+        // El mensaje de la regla ya lo muestra el interceptor. Si otra persona la abrió, se lee.
+        if (error.status === 409) {
+          this.consultarAbierta();
         }
       },
-      error: (error: HttpErrorResponse) => this.fallar(error, this.error),
     });
   }
 
   /** Vuelve a leer lo esperado: desde que se abrió la pantalla pudo haber más ventas. */
   protected cerrarCaja(): void {
-    const idCaja = this.actual.actual()?.idCaja;
+    const idCaja = this.caja()?.idCaja;
     if (!idCaja) {
       return;
     }
@@ -203,7 +180,7 @@ export class Caja implements OnInit {
   }
 
   protected confirmarCierre(): void {
-    const idCaja = this.actual.actual()?.idCaja;
+    const idCaja = this.caja()?.idCaja;
     const filas = this.filas();
     if (!idCaja || !filas) {
       return;
@@ -246,7 +223,7 @@ export class Caja implements OnInit {
           this.enviando.set(false);
           this.filas.set(null);
           this.esperado.set(null);
-          this.actual.limpiar();
+          this.abierta.establecer(null);
           this.cerrada.set(caja);
           this.notificaciones.mostrar('Caja cerrada.');
         },
@@ -280,18 +257,29 @@ export class Caja implements OnInit {
     });
   }
 
+  /** GET /cajas/abierta: 200 con la caja de la sede o 204 si no hay. */
+  private consultarAbierta(): void {
+    this.abierta.cargar().subscribe({
+      next: (caja) => {
+        if (caja?.idCaja) {
+          this.cargarEsperado(caja.idCaja);
+        }
+      },
+      error: () => this.abierta.establecer(null),
+    });
+  }
+
   private cargarEsperado(idCaja: number): void {
     this.servicio.calcularEsperado(idCaja).subscribe({
       next: (esperado) => {
         if (esperado.estado === 'CERRADA') {
-          this.actual.limpiar();
+          this.abierta.establecer(null);
         } else {
           this.esperado.set(esperado);
         }
       },
       error: (error: HttpErrorResponse) => {
         if (error.status === 404) {
-          this.actual.limpiar();
           this.error.set(mensajeDelProblema(error, 'La caja no existe.'));
         }
       },
