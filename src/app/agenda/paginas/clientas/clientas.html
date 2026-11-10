@@ -32,6 +32,7 @@
           <th>Clienta</th>
           <th>Teléfono</th>
           <th>Datos</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
@@ -56,10 +57,19 @@
                 <span class="chip">Ingresada a mano</span>
               }
             </td>
+            <td class="r">
+              <a
+                class="btn sec sm"
+                [routerLink]="['/agenda/clientas', clienta.idCliente]"
+                [attr.aria-label]="'Ver ficha de ' + clienta.nombres"
+              >
+                Ver ficha
+              </a>
+            </td>
           </tr>
         } @empty {
           <tr>
-            <td class="vacio" colspan="3">No se encontraron clientas.</td>
+            <td class="vacio" colspan="4">No se encontraron clientas.</td>
           </tr>
         }
       </tbody>

@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { merge } from 'rxjs';
 import { ListasService } from '../../../core/api/listas.service';
 import { TipoDocumentoDTO } from '../../../core/api/modelos.generados';
@@ -14,10 +15,10 @@ import { Modal } from '../../../layout/modal/modal';
 import { ClienteDTO } from '../../modelos/agenda.modelos';
 import { ClientesService } from '../../servicios/clientes.service';
 
-/** IGU_Clientas: CUS01 Buscar Clienta y CUS02 Registrar Clienta. */
+/** IGU_Clientas: CUS01 Buscar Clienta y CUS02 Registrar Clienta; «Ver ficha» abre CUS03. */
 @Component({
   selector: 'app-clientas',
-  imports: [ReactiveFormsModule, Modal],
+  imports: [ReactiveFormsModule, Modal, RouterLink],
   templateUrl: './clientas.html',
 })
 export class Clientas implements OnInit {

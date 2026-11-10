@@ -15,6 +15,12 @@ export default [
     loadComponent: () => import('./paginas/clientas/clientas').then((m) => m.Clientas),
   },
   {
+    path: 'clientas/:idCliente',
+    canActivate: [permisoGuard(PERMISOS.clientasVer)],
+    loadComponent: () =>
+      import('./paginas/ficha-clienta/ficha-clienta').then((m) => m.FichaClienta),
+  },
+  {
     path: 'mi-agenda',
     canActivate: [permisoGuard(PERMISOS.atencionVer)],
     loadComponent: () => import('./paginas/mi-agenda/mi-agenda').then((m) => m.MiAgenda),
