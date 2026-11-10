@@ -73,6 +73,21 @@ Módulo nuevo `reportes` (CUS48 y CUS49), con «Reportes» en el menú de Admini
 - `IGU_Reportes` (`/reportes`): tipo de reporte (ventas, productos, margen, demanda, ocupación, ingresos por especialista), fechas, agrupación (solo ventas: día, mes, línea, servicio, especialista, medio de pago o tipo de atención) y sede, con «Todas» para el consolidado (RF93). «Generar» llama a `GET /reportes/{tipoReporte}` y muestra un gráfico de barras y la tabla con las columnas que trae la respuesta. «Exportar a Excel» y «Exportar a PDF» descargan `GET .../exportacion` con el nombre del `Content-Disposition`; solo con `REPORTES:EXPORTAR`. Productos y margen solo se ofrecen a la administradora (RN24).
 - `npm run build` sin errores ni advertencias; `npm test -- --watch=false`: 41 archivos, 261 pruebas, todas aprobadas. Prueba nueva: `reportes.spec.ts`; `shell.spec.ts` comprueba el menú.
 
+### Séptima entrega: recorrido e2e de la Iteración 2 (rama `tineo-test/f11-e2e-it2`)
+
+- `e2e/recorrido-it2.e2e.ts`: 29 pasos en serie, en el orden del encargo (con el paso 2.5 ·, ver `docs/pruebas_it2.md`). Usa el mismo entorno que la Iteración 1: contenedor `cautiva-e2e-oracle` con `database/` 00, 14, 13, 15 y 17, back-end `dev` en el 8081 y `ng serve` en el 4300.
+- `playwright.config.ts` tiene dos proyectos: `it1` (`recorrido.e2e.ts`) e `it2`, que depende de `it1`. Así `npm run e2e` corre primero el recorrido 1 sobre la base recién creada, que sigue igual, y después el 2. `npm run e2e:it2` corre solo el 2 sobre una base nueva.
+- `e2e/apoyo.ts` comparte las claves que fija el recorrido 1 (`CLAVE_ADMIN`, `CLAVE_ESPECIALISTA`) y suma `entrar()`, que entra con la clave final o, si aún es temporal, la cambia. `obtenido()` escribe en un archivo por recorrido (`obtenido-it2.txt`).
+- `docs/pruebas_it2.md`: CUS, caso, resultado esperado, obtenido y resultado, y las reglas pedidas.
+
+**Corrida del 10/11/2026 (6 de 29 pasos):** pasaron los cinco pasos de la administradora (1 ·) y el de la categoría (2 ·). El registro del insumo respondió 201, pero el paso falló porque buscaba la tabla en la pestaña «Categorías»; ya está corregido. Lo demás **no se corrió**:
+
+- **Docker:** para repetir desde una base limpia hacía falta recrear `cautiva-e2e-oracle`, y Docker no pudo borrarlo ni detenerlo («tried to kill container, but did not receive an exit event»). El contenedor quedó inservible: Docker lo da por «Up», pero `docker exec` falla y el back-end no conecta. Hay que reiniciar Docker Desktop, lo que también detiene `oracle-local`, y después correr `npm run e2e:bd`.
+- **Horario:** desde el paso 3 · el recorrido agenda y atiende hoy, y la corrida empezó a las 17:20 (hora de Lima). El recorrido de la Iteración 1 tampoco se corrió por lo mismo.
+- **`JAVA_HOME`:** la terminal de esta sesión no lo tenía. Se usó `C:\Users\Laptop\.jdks\openjdk-26.0.2.1`. El back-end pide Java 21, y con el JDK 26 arrancó.
+
+Pendiente: reiniciar Docker Desktop, `npm run e2e:bd` y `npm run e2e` un día de lunes a sábado antes de las 17:00. Después hay que completar la columna «Obtenido» de `docs/pruebas_it2.md`.
+
 **Sin comprobar:** el recorrido `npm run e2e` no se corrió. Agenda y atiende el mismo día, así que solo corre de lunes a sábado de 09:00 a 17:30 (hora de Lima), y esta entrega se cerró a las 03:20. Sus selectores se adaptaron a las pantallas nuevas y el archivo compila (`playwright test --list` da los 22 pasos), pero falta verlo pasar contra el back-end de la Iteración 2: correr `npm run e2e:bd` y `npm run e2e` en ese horario. Tampoco se revisaron las pantallas en el navegador a 1440, 834 y 390.
 
 `./mvnw -q verify` no aplica: este repositorio es solo el front-end y el back-end no se modificó.
@@ -109,6 +124,8 @@ Módulo nuevo `reportes` (CUS48 y CUS49), con «Reportes» en el menú de Admini
 28. **Valores de agrupación.** El contrato no enumera `agrupacion`; su ejemplo usa `LINEA`. Se envían DIA, MES, LINEA, SERVICIO, ESPECIALISTA, MEDIO_PAGO y TIPO_ATENCION, como en RF68. Si el back-end usa otros nombres, responde 422 y hay que cambiar `AGRUPACIONES_VENTAS` en `reportes.vista.ts`.
 29. **Lista de sedes.** No hay `GET /sedes`: el filtro ofrece la sede de la sesión y «Todas» (consolidado, RF93), pero no las demás sedes una por una.
 30. **Quién es administradora.** RN24 se aplica por rol: el front-end oculta productos y margen si `SesionDTO.rol` no es ADMINISTRADORA, y el back-end responde 403 igual. ¿Hay un permiso propio para costos que convenga usar en lugar del nombre del rol?
+31. **Alta de una serie en la prueba.** La única sede ya tiene sus cuatro series ACTIVAS. El e2e solo puede comprobar el 409 de UQ_SERIE_COMPR_ACTIVA, no un alta. ¿Se agrega una segunda sede al script 17, o una baja de serie al contrato?
+32. **Vender un paquete.** No hay operación para venderle un paquete a una clienta, así que RN36 (una sesión menos por atención) no se puede ver de punta a punta.
 
 Dudas de NOTAS_IT1 que el contrato cierra: 1 (`x-permiso`), 2 (listas, salvo producto y sedes), 3 (`GET /auth/sesion`), 5 (`GET /tipos-documento`), 6 (`GET /atenciones/mi-agenda`), 7 (`GET /atenciones/en-curso`), 8 (`GET /ventas/{idVenta}`), 10 (`GET /cajas/abierta` y `GET /ventas/por-cobrar`), 11 (`GET /medios-pago`), 12 (`GET /comprobantes/{id}`) y 13 (202 de `/ventas/rapidas`, RN52). Siguen abiertas la 4 (plan de commits, ver la decisión 15), la 9 (no se puede anular una transacción en espera), la 14 y la 15.
 
@@ -187,3 +204,6 @@ Dudas de NOTAS_IT1 que el contrato cierra: 1 (`x-permiso`), 2 (listas, salvo pro
 36. **Gráfico sin librería.** El gráfico es de barras horizontales con CSS y los tokens del prototipo, sobre la columna de importe (o la primera numérica). No se agregó una librería de gráficos.
 37. **Exportar lo que se ve.** La exportación usa el tipo y los filtros del último «Generar», no lo que esté escrito en el formulario después; así el archivo coincide con la tabla.
 38. **Validación de fechas.** Antes de enviar se exige el rango, que el inicio no pase el fin y que no supere 366 días (RF68). El back-end valida lo mismo.
+39. **Un recorrido después del otro.** El recorrido 2 no depende de lo que deja el 1, pero corre después de él (proyecto con dependencia). El 1 necesita las claves temporales de `admin` y `especialista1`, que el 2 también cambia. El 2 usa los usuarios que el 1 no toca (`recepcion`, `almacen`, `especialista2`) y abre su propia caja.
+40. **Horario por paso.** El recorrido 2 exige el horario de atención (lunes a sábado, de 09:00 a 17:00) desde el paso 3 ·, no al empezar. Así los pasos de configuración e inventario pueden correr a cualquier hora con `--grep`.
+41. **Datos de la base en la prueba.** Como en la Iteración 1, lo que ninguna pantalla muestra (ids, estados, kardex, saldo a favor, auditoría) se lee de la base como dueño del esquema, solo con SELECT.
