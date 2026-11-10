@@ -212,4 +212,53 @@ describe('Usuarios', () => {
     http.expectNone('/api/v1/roles/1/permisos');
     expect(raiz.querySelector('.alert.bad')?.textContent).toContain(MENSAJE_RN48_PERMISOS);
   });
+
+  it('CUS54: «Restablecer contraseña» pide la clave temporal dos veces', async () => {
+    await montar(['SEGURIDAD:VER', 'SEGURIDAD:EDITAR']);
+    raiz
+      .querySelector<HTMLButtonElement>(
+        'button[aria-label="Restablecer contraseña de recepcion2"]',
+      )!
+      .click();
+    await estable();
+    const modal = () => raiz.querySelector('app-restablecer-clave')!;
+    expect(modal().textContent).toContain('recepcion2');
+    escribir('#claveTemporal', 'corta');
+    escribir('#claveTemporalRepetida', 'corta');
+    await enviar('app-restablecer-clave form');
+    expect(modal().querySelector('.alert.bad')?.textContent).toContain('8 a 72');
+    escribir('#claveTemporal', 'Temporal2026');
+    escribir('#claveTemporalRepetida', 'Temporal2027');
+    await enviar('app-restablecer-clave form');
+    expect(modal().querySelector('.alert.bad')?.textContent).toContain('no coinciden');
+    http.expectNone('/api/v1/usuarios/5/clave');
+
+    escribir('#claveTemporalRepetida', 'Temporal2026');
+    await enviar('app-restablecer-clave form');
+    const peticion = http.expectOne('/api/v1/usuarios/5/clave');
+    expect(peticion.request.method).toBe('PATCH');
+    expect(peticion.request.body).toEqual({ clave: 'Temporal2026' });
+    peticion.flush({ ...USUARIOS[1], debeCambiarClave: true });
+    await estable();
+    expect(raiz.querySelector('app-restablecer-clave')).toBeNull();
+    expect(raiz.querySelectorAll('tbody tr')[1].textContent).toContain('Debe cambiar su clave');
+  });
+
+  it('CUS54: sin SEGURIDAD:EDITAR no ofrece restablecer', async () => {
+    await montar(['SEGURIDAD:VER']);
+    expect(raiz.textContent).not.toContain('Restablecer contraseña');
+  });
+
+  it('CUS55: la pestaña «Auditoría» consulta con los usuarios de la página', async () => {
+    await montar(['SEGURIDAD:VER']);
+    await clic('Auditoría');
+    const peticion = http.expectOne((req) => req.url === '/api/v1/auditoria');
+    expect(peticion.request.params.get('fechaInicio')).toBeTruthy();
+    peticion.flush([]);
+    await estable();
+    const usuarios = [...raiz.querySelectorAll('#auditoriaUsuario option')].map((o) =>
+      o.textContent?.trim(),
+    );
+    expect(usuarios).toEqual(['Todos', 'admin', 'recepcion2']);
+  });
 });
