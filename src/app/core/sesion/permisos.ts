@@ -18,6 +18,7 @@ export const PERMISOS = {
   catalogoCrear: OP.registrarServicio,
   catalogoVer: OP.listarServicios,
   clientasCrear: OP.registrar_2,
+  clientasEditar: OP.actualizar,
   clientasVer: OP.buscar,
   sedesCrear: OP.registrarRecurso,
   sedesVer: OP.listarRecursos,
