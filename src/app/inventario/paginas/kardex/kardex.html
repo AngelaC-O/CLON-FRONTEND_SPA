@@ -1,0 +1,108 @@
+<div class="col" style="gap: 16px">
+  <div class="row">
+    <div class="sp">
+      <h1 class="h1">Kardex</h1>
+      <div class="mut">
+        Entradas, salidas y ajustes con saldo, fecha, origen y usuario. Las salidas automáticas
+        muestran la atención que las originó.
+      </div>
+    </div>
+    <a class="btn ghost" routerLink="/inventario">← Productos e insumos</a>
+  </div>
+
+  <form
+    class="card row"
+    style="align-items: flex-end"
+    [formGroup]="filtro"
+    (ngSubmit)="verKardex()"
+  >
+    <div class="fld sp">
+      @if (conLista()) {
+        <label class="lbl" for="kardexProducto">PRODUCTO</label>
+        <select class="inp" id="kardexProducto" formControlName="idProducto">
+          <option [ngValue]="null" disabled>Elige el producto</option>
+          @for (opcion of productos(); track opcion.idProducto) {
+            <option [ngValue]="opcion.idProducto">{{ opcion.codigo }} · {{ opcion.nombre }}</option>
+          }
+        </select>
+      } @else {
+        <label class="lbl" for="kardexProducto">CÓDIGO DEL PRODUCTO</label>
+        <input class="inp" id="kardexProducto" type="number" min="1" formControlName="idProducto" />
+      }
+    </div>
+    <div class="fld">
+      <label class="lbl" for="kardexInicio">DESDE</label>
+      <input class="inp" id="kardexInicio" type="date" formControlName="fechaInicio" />
+    </div>
+    <div class="fld">
+      <label class="lbl" for="kardexFin">HASTA</label>
+      <input class="inp" id="kardexFin" type="date" formControlName="fechaFin" />
+    </div>
+    <button class="btn" type="submit">Ver kardex</button>
+  </form>
+
+  @if (error(); as mensaje) {
+    <div class="alert bad" role="alert">{{ mensaje }}</div>
+  }
+
+  @if (producto(); as actual) {
+    <div class="card row" id="resumenProducto">
+      <div class="sp">
+        <div class="h3">{{ actual.nombre }}</div>
+        <div class="xs mut">{{ actual.codigo }} · {{ actual.ubicacion }}</div>
+      </div>
+      <div>
+        <div class="xs mut">STOCK ACTUAL</div>
+        <b class="num">{{ actual.stockActual ?? 0 }} {{ actual.unidad }}</b>
+      </div>
+      <div>
+        <div class="xs mut">MÍNIMO</div>
+        <b class="num">{{ actual.stockMinimo }}</b>
+      </div>
+      @if (enMinimo(actual)) {
+        <span class="chip warn">En stock mínimo</span>
+      }
+    </div>
+  }
+
+  @if (movimientos(); as lista) {
+    <div class="card cp0 tw">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Tipo</th>
+            <th>Origen</th>
+            <th>Motivo</th>
+            <th class="r">Cantidad</th>
+            <th class="r">Saldo</th>
+            <th>Usuario</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (movimiento of lista; track movimiento.idMovimiento) {
+            <tr>
+              <td class="num">{{ fechaHora(movimiento.fechaHora) }}</td>
+              <td>
+                <span class="chip" [class]="tipo(movimiento).clase">{{
+                  tipo(movimiento).texto
+                }}</span>
+              </td>
+              <td>{{ origenMovimiento(movimiento) }}</td>
+              <td>{{ movimiento.motivo }}</td>
+              <td class="r num">
+                {{ (movimiento.cantidad ?? 0) > 0 ? '+' : '' }}{{ movimiento.cantidad }}
+              </td>
+              <td class="r num b">{{ movimiento.saldo }}</td>
+              <td>{{ movimiento.usuario }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td class="vacio" colspan="7">No hay movimientos entre esas fechas.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
