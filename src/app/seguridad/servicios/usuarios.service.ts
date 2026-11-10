@@ -2,15 +2,17 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { parametros } from '../../core/api/parametros';
 import {
   AsignarRolDTO,
+  AuditoriaDTO,
   PermisoDTO,
   PersonalSinUsuarioDTO,
   RolDTO,
   UsuarioDTO,
 } from '../modelos/seguridad.modelos';
 
-/** CUS52 y CUS53. El login, el logout y el cambio de clave están en core/sesion. */
+/** CUS52 a CUS55. El login, el logout y el cambio de clave están en core/sesion. */
 @Injectable({ providedIn: 'root' })
 export class UsuariosService {
   private readonly http = inject(HttpClient);
@@ -42,5 +44,21 @@ export class UsuariosService {
 
   configurarPermisos(idRol: number, rol: RolDTO): Observable<RolDTO> {
     return this.http.put<RolDTO>(`${this.api}/roles/${idRol}/permisos`, rol);
+  }
+
+  /** CUS54: clave temporal; debe cambiarla en su siguiente ingreso y queda desbloqueado. */
+  restablecerClave(idUsuario: number, clave: string): Observable<UsuarioDTO> {
+    return this.http.patch<UsuarioDTO>(`${this.api}/usuarios/${idUsuario}/clave`, { clave });
+  }
+
+  /** CUS55: sin fechas, los últimos 30 días. */
+  consultarAuditoria(filtro: {
+    idUsuario?: number | null;
+    modulo?: string;
+    entidad?: string;
+    fechaInicio?: string;
+    fechaFin?: string;
+  }): Observable<AuditoriaDTO[]> {
+    return this.http.get<AuditoriaDTO[]>(`${this.api}/auditoria`, { params: parametros(filtro) });
   }
 }

@@ -1,4 +1,7 @@
 export type {
+  AuditoriaDTO,
+  ParametroDTO,
+  TipoDocumentoDTO,
   AsignarRolDTO,
   CambioClaveDTO,
   CredencialesDTO,

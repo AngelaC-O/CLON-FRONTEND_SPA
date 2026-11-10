@@ -2,7 +2,9 @@
   <div class="row">
     <div class="sp">
       <h1 class="h1">Usuarios y seguridad</h1>
-      <div class="mut">Solo la dueña crea usuarios y asigna roles (RN39). CUS52 y CUS53.</div>
+      <div class="mut">
+        Solo la dueña crea usuarios, asigna roles y restablece contraseñas (RN39). CUS52 a CUS55.
+      </div>
     </div>
     @if (puedeCrear() && pestana() === 'usuarios') {
       <button class="btn lg" type="button" (click)="abrirRegistro()">+ Crear usuario</button>
@@ -30,7 +32,21 @@
     >
       Matriz de permisos
     </button>
+    <button
+      class="tab"
+      type="button"
+      role="tab"
+      [class.on]="pestana() === 'auditoria'"
+      [attr.aria-selected]="pestana() === 'auditoria'"
+      (click)="pestana.set('auditoria')"
+    >
+      Auditoría
+    </button>
   </div>
+
+  @if (pestana() === 'auditoria') {
+    <app-auditoria [usuarios]="usuarios()" />
+  }
 
   @if (pestana() === 'usuarios') {
     @if (errorAsignacion(); as mensaje) {
@@ -44,6 +60,9 @@
             <th>Usuario</th>
             <th>Rol</th>
             <th>Estado</th>
+            @if (puedeEditar()) {
+              <th></th>
+            }
           </tr>
         </thead>
         <tbody>
@@ -89,10 +108,22 @@
                   <div class="xs mut">Debe cambiar su clave</div>
                 }
               </td>
+              @if (puedeEditar()) {
+                <td class="r">
+                  <button
+                    class="btn ghost sm"
+                    type="button"
+                    [attr.aria-label]="'Restablecer contraseña de ' + usuario.nombreUsuario"
+                    (click)="porRestablecer.set(usuario)"
+                  >
+                    Restablecer contraseña
+                  </button>
+                </td>
+              }
             </tr>
           } @empty {
             <tr>
-              <td class="vacio" colspan="4">No hay usuarios registrados.</td>
+              <td class="vacio" colspan="5">No hay usuarios registrados.</td>
             </tr>
           }
         </tbody>
@@ -238,4 +269,12 @@
       </div>
     </form>
   </app-modal>
+}
+
+@if (porRestablecer(); as usuario) {
+  <app-restablecer-clave
+    [usuario]="usuario"
+    (cerrar)="porRestablecer.set(null)"
+    (restablecido)="claveRestablecida($event)"
+  />
 }

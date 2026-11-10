@@ -13,6 +13,8 @@ import {
   UsuarioDTO,
 } from '../../modelos/seguridad.modelos';
 import { UsuariosService } from '../../servicios/usuarios.service';
+import { Auditoria } from '../auditoria/auditoria';
+import { RestablecerClave } from './restablecer-clave';
 
 /** Rol que no puede quedarse sin seguridad ni sin titular activa (RN48). */
 const ROL_ADMINISTRADORA = 'ADMINISTRADORA';
@@ -24,10 +26,13 @@ export const MENSAJE_RN48_ROL =
 
 const clave = (p: PermisoDTO) => `${p.modulo}:${p.accion}`;
 
-/** IGU_Usuarios: CUS52 Registrar Usuario y CUS53 Asignar Rol. */
+/**
+ * IGU_Usuarios, nodo 4:245: CUS52 Registrar Usuario, CUS53 Asignar Rol y CUS54 Restablecer
+ * Contraseña; la pestaña «Auditoría» es IGU_Auditoria (CUS55).
+ */
 @Component({
   selector: 'app-usuarios',
-  imports: [ReactiveFormsModule, Modal],
+  imports: [ReactiveFormsModule, Modal, Auditoria, RestablecerClave],
   templateUrl: './usuarios.html',
 })
 export class Usuarios implements OnInit {
@@ -36,7 +41,9 @@ export class Usuarios implements OnInit {
   private readonly servicio = inject(UsuariosService);
   private readonly sesion = inject(SesionService);
 
-  protected readonly pestana = signal<'usuarios' | 'permisos'>('usuarios');
+  protected readonly pestana = signal<'usuarios' | 'permisos' | 'auditoria'>('usuarios');
+  /** Usuario cuya contraseña se restablece (CUS54). */
+  protected readonly porRestablecer = signal<UsuarioDTO | null>(null);
   protected readonly roles = signal<RolDTO[]>([]);
   protected readonly usuarios = signal<UsuarioDTO[]>([]);
   protected readonly personal = signal<PersonalSinUsuarioDTO[]>([]);
@@ -51,6 +58,17 @@ export class Usuarios implements OnInit {
   protected readonly puedeEditar = computed(() =>
     this.sesion.tienePermiso(PERMISOS.seguridadEditar),
   );
+
+  /** La clave no vuelve: se actualiza el estado del usuario (desbloqueado, debe cambiarla). */
+  protected claveRestablecida(usuario: UsuarioDTO): void {
+    this.porRestablecer.set(null);
+    this.usuarios.update((lista) =>
+      lista.map((u) => (u.idUsuario === usuario.idUsuario ? { ...u, ...usuario } : u)),
+    );
+    this.notificaciones.mostrar(
+      `Contraseña de ${usuario.nombreUsuario} restablecida: deberá cambiarla al entrar.`,
+    );
+  }
 
   protected readonly formUsuario = this.fb.group({
     idPersonal: [null as number | null, Validators.required],
