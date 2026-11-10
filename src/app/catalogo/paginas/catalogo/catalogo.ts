@@ -36,7 +36,7 @@ export class Catalogo implements OnInit {
   protected readonly enviando = signal(false);
 
   protected readonly puedeCrear = computed(() => this.sesion.tienePermiso(PERMISOS.catalogoCrear));
-  protected readonly verRecursos = computed(() => this.sesion.tienePermiso(PERMISOS.sedesCrear));
+  protected readonly verRecursos = computed(() => this.sesion.tienePermiso(PERMISOS.sedesVer));
   protected readonly serviciosVisibles = computed(() => {
     const filtro = this.filtroArea();
     return this.servicios().filter((s) => filtro === null || s.idArea === filtro);
