@@ -4,12 +4,7 @@ import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angu
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, of, switchMap } from 'rxjs';
 import { ListasService } from '../../../core/api/listas.service';
-import {
-  CanalCobro,
-  canalPropuesto,
-  etiquetaMedio,
-  mediosActivos,
-} from '../../../core/api/medios';
+import { CanalCobro, canalPropuesto, etiquetaMedio, mediosActivos } from '../../../core/api/medios';
 import { MedioPagoDTO, TipoDocumentoDTO } from '../../../core/api/modelos.generados';
 import { redondear, soles } from '../../../core/api/moneda';
 import { mensajeDelProblema } from '../../../core/api/problema';
@@ -83,6 +78,10 @@ export class Cobros implements OnInit {
   private readonly servicio = inject(VentasService);
   private readonly listas = inject(ListasService);
   private readonly sesion = inject(SesionService);
+  /** IGU_Anulacion: la solicitud pide VENTAS:ANULAR; la bandeja y las devoluciones, VENTAS:EDITAR. */
+  protected readonly puedeVerAnulaciones = computed(() =>
+    this.sesion.tienePermiso(PERMISOS.ventasAnular, PERMISOS.ventasEditar),
+  );
   private readonly ruta = inject(ActivatedRoute);
 
   protected readonly soles = soles;
