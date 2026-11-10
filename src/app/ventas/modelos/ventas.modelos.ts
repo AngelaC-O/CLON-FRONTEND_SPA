@@ -20,6 +20,7 @@ export type {
   PromocionDTO,
   RechazoDTO,
   ResultadoConsulta,
+  SerieDTO,
   SolicitudAnulacionDTO,
   TransaccionDTO,
   VentaDTO,
