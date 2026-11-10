@@ -2,22 +2,44 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { RolDTO } from '../../modelos/seguridad.modelos';
-import { Usuarios } from './usuarios';
+import { entrarComo } from '../../../../testing/sesion';
+import { PermisoDTO, RolDTO, UsuarioDTO } from '../../modelos/seguridad.modelos';
+import { MENSAJE_RN48_PERMISOS, MENSAJE_RN48_ROL, Usuarios } from './usuarios';
 
+const SEGURIDAD: PermisoDTO[] = [
+  { modulo: 'SEGURIDAD', accion: 'VER' },
+  { modulo: 'SEGURIDAD', accion: 'CREAR' },
+  { modulo: 'SEGURIDAD', accion: 'EDITAR' },
+];
+const PERMISOS: PermisoDTO[] = [
+  { modulo: 'AGENDA', accion: 'VER' },
+  { modulo: 'VENTAS', accion: 'CREAR' },
+  ...SEGURIDAD,
+];
 const ROLES: RolDTO[] = [
   {
     idRol: 1,
     nombre: 'ADMINISTRADORA',
     estado: 'ACTIVO',
     descripcion: 'Todo',
-    permisos: [{ modulo: 'SEGURIDAD', accion: 'VER' }],
+    permisos: SEGURIDAD,
   },
   {
     idRol: 2,
     nombre: 'RECEPCIONISTA',
     estado: 'ACTIVO',
     permisos: [{ modulo: 'AGENDA', accion: 'VER' }],
+  },
+];
+const USUARIOS: UsuarioDTO[] = [
+  { idUsuario: 1, idPersonal: 1, nombreUsuario: 'admin', idRol: 1, estado: 'ACTIVO', clave: '' },
+  {
+    idUsuario: 5,
+    idPersonal: 3,
+    nombreUsuario: 'recepcion2',
+    idRol: 2,
+    estado: 'ACTIVO',
+    clave: '',
   },
 ];
 
@@ -27,8 +49,8 @@ describe('Usuarios', () => {
   let http: HttpTestingController;
 
   const estable = () => fixture.whenStable();
-  const boton = (texto: string) =>
-    [...raiz.querySelectorAll('button')].find((b) => b.textContent?.includes(texto))!;
+  const boton = (texto: string, dentro: ParentNode = raiz) =>
+    [...dentro.querySelectorAll('button')].find((b) => b.textContent?.includes(texto))!;
   const clic = async (texto: string) => {
     boton(texto).click();
     await estable();
@@ -47,29 +69,36 @@ describe('Usuarios', () => {
     raiz.querySelector(selector)!.dispatchEvent(new Event('submit'));
     await estable();
   };
+  const marcar = (nombre: string, valor: boolean) => {
+    const casilla = raiz.querySelector<HTMLInputElement>(`input[name="${nombre}"]`)!;
+    casilla.checked = valor;
+    casilla.dispatchEvent(new Event('change'));
+  };
 
-  const montar = async (permisos: string[]) => {
-    sessionStorage.setItem('cautiva.sesion', JSON.stringify({ idSede: 1, permisos }));
+  const montar = async (permisos: string[], usuarios = USUARIOS) => {
     TestBed.configureTestingModule({
       imports: [Usuarios],
       providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     });
     http = TestBed.inject(HttpTestingController);
+    entrarComo({ idSede: 1, permisos });
     fixture = TestBed.createComponent(Usuarios);
     await estable();
     raiz = fixture.nativeElement;
     http.expectOne('/api/v1/roles').flush(ROLES);
+    http.expectOne('/api/v1/usuarios').flush(usuarios);
+    http.expectOne('/api/v1/permisos').flush(PERMISOS);
     await estable();
   };
 
-  afterEach(() => {
-    http.verify();
-    sessionStorage.clear();
-  });
+  afterEach(() => http.verify());
 
-  it('solo carga los roles al abrir', async () => {
+  it('lista a todos los usuarios con GET /usuarios (diferencia 14)', async () => {
     await montar(['SEGURIDAD:VER']);
-    expect(raiz.querySelector('.vacio')).not.toBeNull();
+    const filas = [...raiz.querySelectorAll('tbody tr')].map((f) => f.textContent);
+    expect(filas).toHaveLength(2);
+    expect(filas[1]).toContain('recepcion2');
+    expect(filas[1]).toContain('RECEPCIONISTA');
   });
 
   it('sin permisos de escritura no ofrece crear, asignar ni guardar', async () => {
@@ -81,73 +110,83 @@ describe('Usuarios', () => {
     expect(raiz.querySelector('tbody')?.textContent).toContain('SEGURIDAD');
   });
 
-  it('CUS52: registra el usuario con los campos de la frontera y lo lista', async () => {
+  it('CUS52: elige el personal sin usuario de la lista y registra el usuario', async () => {
     await montar(['SEGURIDAD:VER', 'SEGURIDAD:CREAR']);
     await clic('Crear usuario');
-    escribir('#idPersonal', '3');
-    escribir('#nombreUsuario', 'recepcion2');
+    http
+      .expectOne('/api/v1/usuarios/personal-sin-usuario')
+      .flush([{ idPersonal: 7, nombres: 'Lucía', apellidos: 'Ramos', cargo: 'ESPECIALISTA' }]);
+    await estable();
+    const opciones = [...raiz.querySelectorAll('#idPersonal option')].map((o) => o.textContent);
+    expect(opciones[1]).toContain('Lucía Ramos · ESPECIALISTA');
+    elegir('#idPersonal', 1);
+    escribir('#nombreUsuario', 'lucia.ramos');
     escribir('#clave', 'ClaveTemporal2026');
     elegir('#idRol', 1);
     await enviar('app-modal form');
     const peticion = http.expectOne('/api/v1/usuarios');
     expect(peticion.request.method).toBe('POST');
     expect(peticion.request.body).toEqual({
-      idPersonal: 3,
-      nombreUsuario: 'recepcion2',
+      idPersonal: 7,
+      nombreUsuario: 'lucia.ramos',
       clave: 'ClaveTemporal2026',
       idRol: 2,
     });
     peticion.flush({
-      idUsuario: 5,
-      idPersonal: 3,
-      nombreUsuario: 'recepcion2',
+      idUsuario: 9,
+      idPersonal: 7,
+      nombreUsuario: 'lucia.ramos',
       idRol: 2,
       estado: 'ACTIVO',
       debeCambiarClave: true,
     });
     await estable();
     expect(raiz.querySelector('app-modal')).toBeNull();
-    expect(raiz.querySelector('tbody')?.textContent).toContain('recepcion2');
+    expect(raiz.querySelector('tbody')?.textContent).toContain('lucia.ramos');
     expect(raiz.querySelector('tbody')?.textContent).toContain('Debe cambiar su clave');
   });
 
-  it('no envía un usuario con clave corta', async () => {
+  it('no envía un usuario sin personal o con clave corta', async () => {
     await montar(['SEGURIDAD:VER', 'SEGURIDAD:CREAR']);
     await clic('Crear usuario');
+    http.expectOne('/api/v1/usuarios/personal-sin-usuario').flush([]);
     escribir('#clave', 'corta');
     await enviar('app-modal form');
     http.expectNone('/api/v1/usuarios');
     expect(raiz.querySelector('app-modal .alert.bad')).not.toBeNull();
   });
 
-  it('CUS53: asigna el rol por código y muestra el 404 en el formulario', async () => {
+  it('CUS53: asigna el rol desde la fila del usuario', async () => {
     await montar(['SEGURIDAD:VER', 'SEGURIDAD:EDITAR']);
-    escribir('#asignarIdUsuario', '99');
-    elegir('#asignarIdRol', 0);
-    await enviar('form');
-    http
-      .expectOne('/api/v1/usuarios/99/rol')
-      .flush({ detail: 'No existe el usuario' }, { status: 404, statusText: 'Not Found' });
-    await estable();
-    expect(raiz.querySelector('.alert.bad')?.textContent).toContain('No existe el usuario');
-
-    await enviar('form');
-    const peticion = http.expectOne('/api/v1/usuarios/99/rol');
+    const fila = raiz.querySelectorAll('tbody tr')[1];
+    const lista = fila.querySelector<HTMLSelectElement>('select')!;
+    lista.selectedIndex = 0;
+    boton('Asignar rol', fila).click();
+    const peticion = http.expectOne('/api/v1/usuarios/5/rol');
     expect(peticion.request.method).toBe('PATCH');
     expect(peticion.request.body).toEqual({ idRol: 1 });
-    peticion.flush({ idUsuario: 99, nombreUsuario: 'otra', idRol: 1, estado: 'ACTIVO' });
+    peticion.flush({ ...USUARIOS[1], idRol: 1 });
     await estable();
-    expect(raiz.querySelector('tbody')?.textContent).toContain('otra');
+    expect(raiz.querySelector('.alert.bad')).toBeNull();
   });
 
-  it('CUS53: guarda los permisos del rol y actualiza la matriz', async () => {
+  it('RN48: no le quita el rol a la última administradora activa', async () => {
+    await montar(['SEGURIDAD:VER', 'SEGURIDAD:EDITAR']);
+    const fila = raiz.querySelectorAll('tbody tr')[0];
+    fila.querySelector<HTMLSelectElement>('select')!.selectedIndex = 1;
+    boton('Asignar rol', fila).click();
+    await estable();
+    http.expectNone('/api/v1/usuarios/1/rol');
+    expect(raiz.querySelector('.alert.bad')?.textContent).toContain(MENSAJE_RN48_ROL);
+  });
+
+  it('CUS53: guarda los permisos del rol con las casillas de GET /permisos', async () => {
     await montar(['SEGURIDAD:VER', 'SEGURIDAD:EDITAR']);
     await clic('Matriz de permisos');
     elegir('#rolIdRol', 1);
     await estable();
-    await clic('+ Permiso');
-    escribir('[aria-label="Módulo del permiso 2"]', 'ventas');
-    escribir('[aria-label="Acción del permiso 2"]', 'crear');
+    expect(raiz.querySelector<HTMLInputElement>('input[name="AGENDA:VER"]')!.checked).toBe(true);
+    marcar('VENTAS:CREAR', true);
     await enviar('form');
     const peticion = http.expectOne('/api/v1/roles/2/permisos');
     expect(peticion.request.method).toBe('PUT');
@@ -163,5 +202,14 @@ describe('Usuarios', () => {
     peticion.flush({ ...ROLES[1], permisos: peticion.request.body.permisos });
     await estable();
     expect(raiz.querySelector('tbody')?.textContent).toContain('VENTAS');
+  });
+
+  it('RN48: no deja a la administradora sin los permisos de seguridad', async () => {
+    await montar(['SEGURIDAD:VER', 'SEGURIDAD:EDITAR']);
+    await clic('Matriz de permisos');
+    marcar('SEGURIDAD:EDITAR', false);
+    await enviar('form');
+    http.expectNone('/api/v1/roles/1/permisos');
+    expect(raiz.querySelector('.alert.bad')?.textContent).toContain(MENSAJE_RN48_PERMISOS);
   });
 });
