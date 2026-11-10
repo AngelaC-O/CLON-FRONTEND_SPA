@@ -1,0 +1,148 @@
+<div class="col" style="gap: 16px">
+  <div class="row">
+    <div class="sp">
+      <h1 class="h1">Revisión de caja</h1>
+      <div class="mut">
+        Cierres con diferencia por aprobar y cajas del día. Una caja cerrada solo se reabre con
+        motivo (RF66).
+      </div>
+    </div>
+    <a class="btn ghost" routerLink="/caja/conciliacion">Conciliación del mes</a>
+  </div>
+
+  <section class="col" style="gap: 10px" aria-labelledby="tituloDiferencias">
+    <h2 class="h2" id="tituloDiferencias">Cierres con diferencia</h2>
+    @for (caja of conDiferencia(); track caja.idCaja) {
+      <div class="card col cierre">
+        <div class="row">
+          <div class="sp">
+            <div class="b">Caja {{ caja.idCaja }}</div>
+            <div class="xs mut num">
+              {{ fechaHora(caja.fechaApertura) }} a {{ hora(caja.fechaCierre) }} · cerró el usuario
+              {{ caja.idUsuarioCierre }}
+            </div>
+          </div>
+          @if (puedeEditar()) {
+            <button class="btn" type="button" [disabled]="enviando()" (click)="aprobar(caja)">
+              Aprobar cierre
+            </button>
+          }
+        </div>
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Medio</th>
+              <th class="r">Esperado</th>
+              <th class="r">Contado</th>
+              <th class="r">Diferencia</th>
+              <th>Observación</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (arqueo of conDescuadre(caja); track arqueo.idMedioPago) {
+              <tr>
+                <td>{{ medio(arqueo.idMedioPago) }}</td>
+                <td class="r num">{{ soles(arqueo.montoEsperado) }}</td>
+                <td class="r num">{{ soles(arqueo.montoContado) }}</td>
+                <td class="r num b" [class.bad]="(arqueo.diferencia ?? 0) < 0">
+                  {{ soles(arqueo.diferencia) }}
+                </td>
+                <td>{{ arqueo.observacion }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @empty {
+      <div class="card vacio">
+        {{ conDiferencia() === null ? 'Cargando…' : 'No hay cierres con diferencia por aprobar.' }}
+      </div>
+    }
+  </section>
+
+  <section class="col" style="gap: 10px" aria-labelledby="tituloHoy">
+    <h2 class="h2" id="tituloHoy">Cajas de hoy</h2>
+    <div class="card cp0 tw">
+      <table class="tbl" id="cajasHoy">
+        <thead>
+          <tr>
+            <th>Caja</th>
+            <th>Apertura</th>
+            <th>Cierre</th>
+            <th class="r">Monto inicial</th>
+            <th>Estado</th>
+            @if (puedeEditar()) {
+              <th></th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (caja of delDia(); track caja.idCaja) {
+            <tr>
+              <td class="b num">{{ caja.idCaja }}</td>
+              <td class="num">{{ hora(caja.fechaApertura) }}</td>
+              <td class="num">{{ hora(caja.fechaCierre) }}</td>
+              <td class="r num">{{ soles(caja.montoInicial) }}</td>
+              <td>
+                <span class="chip" [class.ok]="caja.estado === 'ABIERTA'">
+                  {{ caja.estado === 'ABIERTA' ? 'Abierta' : 'Cerrada' }}
+                </span>
+                @if (caja.motivoReapertura) {
+                  <div class="xs mut">Reabierta: {{ caja.motivoReapertura }}</div>
+                }
+              </td>
+              @if (puedeEditar()) {
+                <td class="r">
+                  @if (caja.estado === 'CERRADA') {
+                    <button class="btn sec sm" type="button" (click)="abrirReapertura(caja)">
+                      Reabrir caja
+                    </button>
+                  }
+                </td>
+              }
+            </tr>
+          } @empty {
+            <tr>
+              <td class="vacio" colspan="6">
+                {{ delDia() === null ? 'Cargando…' : 'Hoy no se abrió ninguna caja.' }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+@if (porReabrir(); as caja) {
+  <app-modal titulo="Reabrir caja" [angosto]="true" (cerrar)="porReabrir.set(null)">
+    <form [formGroup]="reapertura" (ngSubmit)="reabrir()">
+      <div class="mb">
+        <div class="mut sm">
+          Caja {{ caja.idCaja }} · cerrada a las {{ hora(caja.fechaCierre) }}
+        </div>
+        @if (errorReapertura(); as mensaje) {
+          <div class="alert bad" role="alert">{{ mensaje }}</div>
+        }
+        <div class="fld">
+          <label class="lbl" for="motivoReapertura">MOTIVO (OBLIGATORIO)</label>
+          <input
+            class="inp"
+            id="motivoReapertura"
+            maxlength="200"
+            placeholder="Ej. Venta registrada después del cierre"
+            formControlName="motivoReapertura"
+          />
+        </div>
+        <div class="alert warn" id="avisoReapertura">
+          La caja vuelve a quedar abierta y se borra su cierre. Después de registrar lo pendiente,
+          hay que arquear y cerrar la caja otra vez (CUS45).
+        </div>
+      </div>
+      <div class="mf">
+        <button class="btn sec" type="button" (click)="porReabrir.set(null)">Volver</button>
+        <button class="btn" type="submit" [disabled]="enviando()">Reabrir caja</button>
+      </div>
+    </form>
+  </app-modal>
+}
