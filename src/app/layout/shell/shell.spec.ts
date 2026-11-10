@@ -53,6 +53,12 @@ describe('Shell', () => {
     expect(textos(raiz, '.side .grp')).toEqual(['Recepción', 'Administración']);
   });
 
+  it('los reportes aparecen solo con REPORTES:VER', async () => {
+    const { raiz } = await montar(['REPORTES:VER']);
+    expect(textos(raiz, '.side .nvl')).toEqual(['Inicio', 'Reportes']);
+    expect(raiz.querySelector('a[href="/reportes"]')).not.toBeNull();
+  });
+
   it('la barra inferior lleva cuatro accesos y «Más»', async () => {
     const { raiz } = await montar(['AGENDA:VER', 'CLIENTAS:VER', 'VENTAS:CREAR']);
     expect(textos(raiz, '.bnav .bn')).toEqual(['Inicio', 'Agenda', 'Clientas', 'Sin cita', 'Más']);

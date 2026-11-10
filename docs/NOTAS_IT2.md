@@ -65,6 +65,14 @@ CUS46, CUS47, CUS54, CUS55, CUS58 a CUS60, CUS62, CUS63 y CUS65. Cierra las dife
 - Menú: «Revisión de caja» y «Conciliación» en Administración, con los permisos de CONCILIACION.
 - `npm run build` sin errores ni advertencias; `npm test -- --watch=false`: 40 archivos, 252 pruebas, todas aprobadas. Pruebas nuevas: `revision-caja.spec.ts`, `conciliacion.spec.ts`, `auditoria.spec.ts`, `parametros.spec.ts`, `paquetes.spec.ts`, `promociones.spec.ts`, `medios-pago.spec.ts` y `series-comprobante.spec.ts`. Se ampliaron `catalogo.spec.ts` (lista, pestañas y edición), `usuarios.spec.ts` (restablecer y auditoría) y `shell.spec.ts` (menú).
 
+### Sexta entrega: reportes (rama `tineo-feature/f10-reportes`)
+
+Módulo nuevo `reportes` (CUS48 y CUS49), con «Reportes» en el menú de Administración solo para `REPORTES:VER`.
+
+- La pantalla sí está en la página 02 de Figma: «18 · Reportes (CUS48–CUS49)», nodo 4:221 (no hizo falta tomar el estilo de 4:233). Se construyó su pestaña «Reportes»; el «Panel de indicadores» no tiene operación en el contrato (ver la diferencia 28).
+- `IGU_Reportes` (`/reportes`): tipo de reporte (ventas, productos, margen, demanda, ocupación, ingresos por especialista), fechas, agrupación (solo ventas: día, mes, línea, servicio, especialista, medio de pago o tipo de atención) y sede, con «Todas» para el consolidado (RF93). «Generar» llama a `GET /reportes/{tipoReporte}` y muestra un gráfico de barras y la tabla con las columnas que trae la respuesta. «Exportar a Excel» y «Exportar a PDF» descargan `GET .../exportacion` con el nombre del `Content-Disposition`; solo con `REPORTES:EXPORTAR`. Productos y margen solo se ofrecen a la administradora (RN24).
+- `npm run build` sin errores ni advertencias; `npm test -- --watch=false`: 41 archivos, 261 pruebas, todas aprobadas. Prueba nueva: `reportes.spec.ts`; `shell.spec.ts` comprueba el menú.
+
 **Sin comprobar:** el recorrido `npm run e2e` no se corrió. Agenda y atiende el mismo día, así que solo corre de lunes a sábado de 09:00 a 17:30 (hora de Lima), y esta entrega se cerró a las 03:20. Sus selectores se adaptaron a las pantallas nuevas y el archivo compila (`playwright test --list` da los 22 pasos), pero falta verlo pasar contra el back-end de la Iteración 2: correr `npm run e2e:bd` y `npm run e2e` en ese horario. Tampoco se revisaron las pantallas en el navegador a 1440, 834 y 390.
 
 `./mvnw -q verify` no aplica: este repositorio es solo el front-end y el back-end no se modificó.
@@ -98,6 +106,9 @@ CUS46, CUS47, CUS54, CUS55, CUS58 a CUS60, CUS62, CUS63 y CUS65. Cierra las dife
 25. **Nombres en la revisión de caja.** `CajaDTO` trae `idUsuarioCierre` sin nombre: dice «cerró el usuario 2».
 26. **Listas en memoria tras configurar.** Medios de pago y tipos de documento se guardan una vez por carga en `ListasService`. La configuración los lee aparte, pero cobros y clientas ven el cambio al recargar la aplicación.
 27. **Insumos del servicio.** Al editar un servicio, el insumo se indica por el código del producto, como al registrarlo (CUS57). Elegirlo de `GET /productos` pediría `PRODUCTOS:VER`, de otro módulo.
+28. **Valores de agrupación.** El contrato no enumera `agrupacion`; su ejemplo usa `LINEA`. Se envían DIA, MES, LINEA, SERVICIO, ESPECIALISTA, MEDIO_PAGO y TIPO_ATENCION, como en RF68. Si el back-end usa otros nombres, responde 422 y hay que cambiar `AGRUPACIONES_VENTAS` en `reportes.vista.ts`.
+29. **Lista de sedes.** No hay `GET /sedes`: el filtro ofrece la sede de la sesión y «Todas» (consolidado, RF93), pero no las demás sedes una por una.
+30. **Quién es administradora.** RN24 se aplica por rol: el front-end oculta productos y margen si `SesionDTO.rol` no es ADMINISTRADORA, y el back-end responde 403 igual. ¿Hay un permiso propio para costos que convenga usar en lugar del nombre del rol?
 
 Dudas de NOTAS_IT1 que el contrato cierra: 1 (`x-permiso`), 2 (listas, salvo producto y sedes), 3 (`GET /auth/sesion`), 5 (`GET /tipos-documento`), 6 (`GET /atenciones/mi-agenda`), 7 (`GET /atenciones/en-curso`), 8 (`GET /ventas/{idVenta}`), 10 (`GET /cajas/abierta` y `GET /ventas/por-cobrar`), 11 (`GET /medios-pago`), 12 (`GET /comprobantes/{id}`) y 13 (202 de `/ventas/rapidas`, RN52). Siguen abiertas la 4 (plan de commits, ver la decisión 15), la 9 (no se puede anular una transacción en espera), la 14 y la 15.
 
@@ -132,6 +143,9 @@ Dudas de NOTAS_IT1 que el contrato cierra: 1 (`x-permiso`), 2 (listas, salvo pro
 | 25 | Encargo frente al draw.io (CUS47) | El encargo llama al primer paso «Subir reporte de liquidación de Izipay»; el draw.io dice «Clic en Importar liquidación», y para justificar, «Clic en Guardar justificación». | El paso se titula como el encargo y sus botones son los del draw.io. «Justificar» abre el texto y «Excluir» marca el ítem sin texto. |
 | 26 | Figma frente al contrato (conciliación) | Figma 4:233 muestra la conciliación del mes al entrar; el contrato no tiene cómo leerla. | Se concilia cada vez con «Conciliar» (ver la Duda 23). |
 | 27 | Prototipo frente al contrato (catálogo) | El prototipo edita el precio dentro del formulario del servicio; el contrato lo cambia aparte (RN25). | El modal «Editar servicio» tiene «Guardar cambios» para datos e insumos y, por variante, «Cambiar precio». |
+| 28 | Figma 4:221 frente al contrato (reportes) | Figma tiene dos pestañas: «Panel de indicadores» (ventas del mes, ticket promedio, cobro digital, clientas recurrentes, Salón vs. Spa, servicios más vendidos) y «Reportes». El contrato solo tiene `GET /reportes/{tipoReporte}`. | Se construyó «Reportes». Los indicadores no tienen operación y quedan fuera, como los de Inicio (diferencia 3). |
+| 29 | Prototipo frente al contrato (reportes) | El prototipo tiene reportes de comprobantes, áreas y clientas recurrentes, y filtra por línea; el contrato tiene seis tipos y agrupa las ventas por línea. | Los seis tipos del contrato; «Línea» es una agrupación de ventas. |
+| 30 | Draw.io frente al encargo (CUS49) | El draw.io tiene un solo «Clic en Exportar» con el formato como dato; el encargo pide dos botones. | «Exportar a Excel» y «Exportar a PDF», que envían `formato=EXCEL` o `formato=PDF`. |
 
 ## Decisiones tomadas
 
@@ -170,3 +184,6 @@ Dudas de NOTAS_IT1 que el contrato cierra: 1 (`x-permiso`), 2 (listas, salvo pro
 33. **Validaciones antes de enviar.** LIMPIEZA_MAX_MIN entero de 0 a 10 (RN03), AGENDA_PASO_MIN entero mayor que 0 (RN51), serie de 4 caracteres con B o F según el tipo (RF107), promoción con descuento mayor que 0 y hasta 100 % y fin no anterior al inicio (RF84), paquete con al menos una sesión y un día de vigencia. El back-end valida lo mismo.
 34. **Reapertura y cabecera.** Al reabrir, la caja devuelta pasa a `CajaAbiertaService`, así que la cabecera dice «Caja abierta» sin recargar.
 35. **Plan de commits de esta entrega.** Toca siete módulos (`core`, `caja`, `seguridad`, `pagos`, `ventas`, `catalogo` y `layout`). Para no mezclarlos y no pasar de ocho commits, cada módulo lleva sus pruebas en su propio commit y la documentación va al final.
+36. **Gráfico sin librería.** El gráfico es de barras horizontales con CSS y los tokens del prototipo, sobre la columna de importe (o la primera numérica). No se agregó una librería de gráficos.
+37. **Exportar lo que se ve.** La exportación usa el tipo y los filtros del último «Generar», no lo que esté escrito en el formulario después; así el archivo coincide con la tabla.
+38. **Validación de fechas.** Antes de enviar se exige el rango, que el inicio no pase el fin y que no supere 366 días (RF68). El back-end valida lo mismo.

@@ -33,6 +33,7 @@ export const routes: Routes = [
       { path: 'caja', loadChildren: () => import('./caja/caja.routes') },
       { path: 'inventario', loadChildren: () => import('./inventario/inventario.routes') },
       { path: 'catalogo', loadChildren: () => import('./catalogo/catalogo.routes') },
+      { path: 'reportes', loadChildren: () => import('./reportes/reportes.routes') },
       { path: 'sedes', loadChildren: () => import('./sedes/sedes.routes') },
       { path: 'seguridad', loadChildren: () => import('./seguridad/seguridad.routes') },
     ],
