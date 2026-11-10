@@ -4,7 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { MedioPagoDTO, ServicioDTO } from '../../../core/api/modelos.generados';
 import { entrarComo } from '../../../../testing/sesion';
-import { FiltrosAgendaDTO, FranjaAgendaDTO } from '../../modelos/agenda.modelos';
+import { FiltrosAgendaDTO, FranjaAgendaDTO, ListaEsperaDTO } from '../../modelos/agenda.modelos';
 import { hoyIso, MENSAJE_RN49 } from '../../modelos/agenda.vista';
 import { Agenda } from './agenda';
 
@@ -66,6 +66,17 @@ const SERVICIOS: ServicioDTO[] = [
     ],
   },
 ];
+const ESPERA: ListaEsperaDTO = {
+  idEspera: 31,
+  estado: 'PENDIENTE',
+  idCliente: 408,
+  idVariante: 2,
+  fechaDeseada: HOY,
+  horaDesde: '15:00',
+  horaHasta: '18:00',
+  nombreCliente: 'Rosaura Quispe',
+  nombreServicio: 'Corte de Cabello Caballero',
+};
 const MEDIOS: MedioPagoDTO[] = [
   { idMedioPago: 11, nombre: 'EFECTIVO', estado: 'ACTIVO', usaPasarela: false },
   { idMedioPago: 12, nombre: 'YAPE', estado: 'ACTIVO', usaPasarela: true },
@@ -83,6 +94,12 @@ describe('Agenda', () => {
     [...raiz.querySelectorAll('button')].find((b) => b.textContent?.includes(texto));
   const clic = async (texto: string) => {
     boton(texto)!.click();
+    await estable();
+  };
+  const clicEn = async (dentro: string, texto: string) => {
+    [...raiz.querySelectorAll<HTMLButtonElement>(`${dentro} button`)]
+      .find((b) => b.textContent?.includes(texto))!
+      .click();
     await estable();
   };
   const escribir = (id: string, valor: string) => {
@@ -103,7 +120,7 @@ describe('Agenda', () => {
       .expectOne('/api/v1/clientes?nombres=Marisol')
       .flush([{ idCliente: 407, nombres: 'Marisol', apellidos: 'Quispe', telefono: '987' }]);
     await estable();
-    await clic('Marisol Quispe');
+    await clicEn('app-selector-clienta', 'Marisol Quispe');
   };
   /** Abre la nueva cita, elige clienta y «Corte de Cabello Caballero» (variante 2, única). */
   const prepararCita = async () => {
@@ -119,7 +136,22 @@ describe('Agenda', () => {
     await estable();
   };
 
-  const montar = async (permisos: string[]) => {
+  /** GET /citas/agenda y, con él, GET /citas/lista-espera del mismo día. */
+  const responderDia = async (
+    fecha = HOY,
+    bloques: FranjaAgendaDTO[] = BLOQUES,
+    esperas: ListaEsperaDTO[] = [],
+  ) => {
+    http.expectOne(`/api/v1/citas/agenda?fecha=${fecha}`).flush(bloques);
+    http.expectOne(`/api/v1/citas/lista-espera?fecha=${fecha}`).flush(esperas);
+    await estable();
+  };
+  const abrirCita = async () => {
+    raiz.querySelector<HTMLButtonElement>('.bloque .abrir')!.click();
+    await estable();
+  };
+
+  const montar = async (permisos: string[], esperas: ListaEsperaDTO[] = []) => {
     TestBed.configureTestingModule({
       imports: [Agenda],
       providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
@@ -130,8 +162,7 @@ describe('Agenda', () => {
     await estable();
     raiz = fixture.nativeElement;
     http.expectOne('/api/v1/citas/filtros').flush(FILTROS);
-    http.expectOne(`/api/v1/citas/agenda?fecha=${HOY}`).flush(BLOQUES);
-    await estable();
+    await responderDia(HOY, BLOQUES, esperas);
   };
 
   afterEach(() => http.verify());
@@ -181,6 +212,7 @@ describe('Agenda', () => {
     await elegir('filtroPersonal', 'Lucía Ramos');
     await clic('Ver agenda');
     http.expectOne('/api/v1/citas/agenda?fecha=2026-11-09&idPersonal=4').flush([]);
+    http.expectOne('/api/v1/citas/lista-espera?fecha=2026-11-09').flush([]);
     await estable();
     expect(raiz.querySelector('.vacio')).not.toBeNull();
   });
@@ -229,7 +261,7 @@ describe('Agenda', () => {
     peticion.flush({ idCita: 951, fechaHoraInicio: `${HOY}T15:00:00` });
     await estable();
     expect(raiz.querySelector('app-modal')).toBeNull();
-    http.expectOne(`/api/v1/citas/agenda?fecha=${HOY}`).flush(BLOQUES);
+    await responderDia();
   });
 
   it('RN49: no consulta horas de un día que ya pasó', async () => {
@@ -312,10 +344,17 @@ describe('Agenda', () => {
       idCliente: 407,
       idVariante: 2,
       fechaDeseada: HOY,
+      nombreCliente: 'Marisol Quispe',
       horasLibres: [{ inicio: `${HOY}T16:00:00` }],
     });
     await estable();
+    // Anotada para el día que se ve: el panel se vuelve a leer del back-end.
+    http
+      .expectOne(`/api/v1/citas/lista-espera?fecha=${HOY}`)
+      .flush([{ ...ESPERA, idEspera: 1, nombreCliente: 'Marisol Quispe' }]);
+    await estable();
     expect(boton('Lista de espera')?.textContent).toContain('(1)');
+    expect(raiz.querySelector('section')?.textContent).toContain('Marisol Quispe');
     expect(raiz.textContent).toContain('Otras horas libres');
     expect(raiz.textContent).toContain('16:00');
   });
@@ -335,7 +374,7 @@ describe('Agenda', () => {
       .expectOne('/api/v1/clientes?nombres=Marisol')
       .flush([{ idCliente: 407, nombres: 'Marisol', apellidos: 'Quispe', telefono: '987' }]);
     await estable();
-    await clic('Marisol Quispe');
+    await clicEn('app-selector-clienta', 'Marisol Quispe');
     await elegir('esperaServicio', 'Corte de Cabello Caballero');
     escribir('esperaDesde', '18:00');
     escribir('esperaHasta', '15:00');
@@ -424,11 +463,168 @@ describe('Agenda', () => {
     await clic('Agendar');
     http.expectOne('/api/v1/citas').flush({ idCita: 951, fechaHoraInicio: `${HOY}T15:00:00` });
     await estable();
-    http.expectOne(`/api/v1/citas/agenda?fecha=${HOY}`).flush(BLOQUES);
-    await estable();
+    await responderDia();
     await clic('Registrar adelanto');
     http.expectOne('/api/v1/medios-pago').flush(MEDIOS);
     await estable();
     expect(raiz.querySelector<HTMLInputElement>('#adelantoIdCita')?.value).toBe('951');
+  });
+
+  const permisosEdicion = [...permisos, 'AGENDA:EDITAR'];
+
+  it('detalle de la cita: sin AGENDA:EDITAR no ofrece reprogramar ni cancelar', async () => {
+    await montar(permisos);
+    await abrirCita();
+    const modal = raiz.querySelector('app-modal')!;
+    expect(modal.textContent).toContain('Marisol Quispe');
+    expect(modal.textContent).toContain('Lucía Ramos');
+    expect(modal.textContent).toContain('Sillón 1');
+    expect(boton('Reprogramar')).toBeUndefined();
+    expect(boton('Cancelar cita')).toBeUndefined();
+  });
+
+  it('CUS09: reprograma con las horas libres y propone la especialista de la cita', async () => {
+    await montar(permisosEdicion);
+    await abrirCita();
+    await clic('Reprogramar');
+    expect(raiz.querySelector<HTMLInputElement>('#reprogramarFecha')?.value).toBe(HOY);
+    await clic('Ver disponibilidad');
+    http
+      .expectOne(`/api/v1/citas/disponibilidad?idVariante=2&fecha=${HOY}`)
+      .flush([
+        { inicio: `${HOY}T16:00:00`, duracionMin: 30, idsPersonal: [5, 4], idsRecurso: [2] },
+      ]);
+    await estable();
+    await clic('16:00');
+    const especialista = raiz.querySelector<HTMLSelectElement>('#reprogramarIdPersonal')!;
+    expect(especialista.selectedOptions[0].textContent?.trim()).toBe('Lucía Ramos');
+    await elegir('reprogramarIdPersonal', 'Ana Torres');
+    raiz.querySelector('app-reprogramar-cita form')!.dispatchEvent(new Event('submit'));
+    const peticion = http.expectOne('/api/v1/citas/950/reprogramacion');
+    expect(peticion.request.method).toBe('POST');
+    expect(peticion.request.body).toEqual({
+      fechaHoraInicio: `${HOY}T16:00:00`,
+      idPersonal: 5,
+      idRecurso: 2,
+    });
+    peticion.flush({ idCita: 952, idCitaOrigen: 950, fechaHoraInicio: `${HOY}T16:00:00` });
+    await estable();
+    expect(raiz.querySelector('app-reprogramar-cita')).toBeNull();
+    await responderDia();
+  });
+
+  it('CUS09: el 422 de RN49 queda en el modal', async () => {
+    await montar(permisosEdicion);
+    await abrirCita();
+    await clic('Reprogramar');
+    await clic('Ver disponibilidad');
+    http
+      .expectOne(`/api/v1/citas/disponibilidad?idVariante=2&fecha=${HOY}`)
+      .flush([{ inicio: `${HOY}T16:00:00`, duracionMin: 30, idsPersonal: [4], idsRecurso: [1] }]);
+    await estable();
+    await clic('16:00');
+    raiz.querySelector('app-reprogramar-cita form')!.dispatchEvent(new Event('submit'));
+    http
+      .expectOne('/api/v1/citas/950/reprogramacion')
+      .flush(
+        { detail: 'La fecha y hora ya pasaron', regla: 'RN49' },
+        { status: 422, statusText: 'Unprocessable Content' },
+      );
+    await estable();
+    expect(raiz.querySelector('app-reprogramar-cita .alert.bad')?.textContent).toContain(
+      'La fecha y hora ya pasaron',
+    );
+  });
+
+  it('CUS10: «No se presentó» cancela y muestra el saldo a favor que quedó', async () => {
+    await montar(permisosEdicion);
+    await abrirCita();
+    await clic('Cancelar cita');
+    await clic('No se presentó');
+    expect(raiz.querySelector<HTMLInputElement>('#motivoCancelacion')?.value).toBe(
+      'No se presentó',
+    );
+    raiz.querySelector('app-cancelar-cita form')!.dispatchEvent(new Event('submit'));
+    const peticion = http.expectOne('/api/v1/citas/950/cancelacion');
+    expect(peticion.request.method).toBe('PATCH');
+    expect(peticion.request.body).toEqual({ motivoCancelacion: 'No se presentó' });
+    peticion.flush({ idCita: 950, estado: 'CANCELADA', adelantoMonto: 20 });
+    await estable();
+    await responderDia();
+    expect(raiz.querySelector('#saldoQuedo')?.textContent).toContain('S/ 20.00');
+    expect(raiz.querySelector('#saldoQuedo')?.textContent).toContain('saldo a favor');
+    await clic('Cerrar');
+    expect(raiz.querySelector('app-cancelar-cita')).toBeNull();
+  });
+
+  it('CUS10: sin motivo no cancela', async () => {
+    await montar(permisosEdicion);
+    await abrirCita();
+    await clic('Cancelar cita');
+    raiz.querySelector('app-cancelar-cita form')!.dispatchEvent(new Event('submit'));
+    await estable();
+    http.expectNone('/api/v1/citas/950/cancelacion');
+    expect(raiz.querySelector('app-cancelar-cita .alert.bad')?.textContent).toContain('motivo');
+  });
+
+  it('CUS06: el panel lista las esperas del día de GET /citas/lista-espera', async () => {
+    await montar(permisosEdicion, [ESPERA]);
+    const panel = raiz.querySelector('section')!;
+    expect(panel.textContent).toContain('Rosaura Quispe');
+    expect(panel.textContent).toContain('Corte de Cabello Caballero · de 15:00 a 18:00');
+    expect(boton('Lista de espera')?.textContent).toContain('(1)');
+  });
+
+  it('CUS06: «Programar» abre la cita con los datos de la espera y envía idEspera', async () => {
+    await montar(permisosEdicion, [ESPERA]);
+    await clic('Programar');
+    http.expectOne('/api/v1/servicios?estado=ACTIVO').flush(SERVICIOS);
+    await estable();
+    const modal = raiz.querySelector('app-nueva-cita')!;
+    expect(modal.querySelector('.chip.salon')?.textContent).toContain('Rosaura Quispe');
+    expect(
+      raiz.querySelector<HTMLSelectElement>('#citaServicio')?.selectedOptions[0].textContent,
+    ).toContain('Corte de Cabello Caballero');
+    await verHoras([
+      { inicio: `${HOY}T15:30:00`, duracionMin: 30, idsPersonal: [4], idsRecurso: [1] },
+    ]);
+    await clic('15:30');
+    await clic('Agendar');
+    const peticion = http.expectOne('/api/v1/citas');
+    expect(peticion.request.body).toEqual({
+      idCliente: 408,
+      idVariante: 2,
+      idPersonal: 4,
+      idRecurso: 1,
+      fechaHoraInicio: `${HOY}T15:30:00`,
+      duracionMin: 30,
+      idEspera: 31,
+    });
+    peticion.flush({ idCita: 953, fechaHoraInicio: `${HOY}T15:30:00` });
+    await estable();
+    await responderDia();
+    expect(raiz.querySelector('section')?.textContent).toContain('No hay clientas en espera.');
+  });
+
+  it('CUS06: «Descartar espera» pide confirmación y la quita del panel', async () => {
+    await montar(permisosEdicion, [ESPERA]);
+    await clic('Descartar espera');
+    const confirmar = raiz.querySelector<HTMLButtonElement>('app-modal .btn.bad')!;
+    expect(raiz.querySelector('app-modal')?.textContent).toContain('Rosaura Quispe');
+    http.expectNone('/api/v1/citas/lista-espera/31/descarte');
+    confirmar.click();
+    await estable();
+    const peticion = http.expectOne('/api/v1/citas/lista-espera/31/descarte');
+    expect(peticion.request.method).toBe('PATCH');
+    peticion.flush({ ...ESPERA, estado: 'DESCARTADA' });
+    await estable();
+    expect(raiz.querySelector('app-modal')).toBeNull();
+    expect(raiz.querySelector('section')?.textContent).toContain('No hay clientas en espera.');
+  });
+
+  it('CUS06: sin AGENDA:EDITAR no ofrece descartar', async () => {
+    await montar(permisos, [ESPERA]);
+    expect(boton('Programar')).toBeDefined();
+    expect(boton('Descartar espera')).toBeUndefined();
   });
 });

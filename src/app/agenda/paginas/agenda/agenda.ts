@@ -1,5 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Modal } from '../../../layout/modal/modal';
+import { soles } from '../../../core/api/moneda';
 import { NotificacionesService } from '../../../core/notificaciones/notificaciones.service';
 import { PERMISOS } from '../../../core/sesion/permisos';
 import { SesionService } from '../../../core/sesion/sesion.service';
@@ -12,6 +14,7 @@ import {
 import {
   claseEstado,
   etiquetaEstado,
+  fechaCorta,
   horaDe,
   hoyIso,
   minutosDelDia,
@@ -21,19 +24,34 @@ import {
 } from '../../modelos/agenda.vista';
 import { CitasService } from '../../servicios/citas.service';
 import { AdelantoCita } from './adelanto-cita';
+import { CancelarCita } from './cancelar-cita';
 import { ListaEspera } from './lista-espera';
 import { NuevaCita, PedidoEspera } from './nueva-cita';
+import { ReprogramarCita } from './reprogramar-cita';
 
 type Vista = 'especialista' | 'recurso';
+type Accion = 'detalle' | 'reprogramar' | 'cancelar';
 
 const HORA_APERTURA = 9;
 const HORA_CIERRE = 20;
 const PX_POR_MINUTO = 1;
 
-/** IGU_Agenda: CUS05, CUS06, CUS07 y CUS08. */
+/**
+ * IGU_Agenda: CUS05 a CUS10. El detalle de una cita ofrece «Reprogramar» (CUS09) y «Cancelar cita»
+ * (CUS10); el panel «Lista de espera» lista las esperas del día (CUS06) para programarlas o
+ * descartarlas.
+ */
 @Component({
   selector: 'app-agenda',
-  imports: [ReactiveFormsModule, AdelantoCita, NuevaCita, ListaEspera],
+  imports: [
+    ReactiveFormsModule,
+    Modal,
+    AdelantoCita,
+    CancelarCita,
+    NuevaCita,
+    ListaEspera,
+    ReprogramarCita,
+  ],
   templateUrl: './agenda.html',
   styleUrl: './agenda.css',
 })
@@ -47,6 +65,8 @@ export class Agenda implements OnInit {
   protected readonly claseEstado = claseEstado;
   protected readonly tituloBloque = tituloBloque;
   protected readonly nombreEspecialista = nombreEspecialista;
+  protected readonly fechaCorta = fechaCorta;
+  protected readonly soles = soles;
 
   protected readonly vista = signal<Vista>('especialista');
   protected readonly bloques = signal<FranjaAgendaDTO[]>([]);
@@ -55,13 +75,22 @@ export class Agenda implements OnInit {
   protected readonly opciones = signal<FiltrosAgendaDTO>({ especialistas: [], recursos: [] });
   protected readonly modalCita = signal(false);
   protected readonly pedidoEspera = signal<PedidoEspera | null>(null);
-  /** El contrato no tiene lista de espera: solo se ven las anotadas en esta pantalla. */
+  /** Esperas PENDIENTES del día de la vista, de GET /citas/lista-espera. */
   protected readonly esperas = signal<ListaEsperaDTO[]>([]);
+  /** Espera que «Programar» convierte en cita (CUS05 con idEspera). */
+  protected readonly esperaAProgramar = signal<ListaEsperaDTO | null>(null);
+  protected readonly esperaPorDescartar = signal<ListaEsperaDTO | null>(null);
+  protected readonly descartando = signal(false);
+  /** La recién anotada, con las otras horas libres que se le pueden ofrecer. */
+  protected readonly ultimaAnotada = signal<ListaEsperaDTO | null>(null);
+  /** Cita abierta desde la rejilla y lo que se hace con ella. */
+  protected readonly citaElegida = signal<FranjaAgendaDTO | null>(null);
+  protected readonly accion = signal<Accion>('detalle');
 
   protected readonly puedeCrear = computed(() => this.sesion.tienePermiso(PERMISOS.agendaCrear));
-  protected readonly puedeCobrarAdelanto = computed(() =>
-    this.sesion.tienePermiso(PERMISOS.agendaEditar),
-  );
+  /** AGENDA:EDITAR: adelanto, reprogramar, cancelar y descartar una espera. */
+  protected readonly puedeEditar = computed(() => this.sesion.tienePermiso(PERMISOS.agendaEditar));
+  protected readonly puedeCobrarAdelanto = this.puedeEditar;
   /** Cita recién agendada, para ofrecer su adelanto sin buscarla en la rejilla. */
   protected readonly citaNueva = signal<CitaDTO | null>(null);
   /** undefined: cerrado; null: abierto sin cita elegida, se escribe el código. */
@@ -152,6 +181,11 @@ export class Agenda implements OnInit {
         this.bloques.set(bloques);
         this.fechaVista.set(fecha);
       });
+    this.cargarEsperas(fecha);
+  }
+
+  protected cargarEsperas(fecha = this.fechaVista()): void {
+    this.servicio.listarEspera(fecha).subscribe((esperas) => this.esperas.set(esperas));
   }
 
   protected fechaLarga(): string {
@@ -181,19 +215,95 @@ export class Agenda implements OnInit {
     return this.superior(bloque) + this.altura(bloque);
   }
 
-  protected abrirEspera(pedido?: PedidoEspera): void {
+  protected esCita(bloque: FranjaAgendaDTO): boolean {
+    return bloque.origen === 'CITA';
+  }
+
+  protected abrirCita(bloque: FranjaAgendaDTO): void {
+    this.accion.set('detalle');
+    this.citaElegida.set(bloque);
+  }
+
+  protected cerrarCita(): void {
+    this.citaElegida.set(null);
+    this.accion.set('detalle');
+  }
+
+  /** Solo se reprograman o cancelan las citas PENDIENTES. */
+  protected sePuedeCambiar(bloque: FranjaAgendaDTO): boolean {
+    return this.puedeEditar() && bloque.estado === 'PENDIENTE';
+  }
+
+  protected reprogramada(cita: CitaDTO): void {
+    this.cerrarCita();
+    this.notificaciones.mostrar(
+      `Cita reprogramada para el ${fechaCorta(cita.fechaHoraInicio, true)}.`,
+    );
+    this.verAgenda();
+  }
+
+  /** El modal sigue abierto para mostrar el saldo a favor; la rejilla se actualiza. */
+  protected cancelada(): void {
+    this.verAgenda();
+  }
+
+  /** «Corte de Cabello Caballero · de 15:00 a 18:00». */
+  protected detalleEspera(espera: ListaEsperaDTO): string {
+    const servicio = espera.nombreServicio || `Variante ${espera.idVariante}`;
+    const rango = espera.horaDesde
+      ? `de ${espera.horaDesde} a ${espera.horaHasta ?? ''}`
+      : 'cualquier hora';
+    return `${servicio} · ${rango}`;
+  }
+
+  protected programar(espera: ListaEsperaDTO): void {
+    this.esperaAProgramar.set(espera);
+    this.modalCita.set(true);
+  }
+
+  protected cerrarNuevaCita(): void {
     this.modalCita.set(false);
+    this.esperaAProgramar.set(null);
+  }
+
+  protected descartar(): void {
+    const idEspera = this.esperaPorDescartar()?.idEspera;
+    if (idEspera === undefined) {
+      return;
+    }
+    this.descartando.set(true);
+    this.servicio.descartarEspera(idEspera).subscribe({
+      next: () => {
+        this.descartando.set(false);
+        this.esperaPorDescartar.set(null);
+        this.esperas.update((esperas) => esperas.filter((e) => e.idEspera !== idEspera));
+        this.notificaciones.mostrar('Espera descartada.');
+      },
+      // El 409 (ya asignada o descartada) lo muestra el interceptor: se vuelve a leer la lista.
+      error: () => {
+        this.descartando.set(false);
+        this.esperaPorDescartar.set(null);
+        this.cargarEsperas();
+      },
+    });
+  }
+
+  protected abrirEspera(pedido?: PedidoEspera): void {
+    this.cerrarNuevaCita();
     this.pedidoEspera.set(
       pedido ?? { clienta: null, idVariante: null, fecha: this.filtros.controls.fecha.value },
     );
   }
 
   protected citaAgendada(cita: CitaDTO): void {
-    this.modalCita.set(false);
+    const deEspera = this.esperaAProgramar() !== null;
+    this.cerrarNuevaCita();
     this.citaNueva.set(cita);
     this.notificaciones.mostrar(`Cita ${cita.idCita} agendada.`);
     if (cita.fechaHoraInicio.startsWith(this.fechaVista())) {
       this.verAgenda();
+    } else if (deEspera) {
+      this.cargarEsperas();
     }
   }
 
@@ -211,8 +321,11 @@ export class Agenda implements OnInit {
 
   protected esperaAnotada(espera: ListaEsperaDTO): void {
     this.pedidoEspera.set(null);
-    this.esperas.update((esperas) => [espera, ...esperas]);
+    this.ultimaAnotada.set(espera);
     this.notificaciones.mostrar('Clienta anotada en la lista de espera.');
+    if (espera.fechaDeseada === this.fechaVista()) {
+      this.cargarEsperas();
+    }
   }
 
   private clave(): 'idPersonal' | 'idRecurso' {

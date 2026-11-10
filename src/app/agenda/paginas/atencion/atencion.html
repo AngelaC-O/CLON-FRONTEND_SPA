@@ -61,6 +61,75 @@
           </div>
         </div>
 
+        @if (puedeRecomendar()) {
+          <form class="card col" [formGroup]="recomendacion" (ngSubmit)="recomendar()">
+            <div class="h3">Recomendar producto</div>
+            <div class="xs mut">
+              La recomendación queda en la atención y aparece en la ficha de la clienta.
+            </div>
+            @if (errorRecomendacion(); as mensaje) {
+              <div class="alert bad" role="alert">{{ mensaje }}</div>
+            }
+            <div class="row nw" style="align-items: flex-end">
+              <div class="fld sp">
+                <label class="lbl" for="buscarProducto">PRODUCTO DE VENTA</label>
+                <input
+                  class="inp"
+                  id="buscarProducto"
+                  placeholder="Nombre del producto"
+                  formControlName="nombre"
+                  (keydown.enter)="$event.preventDefault(); buscarProducto()"
+                />
+              </div>
+              <button class="btn sec" type="button" (click)="buscarProducto()">
+                Buscar producto
+              </button>
+            </div>
+            @if (productos(); as lista) {
+              <div class="col" style="gap: 4px" role="listbox" aria-label="Productos encontrados">
+                @for (producto of lista; track producto.idProducto) {
+                  <button
+                    class="btn sm"
+                    type="button"
+                    role="option"
+                    [class.sec]="producto !== productoElegido()"
+                    [attr.aria-selected]="producto === productoElegido()"
+                    (click)="productoElegido.set(producto)"
+                  >
+                    {{ producto.nombre }}
+                    @if (producto.marca) {
+                      · {{ producto.marca }}
+                    }
+                    · {{ soles(producto.precioVenta) }} · stock {{ producto.stockActual }}
+                  </button>
+                } @empty {
+                  <div class="xs mut">No se encontraron productos de venta.</div>
+                }
+              </div>
+            }
+            <div class="fld">
+              <label class="lbl" for="observacionRecomendacion">OBSERVACIÓN</label>
+              <input
+                class="inp"
+                id="observacionRecomendacion"
+                maxlength="200"
+                placeholder="Ej. usar 2 veces por semana"
+                formControlName="observacion"
+              />
+            </div>
+            <div class="row">
+              <button class="btn" type="submit" [disabled]="recomendando() || !productoElegido()">
+                Recomendar
+              </button>
+              @for (registrada of recomendaciones(); track $index) {
+                <span class="chip ok" [attr.title]="registrada.observacion">
+                  {{ registrada.producto }}
+                </span>
+              }
+            </div>
+          </form>
+        }
+
         <div class="card col">
           <div class="h3">Paquete o membresía</div>
           <div class="alert info">

@@ -29,6 +29,8 @@ export function etiquetaEstado(estado?: string): string {
     EN_CURSO: 'En atención',
     FINALIZADA: 'Finalizada',
     COBRADA: 'Cobrada',
+    CANCELADA: 'Cancelada',
+    REPROGRAMADA: 'Reprogramada',
   };
   return etiquetas[estado ?? ''] ?? estado ?? '';
 }
@@ -40,6 +42,7 @@ export function claseEstado(estado?: string): string {
     EN_CURSO: 'dk',
     FINALIZADA: 'ok',
     COBRADA: 'ok',
+    CANCELADA: 'bad',
   };
   return clases[estado ?? ''] ?? '';
 }
@@ -63,3 +66,16 @@ export const MENSAJE_RN49 = 'La fecha y hora ya pasaron: elige una fecha desde h
 /** Solo la especialista asignada o la administradora atiende la cita: 403 por RN50. */
 export const MENSAJE_RN50 =
   'Solo la especialista asignada a la cita o la administradora puede atenderla (RN50).';
+
+/** 02/11/2026 de una fecha (2026-11-02) o una fecha-hora del back-end; con hora, 02/11/2026 10:00. */
+export function fechaCorta(fecha?: string, conHora = false): string {
+  if (!fecha) {
+    return '';
+  }
+  const [anio, mes, dia] = fecha.slice(0, 10).split('-');
+  const texto = `${dia}/${mes}/${anio}`;
+  return conHora && fecha.length > 10 ? `${texto} ${horaDe(fecha)}` : texto;
+}
+
+/** Motivo de la inasistencia: CITA no tiene estado NO_ASISTIO (CUS10, decisión del 08/11/2026). */
+export const MOTIVO_NO_SE_PRESENTO = 'No se presentó';
