@@ -35,7 +35,17 @@
       </span>
       <span class="sp"></span>
       @if (cajaVisible()) {
-        <a class="chip alto" routerLink="/caja">Caja</a>
+        @switch (caja.actual()) {
+          @case (undefined) {
+            <a class="chip alto" routerLink="/caja">Caja</a>
+          }
+          @case (null) {
+            <a class="chip alto warn" routerLink="/caja">Caja cerrada</a>
+          }
+          @default {
+            <a class="chip alto ok" routerLink="/caja">Caja abierta</a>
+          }
+        }
       }
       <button
         class="row nw usuario"
@@ -44,7 +54,12 @@
         aria-label="Menú del usuario"
       >
         <span class="avatar">{{ iniciales() }}</span>
-        <span class="no-m b">{{ sesion.sesion()?.nombreUsuario }}</span>
+        <span class="no-m">
+          <span class="b">{{ sesion.nombreCompleto() }}</span>
+          @if (rol()) {
+            <span class="xs mut" style="display: block">{{ rol() }}</span>
+          }
+        </span>
       </button>
     </header>
 

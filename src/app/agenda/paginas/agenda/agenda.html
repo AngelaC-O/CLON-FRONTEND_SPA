@@ -37,8 +37,10 @@
       <label class="lbl" for="filtroPersonal">ESPECIALISTA</label>
       <select class="inp" id="filtroPersonal" formControlName="idPersonal">
         <option [ngValue]="null">Todas</option>
-        @for (id of idsPersonal(); track id) {
-          <option [ngValue]="id">Especialista {{ id }}</option>
+        @for (especialista of opciones().especialistas; track especialista.idPersonal) {
+          <option [ngValue]="especialista.idPersonal">
+            {{ nombreEspecialista(especialista) }}
+          </option>
         }
       </select>
     </div>
@@ -46,8 +48,8 @@
       <label class="lbl" for="filtroRecurso">RECURSO</label>
       <select class="inp" id="filtroRecurso" formControlName="idRecurso">
         <option [ngValue]="null">Todos</option>
-        @for (id of idsRecurso(); track id) {
-          <option [ngValue]="id">Recurso {{ id }}</option>
+        @for (recurso of opciones().recursos; track recurso.idRecurso) {
+          <option [ngValue]="recurso.idRecurso">{{ recurso.nombre }}</option>
         }
       </select>
     </div>
@@ -77,6 +79,9 @@
     <span class="chip warn">Pendiente</span>
     <span class="chip dk">En atención</span>
     <span class="chip ok">Finalizada</span>
+    @if (vista() === 'recurso') {
+      <span class="chip">Limpieza</span>
+    }
   </div>
 
   @if (columnas().length === 0) {
@@ -101,14 +106,8 @@
                   [style.height.px]="altura(bloque)"
                 >
                   <div class="b">{{ horaDe(bloque.inicio) }} · {{ tituloBloque(bloque) }}</div>
-                  <div>
-                    {{ etiquetaEstado(bloque.estado) }} · Variante {{ bloque.idVariante }} ·
-                    @if (vista() === 'especialista') {
-                      Recurso {{ bloque.idRecurso }}
-                    } @else {
-                      Especialista {{ bloque.idPersonal }}
-                    }
-                  </div>
+                  <div>{{ detalle(bloque) }}</div>
+                  <div>{{ etiquetaEstado(bloque.estado) }}</div>
                   @if (puedeCobrarAdelanto() && tieneAdelanto(bloque)) {
                     <button
                       class="btn ghost sm"
@@ -120,6 +119,16 @@
                     </button>
                   }
                 </div>
+                @if (limpieza(bloque); as minutos) {
+                  <div
+                    class="bloque limpieza"
+                    [style.top.px]="superiorLimpieza(bloque)"
+                    [style.height.px]="minutos"
+                    [attr.aria-label]="'Limpieza de ' + minutos + ' minutos'"
+                  >
+                    Limpieza
+                  </div>
+                }
               }
             </div>
           </div>
@@ -133,10 +142,7 @@
           <div class="b num">{{ horaDe(bloque.inicio) }}</div>
           <div class="sp">
             <div class="b">{{ tituloBloque(bloque) }}</div>
-            <div class="xs mut">
-              Variante {{ bloque.idVariante }} · Especialista {{ bloque.idPersonal }} · Recurso
-              {{ bloque.idRecurso }}
-            </div>
+            <div class="xs mut">{{ detalle(bloque, true) }}</div>
           </div>
           <span class="chip" [class]="claseEstado(bloque.estado)">
             {{ etiquetaEstado(bloque.estado) }}
@@ -187,6 +193,7 @@
 @if (modalCita()) {
   <app-nueva-cita
     [fechaInicial]="filtros.controls.fecha.value"
+    [filtros]="opciones()"
     (cerrar)="modalCita.set(false)"
     (agendada)="citaAgendada($event)"
     (irAEspera)="abrirEspera($event)"

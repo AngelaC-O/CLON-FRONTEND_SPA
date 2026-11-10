@@ -3,12 +3,10 @@ import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angula
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { merge } from 'rxjs';
+import { ListasService } from '../../../core/api/listas.service';
+import { TipoDocumentoDTO } from '../../../core/api/modelos.generados';
 import { mensajeDelProblema } from '../../../core/api/problema';
-import {
-  numeroDocumentoValido,
-  tipoDocumento,
-  TIPOS_DOCUMENTO,
-} from '../../../core/api/tipos-documento';
+import { numeroDocumentoValido, tiposActivos } from '../../../core/api/documentos';
 import { NotificacionesService } from '../../../core/notificaciones/notificaciones.service';
 import { PERMISOS } from '../../../core/sesion/permisos';
 import { SesionService } from '../../../core/sesion/sesion.service';
@@ -28,8 +26,10 @@ export class Clientas implements OnInit {
   private readonly notificaciones = inject(NotificacionesService);
   private readonly servicio = inject(ClientesService);
   private readonly sesion = inject(SesionService);
+  private readonly listas = inject(ListasService);
 
-  protected readonly tipos = TIPOS_DOCUMENTO;
+  /** GET /tipos-documento (CUS65), en lugar de los id fijos (Duda 5 de NOTAS_IT1). */
+  protected readonly tipos = signal<TipoDocumentoDTO[]>([]);
   protected readonly clientas = signal<ClienteDTO[]>([]);
   protected readonly modalAbierto = signal(false);
   protected readonly enviando = signal(false);
@@ -66,15 +66,24 @@ export class Clientas implements OnInit {
         this.fechaVerificacion.set(null);
         this.avisoConsulta.set(null);
       });
+    this.listas.tiposDocumento().subscribe((tipos) => this.tipos.set(tipos));
     this.buscar();
   }
 
-  protected tipoElegido() {
-    return tipoDocumento(this.formulario.controls.idTipoDocumento.value);
+  protected tipoElegido(): TipoDocumentoDTO | undefined {
+    return this.tipo(this.formulario.controls.idTipoDocumento.value);
+  }
+
+  protected tiposOfrecidos(): TipoDocumentoDTO[] {
+    return tiposActivos(this.tipos());
   }
 
   protected abreviatura(idTipoDocumento?: number): string {
-    return tipoDocumento(idTipoDocumento)?.abreviatura ?? 'Documento';
+    return this.tipo(idTipoDocumento)?.abreviatura ?? 'Documento';
+  }
+
+  private tipo(id: number | null | undefined): TipoDocumentoDTO | undefined {
+    return this.tipos().find((tipo) => tipo.idTipoDocumento === id);
   }
 
   protected iniciales(clienta: ClienteDTO): string {
@@ -100,7 +109,11 @@ export class Clientas implements OnInit {
   protected consultarDocumento(): void {
     const tipo = this.tipoElegido();
     const numero = this.formulario.controls.numeroDocumento.value.trim();
-    if (!tipo?.consulta || !numeroDocumentoValido(tipo, numero)) {
+    if (
+      !tipo?.consultaApi ||
+      tipo.idTipoDocumento === undefined ||
+      !numeroDocumentoValido(tipo, numero)
+    ) {
       this.avisoConsulta.set({
         texto: `El ${tipo?.abreviatura ?? 'documento'} no tiene el formato correcto.`,
         ok: false,
@@ -108,7 +121,8 @@ export class Clientas implements OnInit {
       return;
     }
     this.consultando.set(true);
-    this.servicio.consultarDocumento(tipo.id, numero).subscribe({
+    const abreviatura = tipo.abreviatura ?? 'documento';
+    this.servicio.consultarDocumento(tipo.idTipoDocumento, numero).subscribe({
       next: (resultado) => {
         this.consultando.set(false);
         if (resultado.resultado === 'ENCONTRADO') {
@@ -118,15 +132,15 @@ export class Clientas implements OnInit {
             apellidos: resultado.apellidos ?? '',
           });
           this.fechaVerificacion.set(resultado.fechaVerificacion ?? null);
-          this.avisoConsulta.set({ texto: `${tipo.abreviatura} verificado.`, ok: true });
+          this.avisoConsulta.set({ texto: `${abreviatura} verificado.`, ok: true });
         } else {
-          this.avisarFicha(tipo.abreviatura);
+          this.avisarFicha(abreviatura);
         }
       },
       error: (error: HttpErrorResponse) => {
         this.consultando.set(false);
         if (error.status !== 401 && error.status !== 403) {
-          this.avisarFicha(tipo.abreviatura);
+          this.avisarFicha(abreviatura);
         }
       },
     });
@@ -175,7 +189,7 @@ export class Clientas implements OnInit {
       return 'Elige el tipo de documento.';
     }
     if (tipo && !numeroDocumentoValido(tipo, numero)) {
-      return `El ${tipo.abreviatura} no tiene el formato correcto.`;
+      return `El ${tipo.abreviatura ?? 'documento'} no tiene el formato correcto.`;
     }
     if (controls.consentimiento.invalid) {
       return 'Sin el consentimiento de la clienta no se puede guardar la ficha (RN27).';

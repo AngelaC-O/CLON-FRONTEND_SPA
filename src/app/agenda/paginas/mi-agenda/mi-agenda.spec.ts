@@ -3,24 +3,27 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { vi } from 'vitest';
-import { BloqueAgendaDTO } from '../../modelos/agenda.modelos';
-import { hoyIso } from '../../modelos/agenda.vista';
-import { AtencionEnCursoService } from '../../servicios/atencion-en-curso.service';
+import { CitaAtencionDTO } from '../../modelos/agenda.modelos';
+import { hoyIso, MENSAJE_RN50 } from '../../modelos/agenda.vista';
 import { MiAgenda } from './mi-agenda';
 
 const HOY = hoyIso();
-const bloque = (idOrigen: number, idPersonal: number, hora: string, estado: string) =>
-  ({
-    franja: 'OCUPADA',
-    origen: 'CITA',
-    idOrigen,
-    idPersonal,
-    idRecurso: 1,
-    idVariante: 2,
-    inicio: `${HOY}T${hora}:00`,
-    fin: `${HOY}T${hora}:30`,
-    estado,
-  }) satisfies BloqueAgendaDTO;
+const cita = (
+  idCita: number,
+  hora: string,
+  estado: CitaAtencionDTO['estado'],
+  extra: Partial<CitaAtencionDTO> = {},
+): CitaAtencionDTO => ({
+  idCita,
+  idCliente: 407,
+  idRecurso: 1,
+  idVariante: 2,
+  duracionMin: 30,
+  fechaHoraInicio: `${HOY}T${hora}:00`,
+  fechaHoraFin: `${HOY}T${hora.slice(0, 3)}40:00`,
+  estado,
+  ...extra,
+});
 
 describe('MiAgenda', () => {
   let fixture: ComponentFixture<MiAgenda>;
@@ -33,79 +36,72 @@ describe('MiAgenda', () => {
     [...raiz.querySelectorAll('button')].find((b) => b.textContent?.includes(texto));
   const tarjetas = () => [...raiz.querySelectorAll('.card')];
 
-  const montar = async (bloques: BloqueAgendaDTO[]) => {
+  const montar = async (citas: CitaAtencionDTO[]) => {
     TestBed.configureTestingModule({
       imports: [MiAgenda],
       providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     });
     http = TestBed.inject(HttpTestingController);
-    navegar = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+    navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     fixture = TestBed.createComponent(MiAgenda);
     await estable();
     raiz = fixture.nativeElement;
-    http.expectOne(`/api/v1/citas/agenda?fecha=${HOY}`).flush(bloques);
+    http.expectOne('/api/v1/atenciones/mi-agenda').flush(citas);
     await estable();
   };
 
-  beforeEach(() => {
-    sessionStorage.clear();
-    localStorage.clear();
-  });
+  afterEach(() => http.verify());
 
-  afterEach(() => {
-    http.verify();
-    sessionStorage.clear();
-    localStorage.clear();
-  });
-
-  it('muestra solo las citas de la especialista elegida, en orden', async () => {
-    await montar([
-      bloque(2, 4, '11:00', 'PENDIENTE'),
-      bloque(1, 4, '09:00', 'FINALIZADA'),
-      bloque(3, 5, '10:00', 'PENDIENTE'),
+  it('lista las citas de la especialista de la sesión, sin selector (Duda 6)', async () => {
+    await montar([cita(951, '11:00', 'PENDIENTE'), cita(950, '10:00', 'FINALIZADA')]);
+    expect(raiz.querySelector('select')).toBeNull();
+    expect(tarjetas().map((t) => t.querySelector('.b')?.textContent?.trim())).toEqual([
+      'Cita 950',
+      'Cita 951',
     ]);
-    expect(tarjetas().map((t) => t.querySelector('.b')?.textContent)).toEqual(['Cita 1', 'Cita 2']);
-    const lista = raiz.querySelector<HTMLSelectElement>('#miEspecialista')!;
-    lista.value = '5';
-    lista.dispatchEvent(new Event('change'));
-    await estable();
-    expect(tarjetas().map((t) => t.querySelector('.b')?.textContent)).toEqual(['Cita 3']);
-    expect(localStorage.getItem('cautiva.especialista')).toBe('5');
+    expect(tarjetas()[1].textContent).toContain('Iniciar atención');
+    expect(tarjetas()[0].querySelector('button')).toBeNull();
   });
 
-  it('CUS11: inicia con el tiempo declarado y abre la atención', async () => {
-    await montar([bloque(950, 4, '10:00', 'PENDIENTE')]);
+  it('sin citas lo dice', async () => {
+    await montar([]);
+    expect(raiz.querySelector('.vacio')?.textContent).toContain('No tienes citas hoy');
+  });
+
+  it('CUS11: inicia la atención con el tiempo exacto y la abre', async () => {
+    await montar([cita(951, '11:00', 'PENDIENTE')]);
     boton('Iniciar atención')!.click();
     await estable();
-    const entrada = raiz.querySelector<HTMLInputElement>('#tiempoDeclaradoMin')!;
-    entrada.value = '45';
-    entrada.dispatchEvent(new Event('input'));
+    const tiempo = raiz.querySelector<HTMLInputElement>('#tiempoDeclaradoMin')!;
+    expect(tiempo.value).toBe('30');
+    tiempo.value = '45';
+    tiempo.dispatchEvent(new Event('input'));
     raiz.querySelector('app-modal form')!.dispatchEvent(new Event('submit'));
     const peticion = http.expectOne('/api/v1/atenciones');
-    expect(peticion.request.method).toBe('POST');
-    expect(peticion.request.body).toEqual({ idCita: 950, tiempoDeclaradoMin: 45 });
-    peticion.flush({ idAtencion: 60, idCita: 950, estado: 'EN_CURSO' });
+    expect(peticion.request.body).toEqual({ idCita: 951, tiempoDeclaradoMin: 45 });
+    peticion.flush({ idAtencion: 60, idCita: 951, estado: 'EN_CURSO' });
     await estable();
-    expect(TestBed.inject(AtencionEnCursoService).actual()?.idAtencion).toBe(60);
-    expect(navegar).toHaveBeenCalledWith('/agenda/atencion');
+    expect(navegar).toHaveBeenCalledWith(['/agenda/atencion'], { queryParams: { idCita: 951 } });
   });
 
-  it('no inicia sin tiempo declarado', async () => {
-    await montar([bloque(950, 4, '10:00', 'PENDIENTE')]);
+  it('RN50: avisa en el modal si la cita es de otra especialista', async () => {
+    await montar([cita(951, '11:00', 'PENDIENTE')]);
     boton('Iniciar atención')!.click();
     await estable();
     raiz.querySelector('app-modal form')!.dispatchEvent(new Event('submit'));
+    http
+      .expectOne('/api/v1/atenciones')
+      .flush({ regla: 'RN50' }, { status: 403, statusText: 'Forbidden' });
     await estable();
-    http.expectNone('/api/v1/atenciones');
-    expect(raiz.querySelector('app-modal .alert.bad')).not.toBeNull();
+    expect(raiz.querySelector('app-modal .alert.bad')?.textContent).toContain(MENSAJE_RN50);
+    expect(navegar).not.toHaveBeenCalled();
   });
 
-  it('continúa la atención de esta pestaña y avisa si se inició en otra', async () => {
-    sessionStorage.setItem('cautiva.atencion', JSON.stringify({ idAtencion: 60, idCita: 950 }));
-    await montar([bloque(950, 4, '10:00', 'EN_ATENCION'), bloque(951, 4, '11:00', 'EN_ATENCION')]);
-    expect(tarjetas()[0].textContent).toContain('Continuar atención');
-    expect(tarjetas()[1].textContent).toContain('otra pestaña');
+  it('retoma la atención en curso desde cualquier equipo (Duda 7)', async () => {
+    await montar([
+      cita(950, '10:00', 'EN_ATENCION', { estadoAtencion: 'EN_CURSO', idAtencion: 60 }),
+    ]);
     boton('Continuar atención')!.click();
-    expect(navegar).toHaveBeenCalledWith('/agenda/atencion');
+    expect(navegar).toHaveBeenCalledWith(['/agenda/atencion'], { queryParams: { idCita: 950 } });
   });
 });

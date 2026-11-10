@@ -16,7 +16,7 @@ export interface GrupoMenu {
   items: ItemMenu[];
 }
 
-/** Solo las fronteras IGU_ de la Iteración 1, con el orden y los íconos del prototipo. */
+/** Fronteras IGU_ construidas, con el orden y los íconos del prototipo. */
 export const MENU: ItemMenu[] = [
   {
     ruta: '/inicio',
@@ -65,7 +65,7 @@ export const MENU: ItemMenu[] = [
     corta: 'Caja',
     grupo: 'Recepción',
     icono: 'M3 7h18v12H3zM3 11h18M7 15h4',
-    permisos: [PERMISOS.cajaVer, PERMISOS.cajaCrear, PERMISOS.cajaEditar],
+    permisos: [PERMISOS.cajaVer],
   },
   {
     ruta: '/agenda/mi-agenda',
@@ -73,7 +73,7 @@ export const MENU: ItemMenu[] = [
     corta: 'Mi agenda',
     grupo: 'Especialista',
     icono: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4',
-    permisos: [PERMISOS.atencionCrear, PERMISOS.atencionEditar],
+    permisos: [PERMISOS.atencionVer],
   },
   {
     ruta: '/agenda/atencion',
@@ -81,7 +81,7 @@ export const MENU: ItemMenu[] = [
     corta: 'En curso',
     grupo: 'Especialista',
     icono: 'M8 5v14l11-7z',
-    permisos: [PERMISOS.atencionCrear, PERMISOS.atencionEditar],
+    permisos: [PERMISOS.atencionVer],
   },
   {
     ruta: '/catalogo',
@@ -97,7 +97,7 @@ export const MENU: ItemMenu[] = [
     corta: 'Recursos',
     grupo: 'Administración',
     icono: 'M12 21s-7-6-7-11a7 7 0 0114 0c0 5-7 11-7 11zM12 12a2 2 0 100-4 2 2 0 000 4z',
-    permisos: [PERMISOS.sedesCrear],
+    permisos: [PERMISOS.sedesVer],
   },
   {
     ruta: '/seguridad/usuarios',

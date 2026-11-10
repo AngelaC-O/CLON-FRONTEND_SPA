@@ -5,8 +5,9 @@ import { environment } from '../../../environments/environment';
 import { parametros } from '../../core/api/parametros';
 import {
   AdelantoDTO,
-  BloqueAgendaDTO,
   CitaDTO,
+  FiltrosAgendaDTO,
+  FranjaAgendaDTO,
   HoraLibre,
   ListaEsperaDTO,
 } from '../modelos/agenda.modelos';
@@ -39,7 +40,11 @@ export class CitasService {
     fecha: string;
     idPersonal?: number;
     idRecurso?: number;
-  }): Observable<BloqueAgendaDTO[]> {
-    return this.http.get<BloqueAgendaDTO[]>(`${this.url}/agenda`, { params: parametros(filtro) });
+  }): Observable<FranjaAgendaDTO[]> {
+    return this.http.get<FranjaAgendaDTO[]>(`${this.url}/agenda`, { params: parametros(filtro) });
+  }
+
+  listarFiltros(): Observable<FiltrosAgendaDTO> {
+    return this.http.get<FiltrosAgendaDTO>(`${this.url}/filtros`);
   }
 }

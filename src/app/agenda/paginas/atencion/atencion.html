@@ -11,6 +11,11 @@
         Atención {{ atencion.idAtencion }} · cita {{ atencion.idCita }} · fin
         {{ horaDe(atencion.horaFin) }}. Queda lista para cobro.
       </p>
+      @if (atencion.consumosPendientes?.length) {
+        <div class="alert warn" style="text-align: left" role="status">
+          {{ faltantes(atencion.consumosPendientes!) }}
+        </div>
+      }
       <div class="alert info" style="text-align: left">
         @if (atencion.idClientePaquete) {
           Se descontó una sesión del paquete o membresía de la clienta.
@@ -32,7 +37,7 @@
         }
       </div>
     </div>
-  } @else if (enCurso.actual(); as atencion) {
+  } @else if (actual(); as atencion) {
     <div class="gs">
       <div class="col" style="gap: 16px">
         <div class="card reloj" style="text-align: center; background: var(--pri); color: #fff">
@@ -88,8 +93,13 @@
         </div>
       </div>
     </div>
+  } @else if (cargando()) {
+    <div class="card vacio">Buscando la atención en curso…</div>
   } @else {
     <div class="card" style="text-align: center; padding: 40px">
+      @if (error(); as mensaje) {
+        <div class="alert bad" role="alert">{{ mensaje }}</div>
+      }
       <div class="h2">No hay atención en curso</div>
       <p class="mut">Inicia una desde «Mi agenda».</p>
       <a class="btn" routerLink="/agenda/mi-agenda">Ir a Mi agenda</a>

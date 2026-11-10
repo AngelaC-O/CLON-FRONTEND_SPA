@@ -1,12 +1,17 @@
 export type {
   AdelantoDTO,
   AtencionDTO,
-  BloqueAgendaDTO,
+  CitaAtencionDTO,
   CitaDTO,
   ClienteDTO,
+  ConsumoPendienteDTO,
   DetalleAtencionDTO,
+  Especialista,
+  FiltrosAgendaDTO,
+  FranjaAgendaDTO,
   HoraLibre,
   InicioAtencionDTO,
   ListaEsperaDTO,
+  Recurso,
   ResultadoConsulta,
 } from '../../core/api/modelos.generados';

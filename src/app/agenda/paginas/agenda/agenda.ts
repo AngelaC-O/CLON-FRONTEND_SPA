@@ -3,13 +3,19 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NotificacionesService } from '../../../core/notificaciones/notificaciones.service';
 import { PERMISOS } from '../../../core/sesion/permisos';
 import { SesionService } from '../../../core/sesion/sesion.service';
-import { BloqueAgendaDTO, CitaDTO, ListaEsperaDTO } from '../../modelos/agenda.modelos';
+import {
+  CitaDTO,
+  FiltrosAgendaDTO,
+  FranjaAgendaDTO,
+  ListaEsperaDTO,
+} from '../../modelos/agenda.modelos';
 import {
   claseEstado,
   etiquetaEstado,
   horaDe,
   hoyIso,
   minutosDelDia,
+  nombreEspecialista,
   ordenarPorInicio,
   tituloBloque,
 } from '../../modelos/agenda.vista';
@@ -40,13 +46,13 @@ export class Agenda implements OnInit {
   protected readonly etiquetaEstado = etiquetaEstado;
   protected readonly claseEstado = claseEstado;
   protected readonly tituloBloque = tituloBloque;
+  protected readonly nombreEspecialista = nombreEspecialista;
 
   protected readonly vista = signal<Vista>('especialista');
-  protected readonly bloques = signal<BloqueAgendaDTO[]>([]);
+  protected readonly bloques = signal<FranjaAgendaDTO[]>([]);
   protected readonly fechaVista = signal(hoyIso());
-  /** Se acumulan para que filtrar por una especialista no vacíe los selectores. */
-  protected readonly idsPersonal = signal<number[]>([]);
-  protected readonly idsRecurso = signal<number[]>([]);
+  /** Especialistas y recursos de la sede, de GET /citas/filtros. */
+  protected readonly opciones = signal<FiltrosAgendaDTO>({ especialistas: [], recursos: [] });
   protected readonly modalCita = signal(false);
   protected readonly pedidoEspera = signal<PedidoEspera | null>(null);
   /** El contrato no tiene lista de espera: solo se ven las anotadas en esta pantalla. */
@@ -83,7 +89,7 @@ export class Agenda implements OnInit {
       .sort((a, b) => a - b)
       .map((id) => ({
         id,
-        titulo: `${this.vista() === 'especialista' ? 'Especialista' : 'Recurso'} ${id}`,
+        titulo: this.vista() === 'especialista' ? this.especialista(id) : this.recurso(id),
         bloques: this.ocupados().filter((b) => b[clave] === id),
       }));
   });
@@ -95,7 +101,40 @@ export class Agenda implements OnInit {
   });
 
   ngOnInit(): void {
+    this.servicio.listarFiltros().subscribe((opciones) =>
+      this.opciones.set({
+        especialistas: opciones.especialistas ?? [],
+        recursos: opciones.recursos ?? [],
+      }),
+    );
     this.verAgenda();
+  }
+
+  /** Nombre de la especialista: el de la franja o el de los filtros. */
+  protected especialista(id?: number): string {
+    const deFiltro = this.opciones().especialistas?.find((e) => e.idPersonal === id);
+    if (deFiltro) {
+      return nombreEspecialista(deFiltro);
+    }
+    const deFranja = this.bloques().find((b) => b.idPersonal === id && b.nombreEspecialista);
+    return deFranja?.nombreEspecialista ?? `Especialista ${id ?? ''}`;
+  }
+
+  /** Servicio y, según la vista, el recurso o la especialista; en móvil, los dos. */
+  protected detalle(bloque: FranjaAgendaDTO, completo = false): string {
+    const servicio = bloque.nombreServicio || `Variante ${bloque.idVariante}`;
+    const especialista = bloque.nombreEspecialista || this.especialista(bloque.idPersonal);
+    const recurso = this.recurso(bloque.idRecurso);
+    if (completo) {
+      return [servicio, especialista, recurso].join(' · ');
+    }
+    return [servicio, this.vista() === 'especialista' ? recurso : especialista].join(' · ');
+  }
+
+  protected recurso(id?: number): string {
+    return (
+      this.opciones().recursos?.find((r) => r.idRecurso === id)?.nombre ?? `Recurso ${id ?? ''}`
+    );
   }
 
   protected verAgenda(): void {
@@ -112,8 +151,6 @@ export class Agenda implements OnInit {
       .subscribe((bloques) => {
         this.bloques.set(bloques);
         this.fechaVista.set(fecha);
-        this.idsPersonal.update((ids) => unirIds(ids, bloques, 'idPersonal'));
-        this.idsRecurso.update((ids) => unirIds(ids, bloques, 'idRecurso'));
       });
   }
 
@@ -123,12 +160,25 @@ export class Agenda implements OnInit {
     );
   }
 
-  protected superior(bloque: BloqueAgendaDTO): number {
+  protected superior(bloque: FranjaAgendaDTO): number {
     return (minutosDelDia(bloque.inicio) - this.horas()[0] * 60) * PX_POR_MINUTO;
   }
 
-  protected altura(bloque: BloqueAgendaDTO): number {
-    return (minutosDelDia(bloque.fin) - minutosDelDia(bloque.inicio)) * PX_POR_MINUTO;
+  /** Hasta finServicio: la limpieza no ocupa a la especialista (RN03). */
+  protected altura(bloque: FranjaAgendaDTO): number {
+    return (minutosDelDia(finServicio(bloque)) - minutosDelDia(bloque.inicio)) * PX_POR_MINUTO;
+  }
+
+  /** Minutos de limpieza: solo se pintan en la columna del recurso. */
+  protected limpieza(bloque: FranjaAgendaDTO): number {
+    if (this.vista() !== 'recurso') {
+      return 0;
+    }
+    return Math.max(0, minutosDelDia(bloque.fin) - minutosDelDia(finServicio(bloque)));
+  }
+
+  protected superiorLimpieza(bloque: FranjaAgendaDTO): number {
+    return this.superior(bloque) + this.altura(bloque);
   }
 
   protected abrirEspera(pedido?: PedidoEspera): void {
@@ -147,7 +197,7 @@ export class Agenda implements OnInit {
     }
   }
 
-  protected tieneAdelanto(bloque: BloqueAgendaDTO): boolean {
+  protected tieneAdelanto(bloque: FranjaAgendaDTO): boolean {
     return bloque.origen === 'CITA' && bloque.estado === 'PENDIENTE';
   }
 
@@ -170,11 +220,6 @@ export class Agenda implements OnInit {
   }
 }
 
-function unirIds(
-  ids: number[],
-  bloques: BloqueAgendaDTO[],
-  clave: 'idPersonal' | 'idRecurso',
-): number[] {
-  const nuevos = bloques.map((b) => b[clave]).filter((id): id is number => id !== undefined);
-  return [...new Set([...ids, ...nuevos])].sort((a, b) => a - b);
+function finServicio(bloque: FranjaAgendaDTO): string | undefined {
+  return bloque.finServicio ?? bloque.fin;
 }
