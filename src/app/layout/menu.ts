@@ -100,6 +100,22 @@ export const MENU: ItemMenu[] = [
     permisos: [PERMISOS.kardexVer],
   },
   {
+    ruta: '/caja/revision',
+    etiqueta: 'Revisión de caja',
+    corta: 'Revisión',
+    grupo: 'Administración',
+    icono: 'M3 7h18v12H3zM3 11h18M9 15l2 2 4-4',
+    permisos: [PERMISOS.conciliacionVer],
+  },
+  {
+    ruta: '/caja/conciliacion',
+    etiqueta: 'Conciliación',
+    corta: 'Conciliación',
+    grupo: 'Administración',
+    icono: 'M7 7h10M7 12h10M7 17h6M4 3h16v18H4z',
+    permisos: [PERMISOS.conciliacionVer, PERMISOS.conciliacionCrear, PERMISOS.conciliacionEditar],
+  },
+  {
     ruta: '/catalogo',
     etiqueta: 'Catálogo y configuración',
     corta: 'Catálogo',

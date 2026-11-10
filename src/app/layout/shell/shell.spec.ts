@@ -47,6 +47,12 @@ describe('Shell', () => {
     expect(textos(otra.raiz, '.side .nvl')).toEqual(['Inicio', 'Productos e insumos']);
   });
 
+  it('la revisión de caja y la conciliación aparecen con CONCILIACION:VER', async () => {
+    const { raiz } = await montar(['CONCILIACION:VER']);
+    expect(textos(raiz, '.side .nvl')).toEqual(['Inicio', 'Revisión de caja', 'Conciliación']);
+    expect(textos(raiz, '.side .grp')).toEqual(['Recepción', 'Administración']);
+  });
+
   it('la barra inferior lleva cuatro accesos y «Más»', async () => {
     const { raiz } = await montar(['AGENDA:VER', 'CLIENTAS:VER', 'VENTAS:CREAR']);
     expect(textos(raiz, '.bnav .bn')).toEqual(['Inicio', 'Agenda', 'Clientas', 'Sin cita', 'Más']);
