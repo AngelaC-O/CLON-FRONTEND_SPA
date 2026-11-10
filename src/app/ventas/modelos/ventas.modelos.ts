@@ -1,4 +1,5 @@
 export type {
+  AtencionCobrable,
   CierreVentaDTO,
   ComprobanteDTO,
   CrearVentaDTO,
@@ -8,7 +9,11 @@ export type {
   HoraLibre,
   Item,
   PagosDTO,
+  PagoVentaDTO,
+  PaqueteDTO,
+  PorCobrarDTO,
   ProformaDTO,
+  PromocionDTO,
   ResultadoConsulta,
   VentaDTO,
   VentaRapidaDTO,

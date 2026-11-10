@@ -44,17 +44,11 @@
 
         <div class="card col">
           <div class="h3">2 · Servicio y disponibles ahora</div>
-          <div class="fld">
-            <label class="lbl" for="rapidaVariante">CÓDIGO DE LA VARIANTE</label>
-            <input
-              class="inp"
-              id="rapidaVariante"
-              type="number"
-              min="1"
-              formControlName="idVariante"
-              (change)="verLibres()"
-            />
-          </div>
+          <app-selector-variante
+            prefijo="rapida"
+            [control]="formulario.controls.idVariante"
+            (elegida)="alElegirVariante($event)"
+          />
           @if (libres(); as lista) {
             @if (libre(); as hora) {
               <div class="g2">
@@ -97,13 +91,14 @@
         <div class="card col">
           <div class="h3">3 · Cobro</div>
           <div class="seg" role="group" aria-label="Medio de pago">
-            @for (medio of medios; track medio.id) {
+            @for (medio of activos(); track medio.idMedioPago) {
               <button
                 type="button"
-                [class.on]="formulario.controls.idMedioPago.value === medio.id"
-                (click)="elegirMedio(medio.id)"
+                [class.on]="formulario.controls.idMedioPago.value === medio.idMedioPago"
+                [attr.aria-pressed]="formulario.controls.idMedioPago.value === medio.idMedioPago"
+                (click)="elegirMedio(medio.idMedioPago)"
               >
-                {{ medio.etiqueta }}
+                {{ etiquetaMedio(medio) }}
               </button>
             }
           </div>
@@ -116,8 +111,8 @@
               </select>
             </div>
             <div class="alert warn">
-              Un pago digital sin aprobar no cierra aquí: nada queda registrado. Si Izipay no lo
-              aprueba al instante, cobra en efectivo (RN42).
+              Si Izipay no lo aprueba al instante, la atención y la venta quedan guardadas y la
+              venta se cierra en Cobros cuando se apruebe (RN52).
             </div>
           }
           <div class="fld" style="max-width: 260px">

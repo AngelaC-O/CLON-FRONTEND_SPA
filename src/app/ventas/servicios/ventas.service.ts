@@ -9,6 +9,7 @@ import {
   DescuentosDTO,
   HoraLibre,
   PagosDTO,
+  PorCobrarDTO,
   ProformaDTO,
   ResultadoConsulta,
   VentaDTO,
@@ -21,6 +22,16 @@ export class VentasService {
   private readonly http = inject(HttpClient);
   private readonly api = environment.apiBase;
   private readonly url = `${this.api}/ventas`;
+
+  /** Atenciones FINALIZADAS sin venta y ventas ABIERTAS de la sede (diferencia 31 de NOTAS_IT1). */
+  listarPorCobrar(): Observable<PorCobrarDTO> {
+    return this.http.get<PorCobrarDTO>(`${this.url}/por-cobrar`);
+  }
+
+  /** La venta con el estado actual de cada cobro digital en la pasarela (Dudas 8 y 10). */
+  obtener(idVenta: number): Observable<VentaDTO> {
+    return this.http.get<VentaDTO>(`${this.url}/${idVenta}`);
+  }
 
   crearDesdeAtencion(venta: CrearVentaDTO): Observable<VentaDTO> {
     return this.http.post<VentaDTO>(this.url, venta);
@@ -50,6 +61,7 @@ export class VentasService {
     });
   }
 
+  /** 201: venta CERRADA; 202: el cobro digital quedó PENDIENTE y la venta sigue ABIERTA (RN52). */
   registrarYCobrar(venta: VentaRapidaDTO): Observable<VentaDTO> {
     return this.http.post<VentaDTO>(`${this.url}/rapidas`, venta);
   }
