@@ -34,6 +34,19 @@ describe('Shell', () => {
     expect(raiz.querySelector('a[href="/caja"]')).toBeNull();
   });
 
+  it('el inventario aparece con PRODUCTOS:VER o KARDEX:VER, y el kardex solo con KARDEX:VER', async () => {
+    const { raiz } = await montar(['KARDEX:VER']);
+    expect(textos(raiz, '.side .nvl')).toEqual(['Inicio', 'Productos e insumos', 'Kardex']);
+    expect(textos(raiz, '.side .grp')).toEqual(['Recepción', 'Almacén']);
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
+    });
+    http = TestBed.inject(HttpTestingController);
+    const otra = await montar(['PRODUCTOS:VER']);
+    expect(textos(otra.raiz, '.side .nvl')).toEqual(['Inicio', 'Productos e insumos']);
+  });
+
   it('la barra inferior lleva cuatro accesos y «Más»', async () => {
     const { raiz } = await montar(['AGENDA:VER', 'CLIENTAS:VER', 'VENTAS:CREAR']);
     expect(textos(raiz, '.bnav .bn')).toEqual(['Inicio', 'Agenda', 'Clientas', 'Sin cita', 'Más']);

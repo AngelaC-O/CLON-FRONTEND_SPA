@@ -84,6 +84,22 @@ export const MENU: ItemMenu[] = [
     permisos: [PERMISOS.atencionVer],
   },
   {
+    ruta: '/inventario',
+    etiqueta: 'Productos e insumos',
+    corta: 'Inventario',
+    grupo: 'Almacén',
+    icono: 'M3 7l9-4 9 4-9 4zM3 7v10l9 4 9-4V7M12 11v10',
+    permisos: [PERMISOS.productosVer, PERMISOS.kardexVer],
+  },
+  {
+    ruta: '/inventario/kardex',
+    etiqueta: 'Kardex',
+    corta: 'Kardex',
+    grupo: 'Almacén',
+    icono: 'M4 4h16v16H4zM4 9h16M9 9v11',
+    permisos: [PERMISOS.kardexVer],
+  },
+  {
     ruta: '/catalogo',
     etiqueta: 'Catálogo y configuración',
     corta: 'Catálogo',
