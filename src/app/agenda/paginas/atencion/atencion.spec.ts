@@ -171,4 +171,83 @@ describe('Atencion', () => {
     expect(raiz.querySelector('.alert.bad')?.textContent).toContain('no existe');
     expect(finalizar()).toBeDefined();
   });
+
+  describe('CUS12 Recomendar producto', () => {
+    const PRODUCTOS = [
+      {
+        idProducto: 40,
+        codigo: 'PRD-001',
+        nombre: 'Shampoo reparador',
+        marca: 'Loreal',
+        precioVenta: 45,
+        stockActual: 8,
+      },
+      { idProducto: 41, nombre: 'Acondicionador', precioVenta: 38, stockActual: 3 },
+    ];
+    const boton = (texto: string) =>
+      [...raiz.querySelectorAll('button')].find((b) => b.textContent?.includes(texto));
+    const buscar = async (nombre: string) => {
+      const entrada = raiz.querySelector<HTMLInputElement>('#buscarProducto')!;
+      entrada.value = nombre;
+      entrada.dispatchEvent(new Event('input'));
+      boton('Buscar producto')!.click();
+      await estable();
+      http.expectOne(`/api/v1/atenciones/productos?nombre=${nombre}`).flush(PRODUCTOS);
+      await estable();
+    };
+
+    it('sin ATENCION:EDITAR no ofrece recomendar', async () => {
+      await retomar(ATENCION);
+      expect(raiz.querySelector('#buscarProducto')).toBeNull();
+    });
+
+    it('busca, elige el producto y registra la recomendación con su observación', async () => {
+      await retomar(ATENCION, ['ATENCION:EDITAR']);
+      await buscar('Shampoo');
+      const opciones = [...raiz.querySelectorAll('[role="option"]')].map((o) =>
+        o.textContent?.replace(/\s+/g, ' ').trim(),
+      );
+      expect(opciones).toEqual([
+        'Shampoo reparador · Loreal · S/ 45.00 · stock 8',
+        'Acondicionador · S/ 38.00 · stock 3',
+      ]);
+      expect(boton('Recomendar')!.disabled).toBe(true);
+      boton('Shampoo reparador')!.click();
+      await estable();
+      const observacion = raiz.querySelector<HTMLInputElement>('#observacionRecomendacion')!;
+      observacion.value = 'Para mantener el color';
+      observacion.dispatchEvent(new Event('input'));
+      boton('Recomendar')!.click();
+      await estable();
+      const peticion = http.expectOne('/api/v1/atenciones/60/recomendaciones');
+      expect(peticion.request.method).toBe('POST');
+      expect(peticion.request.body).toEqual({
+        idProducto: 40,
+        observacion: 'Para mantener el color',
+      });
+      peticion.flush({
+        idRecomendacion: 8,
+        idAtencion: 60,
+        idProducto: 40,
+        observacion: 'Para mantener el color',
+      });
+      await estable();
+      expect(raiz.querySelector('.chip.ok')?.textContent?.trim()).toBe('Shampoo reparador');
+      expect(observacion.value).toBe('');
+    });
+
+    it('RN50: muestra el 403 junto al formulario', async () => {
+      await retomar(ATENCION, ['ATENCION:EDITAR']);
+      await buscar('Shampoo');
+      boton('Acondicionador')!.click();
+      await estable();
+      boton('Recomendar')!.click();
+      await estable();
+      http
+        .expectOne('/api/v1/atenciones/60/recomendaciones')
+        .flush({ regla: 'RN50' }, { status: 403, statusText: 'Forbidden' });
+      await estable();
+      expect(raiz.querySelector('form .alert.bad')?.textContent).toContain(MENSAJE_RN50);
+    });
+  });
 });

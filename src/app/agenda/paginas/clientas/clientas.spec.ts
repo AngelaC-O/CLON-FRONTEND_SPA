@@ -112,6 +112,15 @@ describe('Clientas', () => {
     expect(filas[1].textContent).toContain('DNI verificado');
   });
 
+  it('CUS03: «Ver ficha» lleva a la ficha de cada clienta', () => {
+    const enlaces = [...raiz.querySelectorAll<HTMLAnchorElement>('tbody a')];
+    expect(enlaces.map((a) => a.textContent?.trim())).toEqual(['Ver ficha', 'Ver ficha']);
+    expect(enlaces.map((a) => a.getAttribute('href'))).toEqual([
+      '/agenda/clientas/407',
+      '/agenda/clientas/408',
+    ]);
+  });
+
   it('CUS01: busca por nombre o por teléfono según lo escrito', async () => {
     escribir('buscarClienta', 'Quispe');
     raiz.querySelector('form')!.dispatchEvent(new Event('submit'));
