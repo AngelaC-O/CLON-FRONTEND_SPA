@@ -41,6 +41,19 @@ CUS22 a CUS26. Cierra la diferencia 32 de NOTAS_IT1: Cobros ya ofrece la venta d
   - «Devoluciones» (CUS24, `VENTAS:EDITAR`): las solicitudes APROBADAS con `MEDIO_ORIGINAL`. «Ver pagos» lee `GET /ventas/{idVenta}`; la tarjeta se devuelve con «Devolver pago» (`POST .../devolucion`, por Izipay) y Yape o Plin con el número de operación y «Registrar devolución manual» (`POST .../devolucion-manual`).
 - `npm run build` sin errores ni advertencias; `npm test -- --watch=false`: 27 archivos, 185 pruebas, todas aprobadas. Pruebas nuevas: `venta-productos.spec.ts`, `anulaciones.spec.ts` (la página) y una por vista (`solicitud-anulacion.spec.ts`, `bandeja-anulaciones.spec.ts`, `devoluciones.spec.ts`). En `cobros.spec.ts`, la prueba que exigía no ofrecer anulación ni venta de productos pasó a comprobar los dos enlaces.
 
+### Cuarta entrega: inventario (rama `tineo-feature/f8-inventario`)
+
+Módulo nuevo `inventario` (CUS32 a CUS35 y CUS66), con el grupo «Almacén» en el menú: «Productos e insumos» para quien tenga `PRODUCTOS:VER` o `KARDEX:VER`, y «Kardex» para `KARDEX:VER`.
+
+- `IGU_Inventario` (Figma 4:149, `/inventario`), con pestañas:
+  - «Productos»: `GET /productos` filtrado por nombre y categoría, con stock, mínimo, ubicación y precio. Costo y margen se muestran solo si vienen en la respuesta (RN24). Arriba, la alerta de stock mínimo (RF47). «+ Producto» abre el registro (CUS32, «Registrar»): tipo de uso, unidad mínima para insumos (ml, g o unidad, RN54), stock mínimo, ubicación, costo y margen opcional con el precio sugerido a la vista.
+  - «Categorías» (CUS66): la lista con cuántos productos tiene cada una y «Guardar categoría».
+  - «Salida de insumos» (CUS33): solo insumos, con cantidad, motivo y atención opcional; «Registrar salida de insumo». Si el movimiento deja el producto en su mínimo, lo avisa (RF47).
+  - «Ajuste por conteo» (CUS34): lo contado y el motivo, con el stock del sistema y la diferencia a la vista antes de guardar; «Registrar ajuste».
+  - «Consumos pendientes» (CUS33, RN53): `GET /consumos-pendientes`, con «Regularizar» y «Descartar» (motivo obligatorio). La pestaña muestra cuántos hay.
+- «Kardex» (Figma 4:161, `/inventario/kardex`, CUS35): producto y fechas (por defecto, los últimos 30 días) y «Ver kardex». Muestra fecha, tipo, origen (la atención en las salidas automáticas, la venta o la compra), motivo, cantidad con signo, saldo y usuario. Desde la tabla de productos, «Kardex» lo abre con el producto.
+- `npm run build` sin errores ni advertencias; `npm test -- --watch=false`: 32 archivos, 211 pruebas, todas aprobadas. Pruebas nuevas: `inventario.spec.ts` y `kardex.spec.ts` (las dos páginas), y `registro-producto.spec.ts`, `movimiento-inventario.spec.ts` y `consumos-pendientes.spec.ts`. `shell.spec.ts` comprueba el grupo «Almacén» del menú.
+
 **Sin comprobar:** el recorrido `npm run e2e` no se corrió. Agenda y atiende el mismo día, así que solo corre de lunes a sábado de 09:00 a 17:30 (hora de Lima), y esta entrega se cerró a las 03:20. Sus selectores se adaptaron a las pantallas nuevas y el archivo compila (`playwright test --list` da los 22 pasos), pero falta verlo pasar contra el back-end de la Iteración 2: correr `npm run e2e:bd` y `npm run e2e` en ese horario. Tampoco se revisaron las pantallas en el navegador a 1440, 834 y 390.
 
 `./mvnw -q verify` no aplica: este repositorio es solo el front-end y el back-end no se modificó.
@@ -64,6 +77,10 @@ CUS22 a CUS26. Cierra la diferencia 32 de NOTAS_IT1: Cobros ya ofrece la venta d
 15. **Devoluciones hechas.** No hay forma de saber qué pagos de una venta anulada ya se devolvieron: la vista lo marca al hacerlo, y si ya estaba hecho el back-end responde 409 (RN44). Tampoco se sabe cuándo una venta ya no tiene nada por devolver, así que la lista muestra todas las APROBADAS con `MEDIO_ORIGINAL`. ¿Se agrega el estado de la devolución?
 16. **Categorías y especialistas en la venta de productos.** `GET /categorias-producto` pide `PRODUCTOS:VER` y `GET /citas/filtros`, `AGENDA:VER`. Sin el primero se busca sin categoría; sin el segundo, la especialista se escribe por código. ¿La recepción tiene `PRODUCTOS:VER`?
 17. **Efectivo en una venta anulada.** CUS24 solo cubre tarjeta, Yape y Plin; un pago en efectivo con `MEDIO_ORIGINAL` no tiene operación. La vista dice que se devuelve desde la caja.
+18. **Unidad del margen.** `ProductoDTO.margen` es un número sin unidad. Por el ejemplo del contrato (costo 0.5 y precio 0.75) se supone que es una fracción: la pantalla lo pide en porcentaje, envía 50 % como 0.5 y muestra 0.5 como «50 %». Si fuera un porcentaje, hay que cambiar `inventario.vista.ts` y el registro.
+19. **Margen del negocio.** El margen por defecto está en PARAMETRO, que se lee con `GET /parametros` (CUS65, otro CUS). Sin margen escrito, la pantalla no puede anticipar el precio: dice que lo calculará el back-end con el margen vigente y el precio aparece en la lista al registrar.
+20. **Registrar movimientos sin `PRODUCTOS:VER`.** Para elegir el producto de una salida o un ajuste hace falta `GET /productos` (`PRODUCTOS:VER`); con solo `KARDEX:CREAR` las pestañas no aparecen. En el kardex, sin ese permiso, el producto se escribe por su código. ¿La encargada de almacén tiene los dos?
+21. **Origen de las ventas y compras en el kardex.** `MovimientoKardexDTO` trae `idDetalleVenta` e `idDetalleCompra` (líneas), no el comprobante ni la compra: el origen dice «Venta (línea 900)».
 
 Dudas de NOTAS_IT1 que el contrato cierra: 1 (`x-permiso`), 2 (listas, salvo producto y sedes), 3 (`GET /auth/sesion`), 5 (`GET /tipos-documento`), 6 (`GET /atenciones/mi-agenda`), 7 (`GET /atenciones/en-curso`), 8 (`GET /ventas/{idVenta}`), 10 (`GET /cajas/abierta` y `GET /ventas/por-cobrar`), 11 (`GET /medios-pago`), 12 (`GET /comprobantes/{id}`) y 13 (202 de `/ventas/rapidas`, RN52). Siguen abiertas la 4 (plan de commits, ver la decisión 15), la 9 (no se puede anular una transacción en espera), la 14 y la 15.
 
@@ -91,6 +108,9 @@ Dudas de NOTAS_IT1 que el contrato cierra: 1 (`x-permiso`), 2 (listas, salvo pro
 | 18 | Prototipo frente al encargo (CUS22) | El prototipo pide usuario y contraseña de la administradora y anula en el acto. | Se quitaron: la solicitud va a la bandeja (RN32), como pide el encargo y el draw.io v5.1. |
 | 19 | Prototipo frente al draw.io (CUS26) | El botón del prototipo es «Cobrar y emitir comprobante»; el draw.io dice «Clic en Vender». | «Vender». Las «Recomendaciones de hoy» del prototipo no tienen operación y no se construyeron. |
 | 20 | Diferencia 32 de NOTAS_IT1 | Anulación, nota de crédito y venta de productos estaban ocultas. | Cerrada: Cobros enlaza «Venta de productos» y, con `VENTAS:ANULAR` o `VENTAS:EDITAR`, «Anulaciones». Comisión y pago con paquete siguen fuera del alcance. |
+| 21 | Prototipo frente al contrato (CUS32) | El prototipo calcula el precio con el margen vigente y lo esconde a quien no es administradora; el contrato deja escribir el margen (RF87). | El margen es opcional: con él se ve el precio sugerido antes de guardar; sin él, el back-end usa el del negocio. |
+| 22 | Prototipo frente al encargo (inventario) | El prototipo junta salida y ajuste en un modal con «Guardar movimiento» y lleva el kardex dentro de la misma pantalla. | Una pestaña para cada uno, con los botones del draw.io («Registrar salida de insumo», «Registrar ajuste»), y el kardex como página propia (nodo 4:161). «Crear requerimiento» y «Exportar Excel» no son de esta entrega. |
+| 23 | Prototipo frente al contrato (unidades) | El prototipo ofrece Unidad, Kilo, Litro y Caja; RN54 pide la unidad mínima para insumos. | Un insumo elige ml, g o unidad; un producto de venta escribe su unidad (por defecto UND). |
 
 ## Decisiones tomadas
 
@@ -120,3 +140,7 @@ Dudas de NOTAS_IT1 que el contrato cierra: 1 (`x-permiso`), 2 (listas, salvo pro
 24. **Carrito.** Las líneas son un `FormArray` con `idProducto`, `cantidad` e `idPersonal`. El monto es la suma de las líneas (IGV 0 %, RN06) y el back-end lo compara (RN11). Se propone el efectivo, como en la venta rápida.
 25. **Categorías en `ListasService`.** `GET /categorias-producto` se pide una vez por carga, como las demás listas.
 26. **Aprobar con confirmación.** «Aprobar anulación» abre una confirmación con el comprobante y el total, porque emite la nota de crédito y no se deshace. Un 409 (ya resuelta o SUNAT aún no acepta) vuelve a leer la bandeja.
+27. **Permisos del inventario.** `PERMISOS.productosCrear` (de `registrar_1`), `kardexVer` (de `consultarKardex`) y `kardexCrear` (de `registrarSalida`). `/inventario` pide `PRODUCTOS:VER` o `KARDEX:VER`, y cada pestaña se muestra con el suyo.
+28. **Stock tras un movimiento.** La salida y el ajuste devuelven el saldo: la tabla se actualiza con él sin volver a pedir la lista. Una regularización sí la vuelve a pedir, porque solo devuelve el consumo.
+29. **Validaciones antes de enviar.** La salida no pasa del stock (RN15) y el ajuste no se envía si lo contado es igual al stock, porque el back-end respondería 422 (RF48). El back-end igual valida las dos.
+30. **Categorías nuevas.** Se agregan a la lista de la pantalla. `ListasService` guarda las categorías una vez por carga, así que la venta de productos verá la nueva al recargar la aplicación.
