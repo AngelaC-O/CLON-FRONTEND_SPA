@@ -6,6 +6,10 @@
         Cobra la atención. El sistema emite la boleta o factura electrónica y la envía a SUNAT.
       </div>
     </div>
+    @if (puedeVerAnulaciones()) {
+      <a class="btn ghost" routerLink="/ventas/anulaciones">Anulaciones</a>
+    }
+    <a class="btn sec" routerLink="/ventas/productos">Venta de productos</a>
     <button class="btn sec" type="button" (click)="proforma.set(true)">Emitir proforma</button>
   </div>
 

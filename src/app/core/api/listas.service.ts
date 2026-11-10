@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { catchError, Observable, shareReplay, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
+  CategoriaProductoDTO,
   MedioPagoDTO,
   PaqueteDTO,
   PromocionDTO,
@@ -23,6 +24,7 @@ export class ListasService {
   private tipos$?: Observable<TipoDocumentoDTO[]>;
   private medios$?: Observable<MedioPagoDTO[]>;
   private servicios$?: Observable<ServicioDTO[]>;
+  private categorias$?: Observable<CategoriaProductoDTO[]>;
 
   tiposDocumento(): Observable<TipoDocumentoDTO[]> {
     this.tipos$ ??= this.http.get<TipoDocumentoDTO[]>(`${this.api}/tipos-documento`).pipe(
@@ -57,6 +59,20 @@ export class ListasService {
         shareReplay(1),
       );
     return this.servicios$;
+  }
+
+  /** Categorías de producto por nombre (CUS32, CUS66). Piden PRODUCTOS:VER. */
+  categoriasProducto(): Observable<CategoriaProductoDTO[]> {
+    this.categorias$ ??= this.http
+      .get<CategoriaProductoDTO[]>(`${this.api}/categorias-producto`)
+      .pipe(
+        catchError((error) => {
+          this.categorias$ = undefined;
+          return throwError(() => error);
+        }),
+        shareReplay(1),
+      );
+    return this.categorias$;
   }
 
   /** Promociones ACTIVAS cuya vigencia incluye hoy (CUS60). No se guardan: cambian con la fecha. */

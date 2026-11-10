@@ -5,6 +5,7 @@ import { soles } from '../../../core/api/moneda';
 import { mensajeDelProblema } from '../../../core/api/problema';
 import { PERMISOS } from '../../../core/sesion/permisos';
 import { SesionService } from '../../../core/sesion/sesion.service';
+import { RouterLink } from '@angular/router';
 import { CompartirEnlace } from '../../../layout/compartir-enlace/compartir-enlace';
 import { ComprobanteDTO, VentaDTO } from '../../modelos/ventas.modelos';
 import { ComprobantesService } from '../../servicios/comprobantes.service';
@@ -29,7 +30,7 @@ const SIN_RESPUESTA_FINAL = ['PENDIENTE', 'ENVIADO'];
  */
 @Component({
   selector: 'app-comprobante-emitido',
-  imports: [ReactiveFormsModule, CompartirEnlace],
+  imports: [ReactiveFormsModule, RouterLink, CompartirEnlace],
   template: `
     <div class="col comprobante">
       <div class="row" style="gap: 6px">
@@ -132,6 +133,17 @@ const SIN_RESPUESTA_FINAL = ['PENDIENTE', 'ENVIADO'];
           />
         }
       }
+
+      @if (puedeAnular() && venta().estado === 'CERRADA') {
+        <a
+          class="btn ghost sm"
+          style="align-self: flex-start"
+          routerLink="/ventas/anulaciones"
+          [queryParams]="{ idVenta: venta().idVenta }"
+        >
+          Solicitar anulación
+        </a>
+      }
     </div>
   `,
 })
@@ -155,6 +167,8 @@ export class ComprobanteEmitido implements OnInit {
   );
   /** Las dos lecturas del comprobante piden VENTAS:VER; cobrar pide VENTAS:CREAR. */
   protected readonly puedeEntregar = computed(() => this.sesion.tienePermiso(PERMISOS.ventasVer));
+  /** CUS22: la solicitud se arma en IGU_Anulacion con esta venta. */
+  protected readonly puedeAnular = computed(() => this.sesion.tienePermiso(PERMISOS.ventasAnular));
   protected readonly imprimiendo = signal(false);
   protected readonly enlace = signal<string | null>(null);
   protected readonly error = signal<string | null>(null);

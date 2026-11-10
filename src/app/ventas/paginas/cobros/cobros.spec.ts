@@ -159,12 +159,19 @@ describe('Cobros', () => {
     http.expectNone('/api/v1/ventas');
   });
 
-  it('no ofrece anulación, nota de crédito ni venta de productos', async () => {
+  it('lleva a la venta de productos; sin VENTAS:ANULAR ni VENTAS:EDITAR, no a anulaciones', async () => {
     await montar({ venta: VENTA });
-    const texto = raiz.textContent!.toLowerCase();
-    expect(texto).not.toContain('anular');
-    expect(texto).not.toContain('nota de crédito');
-    expect(texto).not.toContain('venta de productos');
+    expect(raiz.querySelector('a[href="/ventas/productos"]')?.textContent).toContain(
+      'Venta de productos',
+    );
+    expect(raiz.querySelector('a[href="/ventas/anulaciones"]')).toBeNull();
+  });
+
+  it('con VENTAS:ANULAR lleva a anulaciones (diferencia 32 de NOTAS_IT1)', async () => {
+    await montar({ venta: VENTA, permisos: ['VENTAS:CREAR', 'VENTAS:VER', 'VENTAS:ANULAR'] });
+    expect(raiz.querySelector('a[href="/ventas/anulaciones"]')?.textContent).toContain(
+      'Anulaciones',
+    );
   });
 
   it('CUS18: crea la venta desde la atención y aplica el adelanto de la cita', async () => {

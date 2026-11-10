@@ -1,0 +1,236 @@
+<div class="col" style="gap: 16px; max-width: 1200px">
+  <div>
+    <h1 class="h1">Venta de productos</h1>
+    <div class="mut">
+      Solo productos de venta, con su stock en la sede. No se vende con stock cero (RN15) y los
+      productos no generan comisión.
+    </div>
+  </div>
+
+  @if (venta(); as cerrada) {
+    <div class="card col" style="max-width: 560px">
+      <app-comprobante-emitido [venta]="cerrada" />
+      <button class="btn" type="button" style="align-self: flex-start" (click)="nueva()">
+        Nueva venta
+      </button>
+    </div>
+  } @else {
+    <div class="gs">
+      <div class="col" style="gap: 16px">
+        <form class="card col" [formGroup]="busqueda" (ngSubmit)="buscar()">
+          <div class="g2">
+            <div class="fld">
+              <label class="lbl" for="productoNombre">NOMBRE</label>
+              <input
+                class="inp"
+                id="productoNombre"
+                placeholder="Ej. Shampoo"
+                formControlName="nombre"
+              />
+            </div>
+            <div class="fld">
+              <label class="lbl" for="productoMarca">MARCA</label>
+              <input class="inp" id="productoMarca" formControlName="marca" />
+            </div>
+            @if (conCategorias()) {
+              <div class="fld">
+                <label class="lbl" for="productoCategoria">CATEGORÍA</label>
+                <select class="inp" id="productoCategoria" formControlName="idCategoria">
+                  <option [ngValue]="null">Todas</option>
+                  @for (opcion of categorias(); track opcion.idCategoria) {
+                    <option [ngValue]="opcion.idCategoria">{{ opcion.nombre }}</option>
+                  }
+                </select>
+              </div>
+            }
+          </div>
+          <button class="btn sec" type="submit" style="align-self: flex-start">Buscar</button>
+        </form>
+
+        @if (productos(); as lista) {
+          <div class="card cp0 tw">
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th class="r">Precio</th>
+                  <th class="r">Stock</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (producto of lista; track producto.idProducto) {
+                  <tr>
+                    <td>
+                      <div class="b">{{ producto.nombre }}</div>
+                      <div class="xs mut">{{ detalleProducto(producto) }}</div>
+                    </td>
+                    <td class="r num">{{ soles(producto.precioVenta) }}</td>
+                    <td class="r num">
+                      @if (producto.stockActual) {
+                        {{ producto.stockActual }} {{ producto.unidad }}
+                      } @else {
+                        <span class="chip bad">Sin stock</span>
+                      }
+                    </td>
+                    <td class="r">
+                      <button
+                        class="btn sm"
+                        type="button"
+                        [disabled]="!producto.stockActual"
+                        [attr.aria-label]="'Agregar ' + producto.nombre"
+                        (click)="agregar(producto)"
+                      >
+                        Agregar
+                      </button>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td class="vacio" colspan="4">No se encontraron productos de venta.</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+
+      <form
+        class="card col"
+        style="position: sticky; top: 16px"
+        [formGroup]="cobro"
+        (ngSubmit)="vender()"
+      >
+        <h2 class="h2">Carrito</h2>
+        @if (error(); as mensaje) {
+          <div class="alert bad" role="alert">{{ mensaje }}</div>
+        }
+        @for (linea of lineas.controls; track linea; let i = $index) {
+          <div class="col linea" style="gap: 6px" [formGroup]="linea">
+            <div class="row nw">
+              <div class="sp">
+                <div class="b">{{ producto(linea.controls.idProducto.value)?.nombre }}</div>
+                <div class="xs mut">
+                  {{ soles(producto(linea.controls.idProducto.value)?.precioVenta) }} · stock
+                  {{ producto(linea.controls.idProducto.value)?.stockActual }}
+                </div>
+              </div>
+              <button
+                class="btn sec sm"
+                type="button"
+                [attr.aria-label]="
+                  'Quitar una unidad de ' + producto(linea.controls.idProducto.value)?.nombre
+                "
+                (click)="cambiarCantidad(i, -1)"
+              >
+                −
+              </button>
+              <span class="b num" [attr.id]="'cantidad' + i">{{
+                linea.controls.cantidad.value
+              }}</span>
+              <button
+                class="btn sec sm"
+                type="button"
+                [attr.aria-label]="
+                  'Sumar una unidad de ' + producto(linea.controls.idProducto.value)?.nombre
+                "
+                [disabled]="
+                  (linea.controls.cantidad.value ?? 0) >=
+                  (producto(linea.controls.idProducto.value)?.stockActual ?? 0)
+                "
+                (click)="cambiarCantidad(i, 1)"
+              >
+                +
+              </button>
+              <span class="b num">{{ soles(subtotal(i)) }}</span>
+            </div>
+            <div class="fld">
+              <label class="lbl" [for]="'recomendo' + i">RECOMENDADO POR (OPCIONAL)</label>
+              @if (conEspecialistas()) {
+                <select class="inp" [id]="'recomendo' + i" formControlName="idPersonal">
+                  <option [ngValue]="null">Nadie</option>
+                  @for (especialista of especialistas(); track especialista.idPersonal) {
+                    <option [ngValue]="especialista.idPersonal">
+                      {{ nombreEspecialista(especialista) }}
+                    </option>
+                  }
+                </select>
+              } @else {
+                <input
+                  class="inp"
+                  type="number"
+                  min="1"
+                  placeholder="Código de la especialista"
+                  [id]="'recomendo' + i"
+                  formControlName="idPersonal"
+                />
+              }
+            </div>
+          </div>
+        } @empty {
+          <div class="mut sm">Agrega productos para comenzar.</div>
+        }
+
+        <div class="row">
+          <span class="sp mut">IGV 0 % · Amazonía exonerada (RN06)</span>
+          <span class="num">S/ 0.00</span>
+        </div>
+        <div class="row">
+          <span class="sp b">Total</span>
+          <span class="kpi num" id="totalVenta" style="font-size: 30px">{{ soles(total()) }}</span>
+        </div>
+
+        <div class="h3">Clienta</div>
+        <div class="seg" role="group" aria-label="Tipo de clienta">
+          <button type="button" [class.on]="!registrada()" (click)="elegirClienta(false)">
+            Cliente de paso
+          </button>
+          <button type="button" [class.on]="registrada()" (click)="elegirClienta(true)">
+            Clienta registrada
+          </button>
+        </div>
+        @if (registrada()) {
+          <app-selector-clienta (cambio)="clienta.set($event)" />
+        }
+
+        <div class="h3">Cobro</div>
+        <div class="seg" role="group" aria-label="Medio de pago">
+          @for (medio of activos(); track medio.idMedioPago) {
+            <button
+              type="button"
+              [class.on]="cobro.controls.idMedioPago.value === medio.idMedioPago"
+              [attr.aria-pressed]="cobro.controls.idMedioPago.value === medio.idMedioPago"
+              (click)="elegirMedio(medio.idMedioPago)"
+            >
+              {{ etiquetaMedio(medio) }}
+            </button>
+          }
+        </div>
+        @if (esDigital()) {
+          <div class="fld" style="max-width: 200px">
+            <label class="lbl" for="productosCanal">CANAL</label>
+            <select class="inp" id="productosCanal" formControlName="canal">
+              <option value="QR">QR</option>
+              <option value="LINK">Enlace</option>
+            </select>
+          </div>
+          <div class="alert warn">
+            Si Izipay no lo aprueba al instante, la venta queda abierta y se cierra en Cobros cuando
+            se apruebe (RN52).
+          </div>
+        }
+
+        <div class="h3">Comprobante electrónico</div>
+        <app-datos-comprador [formulario]="comprador" [importe]="total()" />
+
+        <button class="btn lg blk" type="submit" [disabled]="enviando() || !lineas.length">
+          Vender
+        </button>
+        <div class="xs mut" style="text-align: center">
+          El stock se descuenta al cerrar la venta y queda en el kardex.
+        </div>
+      </form>
+    </div>
+  }
+</div>

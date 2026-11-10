@@ -10,13 +10,15 @@ import {
   HoraLibre,
   PagosDTO,
   PorCobrarDTO,
+  ProductoStockDTO,
   ProformaDTO,
   ResultadoConsulta,
   VentaDTO,
+  VentaProductosDTO,
   VentaRapidaDTO,
 } from '../modelos/ventas.modelos';
 
-/** CUS13, CUS18, CUS19 y CUS21. */
+/** CUS13, CUS18, CUS19, CUS21, CUS25 y CUS26. */
 @Injectable({ providedIn: 'root' })
 export class VentasService {
   private readonly http = inject(HttpClient);
@@ -64,6 +66,22 @@ export class VentasService {
   /** 201: venta CERRADA; 202: el cobro digital quedó PENDIENTE y la venta sigue ABIERTA (RN52). */
   registrarYCobrar(venta: VentaRapidaDTO): Observable<VentaDTO> {
     return this.http.post<VentaDTO>(`${this.url}/rapidas`, venta);
+  }
+
+  /** CUS25: productos de venta activos con su precio y su stock en la sede. */
+  buscarProductos(filtro: {
+    nombre?: string;
+    marca?: string;
+    idCategoria?: number | null;
+  }): Observable<ProductoStockDTO[]> {
+    return this.http.get<ProductoStockDTO[]>(`${this.url}/productos`, {
+      params: parametros(filtro),
+    });
+  }
+
+  /** CUS26. 201: venta CERRADA con su comprobante; 202: cobro digital PENDIENTE, venta ABIERTA (RN52). */
+  venderProductos(venta: VentaProductosDTO): Observable<VentaDTO> {
+    return this.http.post<VentaDTO>(`${this.url}/productos`, venta);
   }
 
   armarProforma(proforma: ProformaDTO): Observable<ProformaDTO> {
