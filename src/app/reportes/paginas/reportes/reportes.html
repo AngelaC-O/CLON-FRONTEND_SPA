@@ -1,0 +1,135 @@
+<div class="col" style="gap: 16px">
+  <div>
+    <h1 class="h1">Reportes gerenciales</h1>
+    <div class="mut">
+      Ventas, márgenes, productos, demanda, ocupación e ingresos por especialista (CUS48 y CUS49).
+      Excluyen las ventas anuladas (RN33).
+    </div>
+  </div>
+
+  <form class="card col" [formGroup]="filtro" (ngSubmit)="generar()">
+    <div class="g2 filtros">
+      <div class="fld">
+        <label class="lbl" for="reporteTipo">TIPO DE REPORTE</label>
+        <select class="inp" id="reporteTipo" formControlName="tipo">
+          @for (opcion of tipos(); track opcion.tipo) {
+            <option [value]="opcion.tipo">{{ opcion.texto }}</option>
+          }
+        </select>
+      </div>
+      @if (conAgrupacion()) {
+        <div class="fld">
+          <label class="lbl" for="reporteAgrupacion">AGRUPAR POR</label>
+          <select class="inp" id="reporteAgrupacion" formControlName="agrupacion">
+            @for (opcion of agrupaciones; track opcion.valor) {
+              <option [value]="opcion.valor">{{ opcion.texto }}</option>
+            }
+          </select>
+        </div>
+      }
+      <div class="fld">
+        <label class="lbl" for="reporteInicio">DESDE</label>
+        <input class="inp" id="reporteInicio" type="date" formControlName="fechaInicio" />
+      </div>
+      <div class="fld">
+        <label class="lbl" for="reporteFin">HASTA</label>
+        <input class="inp" id="reporteFin" type="date" formControlName="fechaFin" />
+      </div>
+      <div class="fld">
+        <label class="lbl" for="reporteSede">SEDE</label>
+        <select class="inp" id="reporteSede" formControlName="idSede">
+          @if (idSedeSesion) {
+            <option [ngValue]="idSedeSesion">Sede {{ idSedeSesion }} (la de la sesión)</option>
+          }
+          <option [ngValue]="null">Todas (consolidado)</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <button class="btn" type="submit" [disabled]="generando()">Generar</button>
+      @if (!esAdministradora()) {
+        <span class="xs mut">
+          Costos y márgenes solo se muestran con el rol de Administradora (RN24).
+        </span>
+      }
+    </div>
+  </form>
+
+  @if (error(); as mensaje) {
+    <div class="alert bad" role="alert">{{ mensaje }}</div>
+  }
+
+  @if (reporte(); as actual) {
+    <section class="card col" aria-labelledby="tituloReporte">
+      <div class="row">
+        <div class="sp">
+          <h2 class="h2" id="tituloReporte">{{ actual.titulo }}</h2>
+          <div class="xs mut num">
+            {{ actual.fechaInicio }} a {{ actual.fechaFin }} ·
+            {{ actual.idSede ? 'Sede ' + actual.idSede : 'Todas las sedes' }}
+          </div>
+        </div>
+        @if (puedeExportar()) {
+          <button
+            class="btn sec sm"
+            type="button"
+            [disabled]="exportando() !== null"
+            (click)="exportar('EXCEL')"
+          >
+            Exportar a Excel
+          </button>
+          <button
+            class="btn sec sm"
+            type="button"
+            [disabled]="exportando() !== null"
+            (click)="exportar('PDF')"
+          >
+            Exportar a PDF
+          </button>
+        }
+      </div>
+
+      @if (grafico(); as datos) {
+        <figure class="grafico" [attr.aria-label]="'Gráfico de ' + datos.titulo">
+          <figcaption class="xs mut">{{ datos.titulo }}</figcaption>
+          @for (barra of datos.barras; track $index) {
+            <div class="barra">
+              <span class="sm grupo">{{ barra.grupo }}</span>
+              <span class="pista"><span class="relleno" [style.width.%]="barra.ancho"></span></span>
+              <span class="sm num b">{{ barra.texto }}</span>
+            </div>
+          }
+        </figure>
+      }
+
+      <div class="tw">
+        <table class="tbl" id="tablaReporte">
+          <thead>
+            <tr>
+              @for (columna of actual.columnas; track columna.campo) {
+                <th [class.r]="columna.campo !== 'grupo'">{{ columna.titulo }}</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (fila of actual.filas; track $index) {
+              <tr>
+                @for (columna of actual.columnas; track columna.campo) {
+                  <td [class.r]="columna.campo !== 'grupo'" [class.num]="columna.campo !== 'grupo'">
+                    {{ celda(fila, columna.campo) }}
+                  </td>
+                }
+              </tr>
+            } @empty {
+              <tr>
+                <td class="vacio" [attr.colspan]="actual.columnas?.length || 1">
+                  Sin datos en este periodo. Prueba otras fechas o sede.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+</div>
