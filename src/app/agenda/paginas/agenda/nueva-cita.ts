@@ -5,7 +5,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { leerProblema, mensajeDelProblema } from '../../../core/api/problema';
 import { Modal } from '../../../layout/modal/modal';
 import { SelectorVariante } from '../../../layout/selector-variante/selector-variante';
-import { CitaDTO, FiltrosAgendaDTO, HoraLibre } from '../../modelos/agenda.modelos';
+import { CitaDTO, FiltrosAgendaDTO, HoraLibre, ListaEsperaDTO } from '../../modelos/agenda.modelos';
 import {
   horaDe,
   hoyIso,
@@ -23,7 +23,8 @@ export interface PedidoEspera {
 
 /**
  * CUS05 Programar Cita; sin hora libre, ofrece el «extend» a CUS06. Las horas libres se muestran tal
- * como llegan, cada AGENDA_PASO_MIN minutos (RN51): el paso lo decide el back-end.
+ * como llegan, cada AGENDA_PASO_MIN minutos (RN51): el paso lo decide el back-end. Con una espera
+ * («Programar» en la lista de espera), parte de sus datos y envía su idEspera (RF09).
  */
 @Component({
   selector: 'app-nueva-cita',
@@ -35,7 +36,10 @@ export interface PedidoEspera {
           @if (error(); as mensaje) {
             <div class="alert bad" role="alert">{{ mensaje }}</div>
           }
-          <app-selector-clienta (cambio)="clienta.set($event)" />
+          @if (espera(); as pendiente) {
+            <div class="alert info" role="status">{{ textoEspera(pendiente) }}</div>
+          }
+          <app-selector-clienta [inicial]="clientaInicial" (cambio)="clienta.set($event)" />
           <app-selector-variante prefijo="cita" [control]="formulario.controls.idVariante" />
           <div class="fld">
             <label class="lbl" for="citaFecha">FECHA</label>
@@ -142,12 +146,15 @@ export class NuevaCita implements OnInit {
   /** Nombres de GET /citas/filtros, para no mostrar códigos en los selectores. */
   readonly filtros = input<FiltrosAgendaDTO | null>(null);
   readonly cerrar = output<void>();
+  /** La espera PENDIENTE que se convierte en cita. */
+  readonly espera = input<ListaEsperaDTO | null>(null);
   readonly agendada = output<CitaDTO>();
   readonly irAEspera = output<PedidoEspera>();
 
   protected readonly horaDe = horaDe;
   protected readonly hoy = hoyIso();
   protected readonly clienta = signal<ClientaElegida | null>(null);
+  protected clientaInicial: ClientaElegida | null = null;
   protected readonly horas = signal<HoraLibre[] | null>(null);
   protected readonly elegida = signal<HoraLibre | null>(null);
   protected readonly error = signal<string | null>(null);
@@ -162,13 +169,32 @@ export class NuevaCita implements OnInit {
   });
 
   ngOnInit(): void {
-    this.formulario.controls.fecha.setValue(this.fechaInicial());
+    const espera = this.espera();
+    if (espera) {
+      this.clientaInicial = {
+        idCliente: espera.idCliente,
+        nombre: espera.nombreCliente || `Clienta ${espera.idCliente}`,
+      };
+      this.clienta.set(this.clientaInicial);
+      this.formulario.patchValue({
+        idVariante: espera.idVariante,
+        fecha: espera.fechaDeseada < this.hoy ? this.hoy : espera.fechaDeseada,
+      });
+    } else {
+      this.formulario.controls.fecha.setValue(this.fechaInicial());
+    }
     this.formulario.controls.idVariante.valueChanges
       .pipe(takeUntilDestroyed(this.destruir))
       .subscribe(() => {
         this.horas.set(null);
         this.elegida.set(null);
       });
+  }
+
+  protected textoEspera(espera: ListaEsperaDTO): string {
+    const rango = espera.horaDesde ? `, de ${espera.horaDesde} a ${espera.horaHasta ?? ''}` : '';
+    const servicio = espera.nombreServicio || 'el servicio pedido';
+    return `Desde la lista de espera: ${servicio}${rango}. Al agendar, la espera queda asignada.`;
   }
 
   protected verDisponibilidad(): void {
@@ -229,6 +255,7 @@ export class NuevaCita implements OnInit {
         idRecurso,
         fechaHoraInicio: inicio,
         duracionMin,
+        ...(this.espera()?.idEspera ? { idEspera: this.espera()?.idEspera } : {}),
       })
       .subscribe({
         next: (cita) => {
