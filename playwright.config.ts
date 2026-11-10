@@ -19,7 +19,11 @@ const mvnw = process.platform === 'win32' ? '.\\mvnw.cmd' : './mvnw';
 
 export default defineConfig({
   testDir: './e2e',
-  testMatch: '*.e2e.ts',
+  // El recorrido de la Iteración 2 sigue sobre la base que deja el de la Iteración 1.
+  projects: [
+    { name: 'it1', testMatch: 'recorrido.e2e.ts' },
+    { name: 'it2', testMatch: 'recorrido-it2.e2e.ts', dependencies: ['it1'] },
+  ],
   timeout: 60_000,
   expect: { timeout: 15_000 },
   workers: 1,
