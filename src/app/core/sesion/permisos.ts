@@ -28,6 +28,8 @@ export const PERMISOS = {
   kardexVer: OP.consultarKardex,
   productosCrear: OP.registrar_1,
   productosVer: OP.listarCategorias,
+  reportesExportar: OP.exportar,
+  reportesVer: OP.generar,
   sedesCrear: OP.registrarRecurso,
   sedesVer: OP.listarRecursos,
   seguridadCrear: OP.registrar,
