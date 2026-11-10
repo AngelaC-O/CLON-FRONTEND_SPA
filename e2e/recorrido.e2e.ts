@@ -5,6 +5,8 @@ import {
   api,
   aviso,
   cambiarClaveTemporal,
+  CLAVE_ADMIN,
+  CLAVE_ESPECIALISTA,
   CLAVE_TEMPORAL,
   claves,
   elegirClienta,
@@ -21,10 +23,8 @@ import { PUERTO_API } from './entorno.mjs';
  * Los pasos dependen unos de otros. Los códigos que ninguna pantalla muestra se leen de la base
  * (ver docs/NOTAS_IT1.md, Duda 2); lo demás se hace con clics, como lo haría cada actora.
  */
-const CLAVE_ADMIN = 'AdminE2e2026';
 const CLAVE_INICIAL_RECEPCION = 'InicialRecep2026';
 const CLAVE_RECEPCION = 'RecepcionE2e2026';
-const CLAVE_ESPECIALISTA = 'EspecialE2e2026';
 const CLIENTA_DNI = 'Zoraida';
 const CLIENTA_CE = 'Yolanda';
 const PRECIO = 60;
