@@ -61,9 +61,37 @@ async function nuevaPagina(browser: Browser): Promise<Page> {
   return pagina;
 }
 
+/** Elige la opción de un selector por su texto visible (los value de Angular no son los ids). */
+async function elegirPorTexto(page: Page, selector: string, texto: string): Promise<void> {
+  const opcion = page.locator(`${selector} option`, { hasText: texto }).first();
+  await page.locator(selector).selectOption({ label: ((await opcion.textContent()) ?? '').trim() });
+}
+
+/**
+ * Servicio y variante desde GET /servicios (It. 2). Sin CATALOGO:VER la pantalla deja el código de
+ * la variante, como en la Iteración 1.
+ */
+async function elegirVariante(
+  page: Page,
+  prefijo: string,
+  servicio: string,
+  variante: string | null,
+  idVariante: string,
+): Promise<void> {
+  const servicios = page.locator(`#${prefijo}Servicio`);
+  if ((await servicios.count()) === 0) {
+    await page.locator(`#${prefijo}IdVariante`).fill(idVariante);
+    return;
+  }
+  await elegirPorTexto(page, `#${prefijo}Servicio`, servicio);
+  if (variante) {
+    await elegirPorTexto(page, `#${prefijo}IdVariante`, variante);
+  }
+}
+
 async function verHoras(page: Page, variante: string): Promise<string[]> {
   await page.getByRole('button', { name: '+ Nueva cita' }).click();
-  await page.locator('#citaIdVariante').fill(variante);
+  await elegirVariante(page, 'cita', 'Corte E2E', 'Normal', variante);
   await page.getByRole('button', { name: 'Ver disponibilidad' }).click();
   const horas = modal(page).getByRole('button', { name: /^\d\d:\d\d$/ });
   await expect(horas.first()).toBeVisible();
@@ -72,7 +100,8 @@ async function verHoras(page: Page, variante: string): Promise<string[]> {
 
 async function elegirHoraYRecurso(page: Page, hora: string): Promise<void> {
   await modal(page).getByRole('button', { name: hora, exact: true }).click();
-  await page.locator('#citaIdRecurso').selectOption({ label: `Recurso ${idRecurso}` });
+  // It. 2: el recurso se muestra con su nombre (GET /citas/filtros).
+  await page.locator('#citaIdRecurso').selectOption({ label: 'Sillón E2E' });
 }
 
 test.beforeAll(async ({ browser }) => {
@@ -108,9 +137,14 @@ test('CUS50: la administradora entra con la clave temporal y la cambia', async (
 
 test('CUS52: registra el usuario de la Recepcionista Dos', async () => {
   const idPersonal = valor("SELECT id_persona FROM PERSONA WHERE numero_documento = '70000003'");
+  const nombre = valor(
+    "SELECT nombres || ' ' || apellidos FROM PERSONA WHERE numero_documento = '70000003'",
+  );
   await admin.goto('/seguridad/usuarios');
   await admin.getByRole('button', { name: '+ Crear usuario' }).click();
-  await admin.locator('#idPersonal').fill(idPersonal);
+  // It. 2: el personal sin usuario sale de GET /usuarios/personal-sin-usuario.
+  await expect(admin.locator('#idPersonal option', { hasText: nombre })).toHaveCount(1);
+  await elegirPorTexto(admin, '#idPersonal', nombre);
   await admin.locator('#nombreUsuario').fill('recepcion2');
   await admin.locator('#clave').fill(CLAVE_INICIAL_RECEPCION);
   await admin.locator('#idRol').selectOption({ label: 'ENCARGADA_ALMACEN' });
@@ -127,9 +161,11 @@ test('CUS52: registra el usuario de la Recepcionista Dos', async () => {
 });
 
 test('CUS53: le asigna el rol y ajusta los permisos del rol', async () => {
-  await admin.getByLabel('Rol del usuario').selectOption({ label: 'RECEPCIONISTA' });
+  // It. 2: la tabla lista a todos los usuarios (GET /usuarios).
+  const fila = admin.locator('tbody tr', { hasText: 'recepcion2' });
+  await fila.getByLabel('Rol del usuario').selectOption({ label: 'RECEPCIONISTA' });
   const asignacion = admin.waitForResponse((r) => r.url().endsWith('/rol'));
-  await admin.locator('tbody').getByRole('button', { name: 'Asignar rol' }).click();
+  await fila.getByRole('button', { name: 'Asignar rol' }).click();
   expect((await asignacion).ok()).toBe(true);
   expect(
     valor(
@@ -139,11 +175,11 @@ test('CUS53: le asigna el rol y ajusta los permisos del rol', async () => {
 
   await admin.getByRole('tab', { name: 'Matriz de permisos' }).click();
   await admin.locator('#rolIdRol').selectOption({ label: 'RECEPCIONISTA' });
-  await expect(admin.getByLabel('Módulo del permiso 1', { exact: true })).toBeVisible();
-  const total = (await admin.getByLabel(/^Módulo del permiso/).count()) + 1;
-  await admin.getByRole('button', { name: '+ Permiso' }).click();
-  await admin.getByLabel(`Módulo del permiso ${total}`).fill('RECORDATORIOS');
-  await admin.getByLabel(`Acción del permiso ${total}`).fill('EDITAR');
+  // It. 2: casillas con los permisos de GET /permisos, en lugar de escribir módulo y acción.
+  const nuevo = admin.locator('input[name="RECORDATORIOS:EDITAR"]');
+  await expect(nuevo).not.toBeChecked();
+  const total = (await admin.locator('fieldset input[type="checkbox"]:checked').count()) + 1;
+  await nuevo.check();
   const guardado = admin.waitForResponse((r) => r.url().includes('/permisos'));
   await admin.getByRole('button', { name: 'Guardar permisos del rol' }).click();
   expect((await guardado).ok()).toBe(true);
@@ -183,21 +219,30 @@ test('CUS57: registra un área y un servicio con dos variantes', async () => {
   obtenido('CUS57', `área Barbería E2E; variantes ${variantes.map((v) => v.join(' ')).join(', ')}`);
 });
 
-test('CUS61 y RN03: registra un recurso con su limpieza, sin pasar de 30 min', async () => {
+test('CUS61 y RN03: registra un recurso con su limpieza, de 0 a 10 min', async () => {
   await admin.goto('/sedes/recursos');
+  // It. 2: la tabla lista los recursos de la sede (GET /recursos).
+  const antes = Number(valor('SELECT COUNT(*) FROM RECURSO WHERE id_sede = 1'));
+  await expect(admin.locator('tbody tr')).toHaveCount(antes);
   await admin.getByRole('button', { name: '+ Recurso' }).click();
   await admin.locator('#nombre').fill('Sillón E2E');
   await admin.locator('#tipo').selectOption({ label: 'Sillón' });
-  await admin.locator('#minutosLimpieza').fill('31');
-  await modal(admin).getByRole('button', { name: 'Guardar recurso' }).click();
-  await expect(modal(admin)).toBeVisible();
+  // La pantalla solo ofrece de 0 a 10; el back-end también rechaza 11.
+  await expect(admin.locator('#minutosLimpieza option')).toHaveCount(12);
+  const fuera = await api(admin, 'post', '/recursos', {
+    idSede: 1,
+    nombre: 'Sillón E2E',
+    tipo: 'SILLON',
+    minutosLimpieza: 11,
+  });
+  expect(fuera.status).toBe(422);
   expect(valor("SELECT COUNT(*) FROM RECURSO WHERE nombre = 'Sillón E2E'")).toBe('0');
 
-  await admin.locator('#minutosLimpieza').fill('10');
+  await admin.locator('#minutosLimpieza').selectOption({ label: '10 min' });
   await modal(admin).getByRole('button', { name: 'Guardar recurso' }).click();
   await expect(admin.locator('tbody')).toContainText('Sillón E2E');
   idRecurso = valor("SELECT id_recurso FROM RECURSO WHERE nombre = 'Sillón E2E'");
-  obtenido('CUS61', `recurso ${idRecurso} con 10 min; 31 min no se guarda (RN03)`);
+  obtenido('CUS61', `recurso ${idRecurso} con 10 min; 11 min responde ${fuera.status} (RN03)`);
 });
 
 test('CUS44 y RN30: la recepcionista abre la caja, y solo una por sede', async () => {
@@ -283,9 +328,13 @@ test('CUS08: consulta la agenda del día', async () => {
   idEspecialista = valor("SELECT id_personal FROM USUARIO WHERE nombre_usuario = 'especialista1'");
   await recepcion.goto('/agenda');
   await expect(recepcion.locator('.cabeza').first()).toBeVisible();
-  await expect(recepcion.locator('.rejilla')).toContainText(`Especialista ${idEspecialista}`);
+  // It. 2: columnas con nombres, no códigos (diferencia 24).
+  const nombreEspecialista = valor(
+    `SELECT nombres || ' ' || apellidos FROM PERSONA WHERE id_persona = ${idEspecialista}`,
+  );
+  await expect(recepcion.locator('.rejilla')).toContainText(nombreEspecialista);
   await recepcion.getByRole('button', { name: 'Por recurso' }).click();
-  await expect(recepcion.locator('.rejilla')).toContainText(`Recurso ${idRecurso}`);
+  await expect(recepcion.locator('.rejilla')).toContainText('Sillón E2E');
   obtenido('CUS08', `columnas por especialista y por recurso, con el recurso ${idRecurso}`);
 });
 
@@ -300,13 +349,9 @@ test('CUS05, RN01, RN02 y RN03: programa una cita; otra a la misma hora responde
   });
   expect(sinClienta.status).toBe(400);
 
-  // Otra pestaña ve las mismas horas libres antes de que la primera agende.
-  const sesion = await recepcion.evaluate(() => sessionStorage.getItem('cautiva.sesion'));
+  // Otra pestaña ve las mismas horas libres antes de que la primera agende. La sesión sale de la
+  // cookie con GET /auth/sesion: el navegador ya no la guarda (It. 2).
   const otra = await recepcion.context().newPage();
-  await otra.addInitScript(
-    (guardada) => sessionStorage.setItem('cautiva.sesion', guardada!),
-    sesion,
-  );
   await otra.goto('/agenda');
 
   const horas = await verHoras(recepcion, idVariante);
@@ -352,7 +397,7 @@ test('CUS05, RN01, RN02 y RN03: programa una cita; otra a la misma hora responde
 test('CUS06: la anota en la lista de espera', async () => {
   await recepcion.getByRole('button', { name: /Lista de espera/ }).click();
   await elegirClienta(modal(recepcion), CLIENTA_CE);
-  await recepcion.locator('#esperaIdVariante').fill(idVariante);
+  await elegirVariante(recepcion, 'espera', 'Corte E2E', 'Normal', idVariante);
   const espera = recepcion.waitForResponse((r) => r.url().includes('/lista-espera'));
   await modal(recepcion).getByRole('button', { name: 'Anotar en lista de espera' }).click();
   expect((await espera).status()).toBe(201);
@@ -425,10 +470,9 @@ test('CUS07, RN04 y RN42: el adelanto por enlace solo cuenta cuando Izipay lo ap
 test('CUS11: la especialista inicia y finaliza la atención', async () => {
   await iniciarSesion(especialista, 'especialista1', CLAVE_TEMPORAL);
   await cambiarClaveTemporal(especialista, CLAVE_TEMPORAL, CLAVE_ESPECIALISTA);
+  // It. 2: Mi agenda es la de la especialista de la sesión (GET /atenciones/mi-agenda).
   await especialista.goto('/agenda/mi-agenda');
-  await especialista
-    .locator('#miEspecialista')
-    .selectOption({ label: `Especialista ${idEspecialista}` });
+  await expect(especialista.locator('#miEspecialista')).toHaveCount(0);
   const tarjeta = especialista.locator('.card', { hasText: `Cita ${idCitaEfectivo}` });
   await tarjeta.getByRole('button', { name: 'Iniciar atención' }).click();
   await especialista.locator('#tiempoDeclaradoMin').fill('20');
@@ -446,8 +490,8 @@ test('CUS11: la especialista inicia y finaliza la atención', async () => {
 
 test('CUS18, RN11 y RN42: cobra con efectivo y Yape, sin cerrar antes de completar', async () => {
   await recepcion.goto('/ventas/cobros');
-  await recepcion.locator('#cobroIdAtencion').fill(idAtencion);
-  await recepcion.getByRole('button', { name: 'Cobrar', exact: true }).click();
+  // It. 2: la atención se elige de «Por cobrar» (GET /ventas/por-cobrar).
+  await recepcion.getByLabel(`Cobrar la atención ${idAtencion}`).click();
   const total = PRECIO - ADELANTO_EFECTIVO;
   await expect(recepcion.locator('.kpi')).toContainText(`S/ ${total}.00`);
   await expect(recepcion.getByText('Adelanto aplicado')).toBeVisible();
@@ -549,13 +593,13 @@ test('CUS20: imprime y comparte la boleta', async () => {
   expect(alterado.status()).toBe(403);
   await anonimo.dispose();
 
+  // It. 2 (D-12): «Enviar por correo» pide el enlace y abre mailto en el navegador.
   await comprobante.getByRole('button', { name: 'Correo' }).click();
   await comprobante.locator('#entregaCorreo').fill('zoraida@ejemplo.com');
-  await comprobante.getByRole('button', { name: 'Compartir comprobante' }).click();
-  await expect(comprobante.getByRole('link', { name: 'Enviar por correo' })).toHaveAttribute(
-    'href',
-    /mailto:zoraida%40ejemplo\.com/,
-  );
+  const correo = recepcion.waitForResponse((r) => r.url().includes('canal=CORREO'));
+  await comprobante.getByRole('button', { name: 'Enviar por correo' }).click();
+  const enlaceCorreo = (await (await correo).json()) as { enlace?: string };
+  expect(enlaceCorreo.enlace).toMatch(/comprobantes\/publico/);
   await recepcion.getByRole('button', { name: 'Listo' }).click();
   obtenido(
     'CUS20',
@@ -567,7 +611,7 @@ test('CUS21: emite una proforma, que se imprime y no se guarda', async () => {
   const antes = valor('SELECT COUNT(*) FROM VENTA');
   await recepcion.getByRole('button', { name: 'Emitir proforma' }).click();
   await recepcion.locator('#proformaNombre').fill('Novia');
-  await recepcion.locator('#proformaCodigo0').fill(idVariante);
+  await elegirVariante(recepcion, 'proforma0', 'Corte E2E', 'Normal', idVariante);
   await recepcion.locator('#proformaCantidad0').fill('2');
   await modal(recepcion).getByRole('button', { name: 'Emitir proforma' }).click();
   const documento = recepcion.locator('.imprimible');
@@ -596,8 +640,8 @@ test('CUS13, RN11 y RN47: cobra una atención sin cita de un cliente de paso', a
   )[0];
   await recepcion.locator('#rapidaPaso').fill('Jorge');
   const libres = recepcion.waitForResponse((r) => r.url().includes('/rapidas/libres'));
-  await recepcion.locator('#rapidaVariante').fill(variante);
-  await recepcion.locator('#rapidaVariante').blur();
+  await elegirVariante(recepcion, 'rapida', 'Perfilado de Cejas', null, variante);
+  await recepcion.locator('#rapidaIdVariante').blur();
   await libres;
   await expect(recepcion.locator('#rapidaDuracion')).toHaveValue('20');
 
