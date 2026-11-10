@@ -20,6 +20,16 @@ Comprobado:
 - `npm test -- --watch=false`: 21 archivos, 137 pruebas, todas aprobadas. Hay una prueba de componente por cada página tocada y una del panel de avisos (`layout/inicio/panel-avisos.spec.ts`).
 - `npm run e2e:bd` crea la base de la prueba con el script 17 del back-end, sin errores.
 
+### Segunda entrega: agenda (rama `tineo-feature/f6-agenda`)
+
+CUS03, CUS04, CUS09, CUS10, CUS12 y la lista de espera del día de CUS05 y CUS06.
+
+- `IGU_Clientas` (Figma 4:41): «Ver ficha» abre `/agenda/clientas/:idCliente` con `GET /clientes/{idCliente}`. La ficha tiene cabecera con el saldo a favor y cuatro pestañas: Datos (edición con «Consultar documento» y «Guardar cambios», `PUT /clientes/{idCliente}`), Historial (citas pendientes, servicios con sus recomendaciones y productos comprados), Paquetes y membresías, y Saldo a favor.
+- `IGU_Agenda` (Figma 4:29): el bloque de una cita abre su detalle, con «Reprogramar» (`POST /citas/{idCita}/reprogramacion`, eligiendo entre las horas libres de `GET /citas/disponibilidad`) y «Cancelar cita» (`PATCH /citas/{idCita}/cancelacion`, con la opción rápida «No se presentó» y el saldo a favor que quedó). El panel «Lista de espera» lee `GET /citas/lista-espera` del día de la vista: «Programar» abre la nueva cita con los datos de la espera y envía `idEspera`; «Descartar espera» pide confirmación y llama a `PATCH /citas/lista-espera/{idEspera}/descarte`.
+- `IGU_Atencion` (Figma 4:137): «Recomendar producto» con «Buscar producto» (`GET /atenciones/productos`), observación y «Recomendar» (`POST /atenciones/{idAtencion}/recomendaciones`). Cierra la diferencia 30 de NOTAS_IT1.
+- `npm run build` sin errores ni advertencias; `npm test -- --watch=false`: 22 archivos, 159 pruebas, todas aprobadas. Pruebas de componente: `ficha-clienta.spec.ts` (nueva), `clientas.spec.ts`, `agenda.spec.ts` y `atencion.spec.ts`.
+- El paso CUS06 del recorrido e2e espera el `POST` de la espera, porque ahora el panel vuelve a leer la lista. El recorrido tampoco se corrió en esta entrega (mismo horario).
+
 **Sin comprobar:** el recorrido `npm run e2e` no se corrió. Agenda y atiende el mismo día, así que solo corre de lunes a sábado de 09:00 a 17:30 (hora de Lima), y esta entrega se cerró a las 03:20. Sus selectores se adaptaron a las pantallas nuevas y el archivo compila (`playwright test --list` da los 22 pasos), pero falta verlo pasar contra el back-end de la Iteración 2: correr `npm run e2e:bd` y `npm run e2e` en ese horario. Tampoco se revisaron las pantallas en el navegador a 1440, 834 y 390.
 
 `./mvnw -q verify` no aplica: este repositorio es solo el front-end y el back-end no se modificó.
@@ -34,6 +44,9 @@ Comprobado:
 6. **Rutas de los avisos.** Los avisos traen rutas de pantallas que aún no existen en el front-end (por ejemplo, `/inventario/productos`). Hasta construirlas, el enlace lleva a Inicio. ¿Las rutas del back-end son las definitivas del front-end?
 7. **Nombre de la sede.** `SesionDTO` sigue trayendo solo `idSede`: la cabecera dice «Sede 1» (diferencia 2 de NOTAS_IT1).
 8. **Especialista libre tras terminar antes** (Duda 14 de NOTAS_IT1): no se volvió a revisar.
+9. **Ficha sin nombres.** En `GET /clientes/{idCliente}`, `AtencionFicha` y las citas pendientes traen `idVariante` e `idPersonal`; `RecomendacionDTO`, solo `idProducto`; `PaqueteFicha`, solo `idPaquete`. La ficha muestra «Variante 2», «Especialista 4» y «Paquete 3»; el producto recomendado se nombra solo si la clienta lo compró. Para no llamar a operaciones de otros CUS, no se cruzan con `GET /servicios` ni `GET /paquetes`. ¿Se agregan los nombres a esos DTO?
+10. **Saldo a favor al cancelar.** El draw.io de CUS10 termina en `mostrarSaldoFavor(saldoDisponible)`, pero la respuesta de `PATCH /citas/{idCita}/cancelacion` es la `CitaDTO`, con `adelantoMonto` y sin el saldo total de la clienta. La agenda muestra el adelanto que pasó a saldo a favor; el saldo total se ve en la ficha. ¿El contrato debe devolver el saldo disponible?
+11. **Adelanto antes de cancelar.** `FranjaAgendaDTO` no trae `adelantoMonto`, así que el modal de cancelación no puede anticipar, como el prototipo, si habrá saldo a favor: lo dice después, con la respuesta.
 
 Dudas de NOTAS_IT1 que el contrato cierra: 1 (`x-permiso`), 2 (listas, salvo producto y sedes), 3 (`GET /auth/sesion`), 5 (`GET /tipos-documento`), 6 (`GET /atenciones/mi-agenda`), 7 (`GET /atenciones/en-curso`), 8 (`GET /ventas/{idVenta}`), 10 (`GET /cajas/abierta` y `GET /ventas/por-cobrar`), 11 (`GET /medios-pago`), 12 (`GET /comprobantes/{id}`) y 13 (202 de `/ventas/rapidas`, RN52). Siguen abiertas la 4 (plan de commits, ver la decisión 15), la 9 (no se puede anular una transacción en espera), la 14 y la 15.
 
@@ -52,7 +65,11 @@ Dudas de NOTAS_IT1 que el contrato cierra: 1 (`x-permiso`), 2 (listas, salvo pro
 | 9 | Contrato (CUS13, RN52) | El pago digital no aprobado responde 202 con la venta ABIERTA. | `IGU_VentaRapida` lleva a `IGU_Cobro` con esa venta; se cambió el aviso que decía que nada quedaba registrado. |
 | 10 | Contrato (CUS20, D-12) | El back-end no envía correos: el enlace firmado se abre con `mailto`. | «Enviar por correo» pide el enlace y abre el correo del equipo. WhatsApp sigue con «Compartir comprobante». |
 | 11 | `IGU_VentaRapida` | `GET /ventas/rapidas/libres` da ids de especialista y recurso, sin nombres. | Siguen como «Especialista 4» y «Recurso 1»: los nombres salen de `GET /citas/filtros`, que es de la agenda (`AGENDA:VER`). |
-| 12 | Lista de espera | `GET /citas/lista-espera` ya existe (diferencia 27 de NOTAS_IT1). | No se usó en esta entrega: va con CUS09 y CUS10 (asignar y descartar). El contador sigue contando lo anotado en la pantalla. |
+| 12 | Lista de espera | `GET /citas/lista-espera` ya existe (diferencia 27 de NOTAS_IT1). | Cerrada en la segunda entrega: el panel y su contador leen las esperas del día de la vista. |
+| 13 | Encargo frente al draw.io (CUS06) | El encargo llama «Descartar» al botón; el draw.io, «Clic en Descartar espera». | Manda el draw.io: «Descartar espera», en el panel y en la confirmación. «Programar» no tiene «Clic en» propio (lleva a CUS05) y queda con el nombre del encargo; el prototipo decía «Asignar cita». |
+| 14 | Prototipo frente al encargo (CUS10) | El prototipo elige el motivo en una lista fija (no puede asistir, enfermedad, especialista no disponible, otro) y no tiene «No se presentó». | El motivo se escribe, con un botón rápido «No se presentó» que lo completa. CITA no tiene estado NO_ASISTIO (decisión del 08/11/2026 en el draw.io). |
+| 15 | Prototipo frente al contrato (CUS03) | La pestaña «Saldo a favor» del prototipo lista movimientos; `FichaClienteDTO` solo trae `saldoFavor`. | La pestaña muestra el total y de dónde sale (RN05). El prototipo también ofrecía «Agendar cita» desde la ficha: no se construyó, porque no es parte de CUS03. |
+| 16 | Prototipo frente al draw.io (CUS12) | El prototipo elige el producto en una lista; el draw.io lee `nombre` y tiene «Clic en Buscar producto». | Se busca por nombre y se elige entre los resultados, que muestran precio y stock (sin costo, RN24). |
 
 ## Decisiones tomadas
 
@@ -71,3 +88,9 @@ Dudas de NOTAS_IT1 que el contrato cierra: 1 (`x-permiso`), 2 (listas, salvo pro
 13. **Precio propuesto.** En la venta rápida, elegir la variante propone su precio como monto: con cliente de paso y efectivo bastan 5 clics (RNF29). El back-end igual lo compara (RN11).
 14. **E2E.** `e2e/preparar-bd.mjs` agrega el script 17 del back-end después del 15, como pide su README. El recorrido elige servicio, personal y permisos en las listas, cobra desde «Por cobrar» y abre la segunda pestaña sin copiar la sesión.
 15. **Plan de commits.** El contrato regenerado quita `BloqueAgendaDTO`, así que `agenda` no compila con el `core/` nuevo si van separados: el primer commit lleva configuración, `core/`, `layout/`, `src/testing` y `agenda`. Para que los demás módulos compilen mientras tanto, las ayudas nuevas de `core/api` van en archivos nuevos y las copias fijas se borran en un commit propio, cuando ya nadie las usa. Cada commit se compiló por separado sobre una copia de `HEAD` (`ng build`), y el último da las 137 pruebas en verde. Las pruebas de cada módulo van en su commit; hasta el suyo, las de los módulos que aún sembraban la sesión en `sessionStorage` fallan, aunque el código compile.
+16. **Ficha como página.** CUS03 tiene su ruta (`/agenda/clientas/:idCliente`, con `CLIENTAS:VER`) en lugar de un modal, para poder enlazarla y probarla aparte. Sin `CLIENTAS:EDITAR` (`PERMISOS.clientasEditar`, nuevo) los datos se ven deshabilitados y sin «Guardar cambios».
+17. **Edición y verificación.** «Guardar cambios» envía los datos del formulario y `fechaVerificacion` solo si en esa edición una consulta dio ENCONTRADO; cambiar el tipo o el número la borra. El back-end deja MANUAL un documento cambiado sin consulta (RN45).
+18. **Reprogramar.** Se parte del día de la cita (o de hoy, si ya pasó) y se consulta `GET /citas/disponibilidad` con su variante. Al elegir la hora se proponen la especialista y el recurso de la cita si siguen libres; si no, los primeros que da el back-end. El 409 de cruce lo avisa el interceptor; el 422 de RN49 queda en el modal.
+19. **Cancelar.** El modal queda abierto tras cancelar para mostrar el saldo a favor; la rejilla y el panel se vuelven a leer en ese momento.
+20. **Lista de espera del día.** Se lee junto con la agenda, para la fecha de la vista. Una espera anotada para ese día, una cita programada desde una espera y un 409 al descartar vuelven a leer la lista. Una espera de un día pasado se programa desde hoy.
+21. **Recomendaciones de la atención.** Pide `ATENCION:EDITAR`, como `PATCH .../fin`. Las registradas se muestran como fichas junto al botón; el 409 (ya recomendado) lo avisa el interceptor y el 403 de RN50 queda junto al formulario.

@@ -398,12 +398,15 @@ test('CUS06: la anota en la lista de espera', async () => {
   await recepcion.getByRole('button', { name: /Lista de espera/ }).click();
   await elegirClienta(modal(recepcion), CLIENTA_CE);
   await elegirVariante(recepcion, 'espera', 'Corte E2E', 'Normal', idVariante);
-  const espera = recepcion.waitForResponse((r) => r.url().includes('/lista-espera'));
+  // Al anotarla, el panel del día vuelve a leer GET /citas/lista-espera: se espera el POST.
+  const espera = recepcion.waitForResponse(
+    (r) => r.url().includes('/lista-espera') && r.request().method() === 'POST',
+  );
   await modal(recepcion).getByRole('button', { name: 'Anotar en lista de espera' }).click();
   expect((await espera).status()).toBe(201);
   await expect(recepcion.getByRole('button', { name: 'Lista de espera (1)' })).toBeVisible();
   expect(valor('SELECT COUNT(*) FROM LISTA_ESPERA')).toBe('1');
-  obtenido('CUS06', 'una fila en LISTA_ESPERA; el contador de la pantalla marca (1)');
+  obtenido('CUS06', 'una fila en LISTA_ESPERA; el panel del día la lista y el contador marca (1)');
 });
 
 test('CUS07 y RN04: registra un adelanto en efectivo', async () => {
