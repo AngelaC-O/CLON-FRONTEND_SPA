@@ -3,6 +3,7 @@ export type {
   CambioClaveDTO,
   CredencialesDTO,
   PermisoDTO,
+  PersonalSinUsuarioDTO,
   RolDTO,
   SesionDTO,
   UsuarioDTO,

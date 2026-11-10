@@ -8,6 +8,8 @@ import { NotificacionesService } from '../notificaciones/notificaciones.service'
 import { SesionService } from '../sesion/sesion.service';
 
 const URL_LOGIN = `${environment.apiBase}/auth/login`;
+/** Al cargar la aplicación sin cookie, el 401 de la sesión solo significa «aún no entró». */
+const URL_SESION = `${environment.apiBase}/auth/sesion`;
 /** El back-end responde 403 con esta regla mientras la clave sea temporal. */
 const REGLA_CLAVE_VENCIDA = 'RF82';
 
@@ -24,7 +26,9 @@ export const erroresInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((error: unknown) => {
       if (error instanceof HttpErrorResponse) {
         const { status } = error;
-        if (status === 401 && req.url !== URL_LOGIN) {
+        if (status === 401 && req.url === URL_SESION) {
+          sesion.limpiar();
+        } else if (status === 401 && req.url !== URL_LOGIN) {
           sesion.limpiar();
           notificaciones.mostrar(mensajeDelProblema(error, 'Inicie sesión para continuar.'));
           void router.navigateByUrl('/login');

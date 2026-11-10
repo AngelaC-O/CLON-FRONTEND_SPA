@@ -1,18 +1,26 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, output, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ListasService } from '../../../core/api/listas.service';
 import { soles } from '../../../core/api/moneda';
 import { mensajeDelProblema } from '../../../core/api/problema';
+import { PERMISOS } from '../../../core/sesion/permisos';
+import { SesionService } from '../../../core/sesion/sesion.service';
 import { Modal } from '../../../layout/modal/modal';
-import { Item, ProformaDTO } from '../../modelos/ventas.modelos';
+import { SelectorVariante } from '../../../layout/selector-variante/selector-variante';
+import { Item, PaqueteDTO, ProformaDTO, PromocionDTO } from '../../modelos/ventas.modelos';
 import { VentasService } from '../../servicios/ventas.service';
 
 const DIAS_VIGENCIA = 7;
 
-/** CUS21: el back-end calcula la cotización y no la guarda (RN09); solo se imprime. */
+/**
+ * CUS21: el back-end calcula la cotización y no la guarda (RN09); solo se imprime. Servicio,
+ * paquete y promoción se eligen de GET /servicios, /paquetes y /promociones (CATALOGO:VER); sin ese
+ * permiso se escriben los códigos.
+ */
 @Component({
   selector: 'app-proforma',
-  imports: [ReactiveFormsModule, Modal],
+  imports: [ReactiveFormsModule, Modal, SelectorVariante],
   template: `
     <app-modal titulo="Proforma" (cerrar)="cerrar.emit()">
       @if (armada(); as proforma) {
@@ -79,39 +87,69 @@ const DIAS_VIGENCIA = 7;
               <div class="g2" [formGroup]="item">
                 <div class="fld">
                   <label class="lbl" [for]="'proformaTipo' + i">TIPO</label>
-                  <select class="inp" [id]="'proformaTipo' + i" formControlName="tipoItem">
+                  <select
+                    class="inp"
+                    [id]="'proformaTipo' + i"
+                    formControlName="tipoItem"
+                    (change)="item.controls.codigo.setValue(null)"
+                  >
                     <option value="SERVICIO">Servicio</option>
                     <option value="PAQUETE">Paquete</option>
                   </select>
                 </div>
-                <div class="fld">
-                  <label class="lbl" [for]="'proformaCodigo' + i">
-                    {{
-                      item.controls.tipoItem.value === 'SERVICIO'
-                        ? 'CÓDIGO DE LA VARIANTE'
-                        : 'CÓDIGO DEL PAQUETE'
-                    }}
-                  </label>
-                  <input
-                    class="inp"
-                    type="number"
-                    min="1"
-                    [id]="'proformaCodigo' + i"
-                    formControlName="codigo"
+                @if (item.controls.tipoItem.value === 'SERVICIO') {
+                  <app-selector-variante
+                    [prefijo]="'proforma' + i"
+                    [control]="item.controls.codigo"
                   />
-                </div>
-                <div class="fld">
-                  <label class="lbl" [for]="'proformaPromo' + i"
-                    >CÓDIGO DE PROMOCIÓN (OPCIONAL)</label
-                  >
-                  <input
-                    class="inp"
-                    type="number"
-                    min="1"
-                    [id]="'proformaPromo' + i"
-                    formControlName="idPromocion"
-                  />
-                </div>
+                } @else if (conCatalogo()) {
+                  <div class="fld">
+                    <label class="lbl" [for]="'proformaPaquete' + i">PAQUETE</label>
+                    <select class="inp" [id]="'proformaPaquete' + i" formControlName="codigo">
+                      <option [ngValue]="null" disabled>Elige el paquete</option>
+                      @for (paquete of paquetes(); track paquete.idPaquete) {
+                        <option [ngValue]="paquete.idPaquete">
+                          {{ paquete.nombre }} · {{ soles(paquete.precio) }}
+                        </option>
+                      }
+                    </select>
+                  </div>
+                } @else {
+                  <div class="fld">
+                    <label class="lbl" [for]="'proformaPaquete' + i">CÓDIGO DEL PAQUETE</label>
+                    <input
+                      class="inp"
+                      type="number"
+                      min="1"
+                      [id]="'proformaPaquete' + i"
+                      formControlName="codigo"
+                    />
+                  </div>
+                }
+                @if (conCatalogo()) {
+                  <div class="fld">
+                    <label class="lbl" [for]="'proformaPromo' + i">PROMOCIÓN (OPCIONAL)</label>
+                    <select class="inp" [id]="'proformaPromo' + i" formControlName="idPromocion">
+                      <option [ngValue]="null">Sin promoción</option>
+                      @for (promocion of promociones(); track promocion.idPromocion) {
+                        <option [ngValue]="promocion.idPromocion">{{ promocion.nombre }}</option>
+                      }
+                    </select>
+                  </div>
+                } @else {
+                  <div class="fld">
+                    <label class="lbl" [for]="'proformaPromo' + i"
+                      >CÓDIGO DE PROMOCIÓN (OPCIONAL)</label
+                    >
+                    <input
+                      class="inp"
+                      type="number"
+                      min="1"
+                      [id]="'proformaPromo' + i"
+                      formControlName="idPromocion"
+                    />
+                  </div>
+                }
                 <div class="fld">
                   <label class="lbl" [for]="'proformaCantidad' + i">CANTIDAD</label>
                   <input
@@ -152,13 +190,18 @@ const DIAS_VIGENCIA = 7;
     </app-modal>
   `,
 })
-export class Proforma {
+export class Proforma implements OnInit {
   private readonly fb = inject(FormBuilder).nonNullable;
   private readonly servicio = inject(VentasService);
+  private readonly listas = inject(ListasService);
+  private readonly sesion = inject(SesionService);
 
   readonly cerrar = output<void>();
 
   protected readonly soles = soles;
+  protected readonly conCatalogo = computed(() => this.sesion.tienePermiso(PERMISOS.catalogoVer));
+  protected readonly paquetes = signal<PaqueteDTO[]>([]);
+  protected readonly promociones = signal<PromocionDTO[]>([]);
   protected readonly armada = signal<ProformaDTO | null>(null);
   protected readonly error = signal<string | null>(null);
   protected readonly enviando = signal(false);
@@ -170,6 +213,19 @@ export class Proforma {
   });
   protected items = [this.nuevoItem()];
 
+  ngOnInit(): void {
+    if (this.conCatalogo()) {
+      this.listas
+        .paquetes()
+        .subscribe((paquetes) =>
+          this.paquetes.set(paquetes.filter((p) => p.estado !== 'INACTIVO')),
+        );
+      this.listas
+        .promocionesVigentes()
+        .subscribe((promociones) => this.promociones.set(promociones));
+    }
+  }
+
   protected agregarItem(): void {
     this.items = [...this.items, this.nuevoItem()];
   }
@@ -179,9 +235,11 @@ export class Proforma {
   }
 
   protected descripcion(item: Item): string {
-    return item.tipoItem === 'PAQUETE'
-      ? `Paquete ${item.idPaquete}`
-      : `Variante ${item.idVariante}`;
+    if (item.tipoItem === 'PAQUETE') {
+      const paquete = this.paquetes().find((p) => p.idPaquete === item.idPaquete);
+      return paquete?.nombre ?? `Paquete ${item.idPaquete}`;
+    }
+    return `Variante ${item.idVariante}`;
   }
 
   protected emitir(): void {
@@ -192,7 +250,7 @@ export class Proforma {
       return;
     }
     if (this.formulario.invalid || this.items.some((item) => item.invalid)) {
-      this.error.set('Revisa la fecha, los códigos y las cantidades.');
+      this.error.set('Revisa la fecha, los servicios o paquetes y las cantidades.');
       return;
     }
     this.error.set(null);

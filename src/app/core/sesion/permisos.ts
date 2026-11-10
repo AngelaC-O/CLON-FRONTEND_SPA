@@ -1,24 +1,29 @@
+import { CodigoPermiso, PERMISO_DE_OPERACION as OP } from '../api/permisos.generados';
+
 /**
- * Códigos MODULO:ACCION que exige el back-end en sus @PreAuthorize.
- * docs/openapi.yaml solo trae tres de ejemplo (ver docs/NOTAS_IT1.md, Dudas).
+ * Permisos MODULO:ACCION que usan las guardas y el menú. Cada valor sale del x-permiso de una
+ * operación de docs/openapi.yaml (core/api/permisos.generados.ts), no de una copia a mano: si el
+ * contrato cambia el permiso de esa operación, `npm run modelos` lo cambia aquí.
  */
 export const PERMISOS = {
-  agendaCrear: 'AGENDA:CREAR',
-  agendaEditar: 'AGENDA:EDITAR',
-  agendaVer: 'AGENDA:VER',
-  atencionCrear: 'ATENCION:CREAR',
-  atencionEditar: 'ATENCION:EDITAR',
-  cajaCrear: 'CAJA:CREAR',
-  cajaEditar: 'CAJA:EDITAR',
-  cajaVer: 'CAJA:VER',
-  catalogoCrear: 'CATALOGO:CREAR',
-  catalogoVer: 'CATALOGO:VER',
-  clientasCrear: 'CLIENTAS:CREAR',
-  clientasVer: 'CLIENTAS:VER',
-  sedesCrear: 'SEDES:CREAR',
-  seguridadCrear: 'SEGURIDAD:CREAR',
-  seguridadEditar: 'SEGURIDAD:EDITAR',
-  seguridadVer: 'SEGURIDAD:VER',
-  ventasCrear: 'VENTAS:CREAR',
-  ventasVer: 'VENTAS:VER',
-} as const;
+  agendaCrear: OP.agendar,
+  agendaEditar: OP.registrarAdelantoEfectivo,
+  agendaVer: OP.consultarAgenda,
+  atencionCrear: OP.iniciar,
+  atencionEditar: OP.finalizar,
+  atencionVer: OP.listarMiAgenda,
+  cajaCrear: OP.abrir,
+  cajaEditar: OP.cerrar_1,
+  cajaVer: OP.obtenerAbierta,
+  catalogoCrear: OP.registrarServicio,
+  catalogoVer: OP.listarServicios,
+  clientasCrear: OP.registrar_2,
+  clientasVer: OP.buscar,
+  sedesCrear: OP.registrarRecurso,
+  sedesVer: OP.listarRecursos,
+  seguridadCrear: OP.registrar,
+  seguridadEditar: OP.asignarRol,
+  seguridadVer: OP.listarUsuarios,
+  ventasCrear: OP.registrarPagos,
+  ventasVer: OP.obtenerVenta,
+} as const satisfies Record<string, CodigoPermiso>;

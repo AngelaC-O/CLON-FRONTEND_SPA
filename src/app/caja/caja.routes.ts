@@ -5,7 +5,7 @@ import { PERMISOS } from '../core/sesion/permisos';
 export default [
   {
     path: '',
-    canActivate: [permisoGuard(PERMISOS.cajaVer, PERMISOS.cajaCrear, PERMISOS.cajaEditar)],
+    canActivate: [permisoGuard(PERMISOS.cajaVer)],
     loadComponent: () => import('./paginas/caja/caja').then((m) => m.Caja),
   },
 ] satisfies Routes;

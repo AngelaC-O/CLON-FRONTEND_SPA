@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { entrarComo } from '../../../../testing/sesion';
 import { Catalogo } from './catalogo';
 
 describe('Catalogo', () => {
@@ -25,12 +26,12 @@ describe('Catalogo', () => {
   };
 
   const montar = async (permisos: string[]) => {
-    sessionStorage.setItem('cautiva.sesion', JSON.stringify({ idSede: 1, permisos }));
     TestBed.configureTestingModule({
       imports: [Catalogo],
       providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     });
     http = TestBed.inject(HttpTestingController);
+    entrarComo({ idSede: 1, permisos });
     fixture = TestBed.createComponent(Catalogo);
     await estable();
     raiz = fixture.nativeElement;
@@ -41,12 +42,9 @@ describe('Catalogo', () => {
     await estable();
   };
 
-  afterEach(() => {
-    http.verify();
-    sessionStorage.clear();
-  });
+  afterEach(() => http.verify());
 
-  it('sin CATALOGO:CREAR no ofrece registrar y oculta Recursos sin SEDES:CREAR', async () => {
+  it('sin CATALOGO:CREAR no ofrece registrar y oculta Recursos sin SEDES:VER', async () => {
     await montar(['CATALOGO:VER']);
     expect(raiz.textContent).toContain('Peluquería y Estilismo');
     expect(raiz.textContent).not.toContain('+ Servicio');

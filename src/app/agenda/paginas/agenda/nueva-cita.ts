@@ -1,10 +1,17 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, input, OnInit, output, signal } from '@angular/core';
+import { Component, DestroyRef, inject, input, OnInit, output, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { mensajeDelProblema } from '../../../core/api/problema';
+import { leerProblema, mensajeDelProblema } from '../../../core/api/problema';
 import { Modal } from '../../../layout/modal/modal';
-import { CitaDTO, HoraLibre } from '../../modelos/agenda.modelos';
-import { horaDe } from '../../modelos/agenda.vista';
+import { SelectorVariante } from '../../../layout/selector-variante/selector-variante';
+import { CitaDTO, FiltrosAgendaDTO, HoraLibre } from '../../modelos/agenda.modelos';
+import {
+  horaDe,
+  hoyIso,
+  MENSAJE_RN49,
+  nombreEspecialista as nombreDe,
+} from '../../modelos/agenda.vista';
 import { CitasService } from '../../servicios/citas.service';
 import { ClientaElegida, SelectorClienta } from './selector-clienta';
 
@@ -14,10 +21,13 @@ export interface PedidoEspera {
   fecha: string;
 }
 
-/** CUS05 Programar Cita; sin hora libre, ofrece el «extend» a CUS06. */
+/**
+ * CUS05 Programar Cita; sin hora libre, ofrece el «extend» a CUS06. Las horas libres se muestran tal
+ * como llegan, cada AGENDA_PASO_MIN minutos (RN51): el paso lo decide el back-end.
+ */
 @Component({
   selector: 'app-nueva-cita',
-  imports: [ReactiveFormsModule, Modal, SelectorClienta],
+  imports: [ReactiveFormsModule, Modal, SelectorClienta, SelectorVariante],
   template: `
     <app-modal titulo="Nueva cita" (cerrar)="cerrar.emit()">
       <form [formGroup]="formulario" (ngSubmit)="agendar()">
@@ -26,28 +36,17 @@ export interface PedidoEspera {
             <div class="alert bad" role="alert">{{ mensaje }}</div>
           }
           <app-selector-clienta (cambio)="clienta.set($event)" />
-          <div class="g2">
-            <div class="fld">
-              <label class="lbl" for="citaIdVariante">CÓDIGO DE LA VARIANTE</label>
-              <input
-                class="inp"
-                id="citaIdVariante"
-                type="number"
-                min="1"
-                formControlName="idVariante"
-                (input)="horas.set(null)"
-              />
-            </div>
-            <div class="fld">
-              <label class="lbl" for="citaFecha">FECHA</label>
-              <input
-                class="inp"
-                id="citaFecha"
-                type="date"
-                formControlName="fecha"
-                (input)="horas.set(null)"
-              />
-            </div>
+          <app-selector-variante prefijo="cita" [control]="formulario.controls.idVariante" />
+          <div class="fld">
+            <label class="lbl" for="citaFecha">FECHA</label>
+            <input
+              class="inp"
+              id="citaFecha"
+              type="date"
+              [min]="hoy"
+              formControlName="fecha"
+              (input)="horas.set(null)"
+            />
           </div>
           <button
             class="btn sec"
@@ -101,7 +100,7 @@ export interface PedidoEspera {
                 <label class="lbl" for="citaIdPersonal">ESPECIALISTA</label>
                 <select class="inp" id="citaIdPersonal" formControlName="idPersonal">
                   @for (id of hora.idsPersonal; track id) {
-                    <option [ngValue]="id">Especialista {{ id }}</option>
+                    <option [ngValue]="id">{{ nombreEspecialista(id) }}</option>
                   }
                 </select>
               </div>
@@ -109,7 +108,7 @@ export interface PedidoEspera {
                 <label class="lbl" for="citaIdRecurso">RECURSO</label>
                 <select class="inp" id="citaIdRecurso" formControlName="idRecurso">
                   @for (id of hora.idsRecurso; track id) {
-                    <option [ngValue]="id">Recurso {{ id }}</option>
+                    <option [ngValue]="id">{{ nombreRecurso(id) }}</option>
                   }
                 </select>
               </div>
@@ -137,13 +136,17 @@ export interface PedidoEspera {
 export class NuevaCita implements OnInit {
   private readonly fb = inject(FormBuilder).nonNullable;
   private readonly servicio = inject(CitasService);
+  private readonly destruir = inject(DestroyRef);
 
   readonly fechaInicial = input.required<string>();
+  /** Nombres de GET /citas/filtros, para no mostrar códigos en los selectores. */
+  readonly filtros = input<FiltrosAgendaDTO | null>(null);
   readonly cerrar = output<void>();
   readonly agendada = output<CitaDTO>();
   readonly irAEspera = output<PedidoEspera>();
 
   protected readonly horaDe = horaDe;
+  protected readonly hoy = hoyIso();
   protected readonly clienta = signal<ClientaElegida | null>(null);
   protected readonly horas = signal<HoraLibre[] | null>(null);
   protected readonly elegida = signal<HoraLibre | null>(null);
@@ -160,12 +163,22 @@ export class NuevaCita implements OnInit {
 
   ngOnInit(): void {
     this.formulario.controls.fecha.setValue(this.fechaInicial());
+    this.formulario.controls.idVariante.valueChanges
+      .pipe(takeUntilDestroyed(this.destruir))
+      .subscribe(() => {
+        this.horas.set(null);
+        this.elegida.set(null);
+      });
   }
 
   protected verDisponibilidad(): void {
     const { idVariante, fecha } = this.formulario.getRawValue();
     if (!idVariante || idVariante < 1 || !fecha) {
-      this.error.set('Indica la variante y la fecha.');
+      this.error.set('Elige el servicio, la variante y la fecha.');
+      return;
+    }
+    if (fecha < this.hoy) {
+      this.error.set(MENSAJE_RN49);
       return;
     }
     this.error.set(null);
@@ -178,6 +191,15 @@ export class NuevaCita implements OnInit {
         }
       },
     });
+  }
+
+  protected nombreEspecialista(id: number): string {
+    const especialista = this.filtros()?.especialistas?.find((e) => e.idPersonal === id);
+    return especialista ? nombreDe(especialista) : `Especialista ${id}`;
+  }
+
+  protected nombreRecurso(id: number): string {
+    return this.filtros()?.recursos?.find((r) => r.idRecurso === id)?.nombre ?? `Recurso ${id}`;
   }
 
   protected elegirHora(hora: HoraLibre): void {
@@ -214,7 +236,12 @@ export class NuevaCita implements OnInit {
           this.agendada.emit(cita);
         },
         // Los 409 y 422 de la regla los muestra el interceptor; el modal queda abierto.
-        error: () => this.enviando.set(false),
+        error: (error: HttpErrorResponse) => {
+          this.enviando.set(false);
+          if (leerProblema(error)?.regla === 'RN49') {
+            this.error.set(mensajeDelProblema(error, MENSAJE_RN49));
+          }
+        },
       });
   }
 }

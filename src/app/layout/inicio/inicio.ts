@@ -3,14 +3,15 @@ import { RouterLink } from '@angular/router';
 import { PERMISOS } from '../../core/sesion/permisos';
 import { SesionService } from '../../core/sesion/sesion.service';
 import { MENU } from '../menu';
+import { PanelAvisos } from './panel-avisos';
 
 /**
- * Cabecera y acciones del nodo 4:17. No llama a ningún endpoint: los indicadores, las citas y los
- * pendientes de ese nodo no tienen operación en CUS50 (ver docs/NOTAS_IT1.md).
+ * Cabecera, acciones y avisos del nodo 4:17 (CUS50). Los indicadores, las próximas citas y la
+ * ocupación de ese nodo no tienen operación en el contrato (ver docs/NOTAS_IT2.md).
  */
 @Component({
   selector: 'app-inicio',
-  imports: [RouterLink],
+  imports: [RouterLink, PanelAvisos],
   template: `
     <div class="col" style="gap: 16px">
       <div class="row">
@@ -30,6 +31,7 @@ import { MENU } from '../menu';
           <a class="btn lg sec" routerLink="/agenda">Nueva cita</a>
         }
       </div>
+      <app-panel-avisos />
       <div class="gf">
         @for (item of accesos(); track item.ruta) {
           <a class="card" [routerLink]="item.ruta">
@@ -57,7 +59,11 @@ export class Inicio {
     .toUpperCase();
   protected readonly saludo = saludoDe(new Date().getHours());
   protected readonly nombre = computed(() => {
-    const primero = (this.sesion.sesion()?.nombreUsuario ?? '').split(/[.\s_-]+/)[0];
+    const sesion = this.sesion.sesion();
+    if (sesion?.nombres) {
+      return sesion.nombres.split(' ')[0];
+    }
+    const primero = (sesion?.nombreUsuario ?? '').split(/[.\s_-]+/)[0];
     return primero.charAt(0).toUpperCase() + primero.slice(1);
   });
   protected readonly puedeSinCita = computed(() => this.sesion.tienePermiso(PERMISOS.ventasCrear));

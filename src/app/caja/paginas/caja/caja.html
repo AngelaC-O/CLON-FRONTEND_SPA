@@ -4,12 +4,12 @@
       <h1 class="h1">Caja diaria</h1>
       <div class="mut">{{ fechaLarga() }} · Sede {{ idSede() }}</div>
     </div>
-    @if (actual.actual()) {
+    @if (caja()) {
       <span class="chip ok alto">
         <span class="dot"></span>
         {{ horaApertura() ? 'Abierta desde ' + horaApertura() : 'Abierta' }}
       </span>
-    } @else {
+    } @else if (!consultando()) {
       <span class="chip warn alto"><span class="dot"></span>Sin caja abierta</span>
     }
   </div>
@@ -53,7 +53,7 @@
     </div>
   }
 
-  @if (actual.actual(); as caja) {
+  @if (caja(); as caja) {
     @if (esperado(); as datos) {
       <div class="gf1">
         @for (medio of datos.medios; track medio.idMedioPago) {
@@ -87,6 +87,8 @@
         </button>
       }
     </div>
+  } @else if (consultando()) {
+    <div class="card vacio">Consultando la caja de la sede.</div>
   } @else {
     <div class="gf2">
       @if (puedeAbrir()) {
@@ -105,25 +107,7 @@
               [formControl]="apertura"
             />
           </div>
-          @if (yaAbierta()) {
-            <div class="alert warn" role="status">
-              La sede ya tiene una caja abierta. Retómala con su código.
-            </div>
-          }
           <button class="btn lg" type="submit" [disabled]="enviando()">Abrir caja</button>
-        </form>
-      }
-      @if (puedeVer()) {
-        <form class="card col" [formGroup]="formCodigo" (ngSubmit)="continuar()">
-          <h2 class="h2">Retomar una caja abierta</h2>
-          <div class="xs mut">
-            Si se abrió en otra pestaña o equipo, escribe su código para verla y cerrarla.
-          </div>
-          <div class="fld">
-            <label class="lbl" for="cajaCodigo">CÓDIGO DE LA CAJA</label>
-            <input class="inp" id="cajaCodigo" type="number" min="1" [formControl]="codigo" />
-          </div>
-          <button class="btn sec" type="submit" [disabled]="enviando()">Retomar caja</button>
         </form>
       }
     </div>

@@ -33,6 +33,9 @@
   </div>
 
   @if (pestana() === 'usuarios') {
+    @if (errorAsignacion(); as mensaje) {
+      <div class="alert bad" role="alert">{{ mensaje }}</div>
+    }
     <div class="card cp0 tw">
       <table class="tbl">
         <thead>
@@ -46,7 +49,7 @@
         <tbody>
           @for (usuario of usuarios(); track usuario.idUsuario) {
             <tr>
-              <td class="b num">{{ usuario.idPersonal }}</td>
+              <td class="b num">Personal {{ usuario.idPersonal }}</td>
               <td class="num sm">{{ usuario.nombreUsuario }}</td>
               <td>
                 @if (puedeEditar()) {
@@ -66,7 +69,7 @@
                     class="btn sm sec"
                     type="button"
                     style="margin-left: 8px"
-                    (click)="asignar(usuario.idUsuario, +rolFila.value)"
+                    (click)="asignar(usuario, +rolFila.value)"
                   >
                     Asignar rol
                   </button>
@@ -89,44 +92,12 @@
             </tr>
           } @empty {
             <tr>
-              <td class="vacio" colspan="4">
-                Aquí aparecen los usuarios que registres o actualices desde esta pantalla.
-              </td>
+              <td class="vacio" colspan="4">No hay usuarios registrados.</td>
             </tr>
           }
         </tbody>
       </table>
     </div>
-
-    @if (puedeEditar()) {
-      <form class="card col" [formGroup]="formAsignacion" (ngSubmit)="asignarDesdeFormulario()">
-        <h2 class="h2">Asignar rol a otro usuario</h2>
-        @if (errorAsignacion(); as mensaje) {
-          <div class="alert bad" role="alert">{{ mensaje }}</div>
-        }
-        <div class="g2">
-          <div class="fld">
-            <label class="lbl" for="asignarIdUsuario">CÓDIGO DEL USUARIO</label>
-            <input
-              class="inp"
-              id="asignarIdUsuario"
-              type="number"
-              min="1"
-              formControlName="idUsuario"
-            />
-          </div>
-          <div class="fld">
-            <label class="lbl" for="asignarIdRol">ROL</label>
-            <select class="inp" id="asignarIdRol" formControlName="idRol">
-              @for (rol of roles(); track rol.idRol) {
-                <option [ngValue]="rol.idRol">{{ rol.nombre }}</option>
-              }
-            </select>
-          </div>
-        </div>
-        <button class="btn sec" type="submit" style="align-self: flex-start">Asignar rol</button>
-      </form>
-    }
   } @else {
     <div class="card cp0 tw">
       <table class="tbl">
@@ -178,40 +149,27 @@
           <label class="lbl" for="rolDescripcion">DESCRIPCIÓN</label>
           <input class="inp" id="rolDescripcion" maxlength="150" formControlName="descripcion" />
         </div>
-        <div class="h3">Permisos</div>
-        @for (permiso of formRol.controls.permisos.controls; track permiso; let i = $index) {
-          <div class="row nw" [formGroup]="permiso">
-            <input
-              class="inp"
-              list="modulosConocidos"
-              maxlength="40"
-              placeholder="Módulo"
-              [attr.aria-label]="'Módulo del permiso ' + (i + 1)"
-              formControlName="modulo"
-            />
-            <input
-              class="inp"
-              list="accionesConocidas"
-              maxlength="30"
-              placeholder="Acción"
-              [attr.aria-label]="'Acción del permiso ' + (i + 1)"
-              formControlName="accion"
-            />
-            <button class="btn ghost sm" type="button" (click)="quitarPermiso(i)">Quitar</button>
-          </div>
-        }
-        <datalist id="modulosConocidos">
-          @for (modulo of modulosConocidos(); track modulo) {
-            <option [value]="modulo"></option>
+        <fieldset class="col" style="border: 0; margin: 0; padding: 0" formGroupName="permisos">
+          <legend class="h3">Permisos</legend>
+          @for (grupo of grupos(); track grupo.modulo) {
+            <div class="row nw" style="flex-wrap: wrap; gap: 6px 16px">
+              <span class="b sm" style="min-width: 120px">{{ grupo.modulo }}</span>
+              @for (accion of grupo.acciones; track accion.clave) {
+                <label class="row nw sm" style="gap: 6px">
+                  <input
+                    type="checkbox"
+                    [attr.name]="accion.clave"
+                    [formControlName]="accion.clave"
+                  />
+                  {{ accion.accion }}
+                </label>
+              }
+            </div>
+          } @empty {
+            <div class="mut sm">Cargando los permisos…</div>
           }
-        </datalist>
-        <datalist id="accionesConocidas">
-          @for (accion of accionesConocidas(); track accion) {
-            <option [value]="accion"></option>
-          }
-        </datalist>
+        </fieldset>
         <div class="row">
-          <button class="btn sec sm" type="button" (click)="agregarPermiso()">+ Permiso</button>
           <span class="sp"></span>
           <button class="btn" type="submit" [disabled]="enviando()">
             Guardar permisos del rol
@@ -230,8 +188,18 @@
           <div class="alert bad" role="alert">{{ mensaje }}</div>
         }
         <div class="fld">
-          <label class="lbl" for="idPersonal">CÓDIGO DEL PERSONAL</label>
-          <input class="inp" id="idPersonal" type="number" min="1" formControlName="idPersonal" />
+          <label class="lbl" for="idPersonal">PERSONAL SIN USUARIO</label>
+          <select class="inp" id="idPersonal" formControlName="idPersonal">
+            <option [ngValue]="null" disabled>Elige a la persona</option>
+            @for (persona of personal(); track persona.idPersonal) {
+              <option [ngValue]="persona.idPersonal">
+                {{ nombrePersonal(persona) }}{{ persona.cargo ? ' · ' + persona.cargo : '' }}
+              </option>
+            }
+          </select>
+          @if (!personal().length) {
+            <div class="xs mut">Todo el personal activo ya tiene usuario.</div>
+          }
         </div>
         <div class="fld">
           <label class="lbl" for="nombreUsuario">NOMBRE DE USUARIO</label>

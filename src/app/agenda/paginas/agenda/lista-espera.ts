@@ -3,6 +3,7 @@ import { Component, inject, input, OnInit, output, signal } from '@angular/core'
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { mensajeDelProblema } from '../../../core/api/problema';
 import { Modal } from '../../../layout/modal/modal';
+import { SelectorVariante } from '../../../layout/selector-variante/selector-variante';
 import { ListaEsperaDTO } from '../../modelos/agenda.modelos';
 import { CitasService } from '../../servicios/citas.service';
 import { PedidoEspera } from './nueva-cita';
@@ -11,7 +12,7 @@ import { ClientaElegida, SelectorClienta } from './selector-clienta';
 /** CUS06 Registrar Lista de Espera. */
 @Component({
   selector: 'app-lista-espera',
-  imports: [ReactiveFormsModule, Modal, SelectorClienta],
+  imports: [ReactiveFormsModule, Modal, SelectorClienta, SelectorVariante],
   template: `
     <app-modal titulo="Lista de espera" [angosto]="true" (cerrar)="cerrar.emit()">
       <form [formGroup]="formulario" (ngSubmit)="anotar()">
@@ -21,16 +22,7 @@ import { ClientaElegida, SelectorClienta } from './selector-clienta';
             <div class="alert bad" role="alert">{{ mensaje }}</div>
           }
           <app-selector-clienta [inicial]="pedido().clienta" (cambio)="clienta.set($event)" />
-          <div class="fld">
-            <label class="lbl" for="esperaIdVariante">CÓDIGO DE LA VARIANTE</label>
-            <input
-              class="inp"
-              id="esperaIdVariante"
-              type="number"
-              min="1"
-              formControlName="idVariante"
-            />
-          </div>
+          <app-selector-variante prefijo="espera" [control]="formulario.controls.idVariante" />
           <div class="fld">
             <label class="lbl" for="esperaFecha">FECHA DESEADA</label>
             <input class="inp" id="esperaFecha" type="date" formControlName="fechaDeseada" />
@@ -85,7 +77,7 @@ export class ListaEspera implements OnInit {
     const { idVariante, fechaDeseada, horaDesde, horaHasta } = this.formulario.getRawValue();
     const clienta = this.clienta();
     if (!clienta || !idVariante || this.formulario.invalid) {
-      this.error.set('Elige la clienta e indica la variante y la fecha deseada.');
+      this.error.set('Elige la clienta, el servicio, la variante y la fecha deseada.');
       return;
     }
     if (horaDesde && horaHasta && horaDesde >= horaHasta) {

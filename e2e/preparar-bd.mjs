@@ -86,11 +86,13 @@ docker('cp', DIR_BD, `${CONTENEDOR}:/tmp/database`);
 // Los scripts escriben su log junto a ellos.
 docker('exec', '-u', 'root', CONTENEDOR, 'chown', '-R', 'oracle', '/tmp/database');
 
-console.log('Instalando 00, 14, 13 y 15...');
+console.log('Instalando 00, 14, 13, 15 y 17...');
 sqlplus(ESQUEMA, claves.dueno, '@00_instalar_v5.sql');
 sqlplus('system', claves.system, '@14_cuenta_aplicacion.sql');
 sqlplus(ESQUEMA, claves.dueno, '@13_permisos.sql');
 sqlplus(ESQUEMA, claves.dueno, '@15_datos_iteracion1.sql');
+// Iteración 2: migración v5 -> v5.1 y sus datos (orden del README del back-end: 15 -> 17).
+sqlplus(ESQUEMA, claves.dueno, '@17_datos_iteracion2.sql');
 sqlplus(
   'system',
   claves.system,

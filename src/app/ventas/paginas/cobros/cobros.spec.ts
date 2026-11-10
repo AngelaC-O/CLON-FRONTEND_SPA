@@ -1,12 +1,33 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { vi } from 'vitest';
+import {
+  MedioPagoDTO,
+  PorCobrarDTO,
+  ServicioDTO,
+  TipoDocumentoDTO,
+  VentaDTO,
+} from '../../../core/api/modelos.generados';
+import { entrarComo } from '../../../../testing/sesion';
+import { ComprobanteEmitido } from '../comprobante/comprobante-emitido';
 import { Cobros } from './cobros';
 
-const VENTA = {
+/** Ids distintos de 1 a 4: ya no se suponen por orden de inserción (Duda 11). */
+const MEDIOS: MedioPagoDTO[] = [
+  { idMedioPago: 11, nombre: 'EFECTIVO', estado: 'ACTIVO', usaPasarela: false },
+  { idMedioPago: 12, nombre: 'YAPE', estado: 'ACTIVO', usaPasarela: true },
+  { idMedioPago: 13, nombre: 'PLIN', estado: 'INACTIVO', usaPasarela: true },
+  { idMedioPago: 14, nombre: 'TARJETA', estado: 'ACTIVO', usaPasarela: true },
+];
+const TIPOS: TipoDocumentoDTO[] = [
+  { idTipoDocumento: 1, abreviatura: 'DNI', longitudMin: 8, longitudMax: 8, soloNumeros: true },
+  { idTipoDocumento: 3, abreviatura: 'RUC', longitudMin: 11, longitudMax: 11, soloNumeros: true },
+];
+const VENTA: VentaDTO = {
   idVenta: 8812,
+  idCliente: 407,
   estado: 'ABIERTA',
   subtotal: 60,
   igv: 0,
@@ -20,7 +41,15 @@ const VENTA = {
   cobrosPendientes: [],
   detalles: [{ idDetalle: 1, idAtencion: 1532, tipoItem: 'SERVICIO', subtotal: 60 }],
 };
-const CERRADA = {
+const PAGADA: VentaDTO = { ...VENTA, pagado: 60, pendiente: 0 };
+const POR_COBRAR: PorCobrarDTO = {
+  atenciones: [
+    { idAtencion: 1531, idCliente: 405, idVariante: 3, adelantoMonto: 0 },
+    { idAtencion: 1532, idCliente: 407, idVariante: 2, adelantoMonto: 10 },
+  ],
+  ventasAbiertas: [{ ...VENTA, idVenta: 8800, total: 35, pendiente: 35 }],
+};
+const CERRADA: VentaDTO = {
   idVenta: 8812,
   estado: 'CERRADA',
   total: 60,
@@ -41,14 +70,14 @@ describe('Cobros', () => {
   const estable = () => fixture.whenStable();
   const botones = () => [...raiz.querySelectorAll('button')];
   const boton = (texto: string) => botones().find((b) => b.textContent?.includes(texto));
+  const etiquetado = (etiqueta: string) =>
+    botones().find((b) => b.getAttribute('aria-label') === etiqueta)!;
   const clic = async (texto: string) => {
     boton(texto)!.click();
     await estable();
   };
   const pagoEn = async (medio: string) => {
-    botones()
-      .find((b) => b.getAttribute('aria-label') === `Registrar pago en ${medio}`)!
-      .click();
+    etiquetado(`Registrar pago en ${medio}`).click();
     await estable();
   };
   const escribir = (id: string, valor: string) => {
@@ -56,13 +85,23 @@ describe('Cobros', () => {
     entrada.value = valor;
     entrada.dispatchEvent(new Event('input'));
   };
-  const montar = async (venta: object | null = null, idAtencion?: string) => {
-    sessionStorage.setItem(
-      'cautiva.sesion',
-      JSON.stringify({ idSede: 1, permisos: ['VENTAS:CREAR', 'VENTAS:VER'] }),
-    );
-    if (venta) {
-      sessionStorage.setItem('cautiva.venta', JSON.stringify({ venta, enEspera: [] }));
+
+  /** Sin venta, pide «Por cobrar»; con venta, la retoma por ?idVenta= (GET /ventas/{id}). */
+  const montar = async (
+    opciones: {
+      venta?: VentaDTO;
+      idAtencion?: number;
+      permisos?: string[];
+      porCobrar?: PorCobrarDTO;
+    } = {},
+  ) => {
+    const permisos = opciones.permisos ?? ['VENTAS:CREAR', 'VENTAS:VER', 'CATALOGO:VER'];
+    const parametros: Record<string, string> = {};
+    if (opciones.venta) {
+      parametros['idVenta'] = String(opciones.venta.idVenta);
+    }
+    if (opciones.idAtencion) {
+      parametros['idAtencion'] = String(opciones.idAtencion);
     }
     TestBed.configureTestingModule({
       imports: [Cobros],
@@ -70,35 +109,58 @@ describe('Cobros', () => {
         provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),
-        ...(idAtencion
-          ? [
-              {
-                provide: ActivatedRoute,
-                useValue: {
-                  snapshot: {
-                    queryParamMap: { get: () => idAtencion },
-                  },
-                },
-              },
-            ]
-          : []),
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { queryParamMap: convertToParamMap(parametros) } },
+        },
       ],
     });
     http = TestBed.inject(HttpTestingController);
+    entrarComo({ idSede: 1, permisos });
     fixture = TestBed.createComponent(Cobros);
     await estable();
     raiz = fixture.nativeElement;
+    http.expectOne('/api/v1/medios-pago').flush(MEDIOS);
+    http.expectOne('/api/v1/tipos-documento').flush(TIPOS);
+    if (permisos.includes('CATALOGO:VER')) {
+      http
+        .expectOne('/api/v1/promociones?vigentes=true')
+        .flush([
+          { idPromocion: 7, nombre: 'Noviembre feliz', tipoDescuento: 'PORCENTAJE', valor: 10 },
+        ]);
+    }
+    if (opciones.venta) {
+      http.expectOne(`/api/v1/ventas/${opciones.venta.idVenta}`).flush(opciones.venta);
+    } else {
+      http.expectOne('/api/v1/ventas/por-cobrar').flush(opciones.porCobrar ?? POR_COBRAR);
+    }
+    await estable();
   };
 
   afterEach(() => {
     http.verify();
-    sessionStorage.clear();
     document.querySelectorAll('iframe').forEach((marco) => marco.remove());
     vi.restoreAllMocks();
   });
 
+  it('lista «Por cobrar» con GET /ventas/por-cobrar (diferencia 31)', async () => {
+    await montar();
+    const filas = raiz.querySelectorAll('tbody tr');
+    expect(filas[0].textContent).toContain('Atención 1531');
+    expect(filas[1].textContent).toContain('S/ 10.00');
+    expect(raiz.textContent).toContain('Venta 8800');
+    expect(raiz.querySelector('#cobroIdAtencion')).toBeNull();
+  });
+
+  it('pone primero la atención que llega desde IGU_Atencion, sin cobrarla sola', async () => {
+    await montar({ idAtencion: 1532 });
+    expect(raiz.querySelector('tbody tr')?.textContent).toContain('Atención 1532');
+    expect(raiz.querySelector('tbody tr')?.classList).toContain('resaltada');
+    http.expectNone('/api/v1/ventas');
+  });
+
   it('no ofrece anulación, nota de crédito ni venta de productos', async () => {
-    await montar(VENTA);
+    await montar({ venta: VENTA });
     const texto = raiz.textContent!.toLowerCase();
     expect(texto).not.toContain('anular');
     expect(texto).not.toContain('nota de crédito');
@@ -107,8 +169,7 @@ describe('Cobros', () => {
 
   it('CUS18: crea la venta desde la atención y aplica el adelanto de la cita', async () => {
     await montar();
-    escribir('cobroIdAtencion', '1532');
-    raiz.querySelector('form')!.dispatchEvent(new Event('submit'));
+    etiquetado('Cobrar la atención 1532').click();
     const crear = http.expectOne('/api/v1/ventas');
     expect(crear.request.body).toEqual({ idAtencion: 1532 });
     crear.flush(VENTA);
@@ -122,54 +183,75 @@ describe('Cobros', () => {
     expect(raiz.querySelector('.kpi')?.textContent).toContain('S/ 50.00');
   });
 
-  it('propone la atención que llega desde IGU_Atencion, sin cobrarla sola', async () => {
-    await montar(null, '1532');
-    expect(raiz.querySelector<HTMLInputElement>('#cobroIdAtencion')?.value).toBe('1532');
-    http.expectNone('/api/v1/ventas');
+  it('retoma una venta abierta con GET /ventas/{idVenta} (Duda 10)', async () => {
+    await montar();
+    etiquetado('Retomar la venta 8800').click();
+    http
+      .expectOne('/api/v1/ventas/8800')
+      .flush({ ...VENTA, idVenta: 8800, pagado: 20, pendiente: 40 });
+    await estable();
+    expect(raiz.textContent).toContain('Venta 8800');
+    expect(raiz.querySelector('.kpi')?.textContent).toContain('S/ 40.00');
+    await clic('Volver a');
+    http.expectOne('/api/v1/ventas/por-cobrar').flush(POR_COBRAR);
+    await estable();
+    expect(raiz.textContent).toContain('Por cobrar');
   });
 
-  it('CUS18: aplica promoción y saldo a favor', async () => {
-    await montar(VENTA);
-    escribir('cobroPromocion', '3');
+  it('CUS18: aplica la promoción elegida de GET /promociones y el saldo a favor', async () => {
+    await montar({ venta: VENTA });
+    const promocion = raiz.querySelector<HTMLSelectElement>('#cobroPromocion')!;
+    expect(promocion.options[1].textContent).toContain('Noviembre feliz · 10 %');
+    promocion.selectedIndex = 1;
+    promocion.dispatchEvent(new Event('change'));
     escribir('cobroSaldo', '5');
     await clic('Aplicar descuentos');
     const peticion = http.expectOne('/api/v1/ventas/8812/descuentos');
-    expect(peticion.request.body).toEqual({ idPromocion: 3, saldoFavorAplicado: 5 });
+    expect(peticion.request.body).toEqual({ idPromocion: 7, saldoFavorAplicado: 5 });
     peticion.flush({ ...VENTA, saldoFavorAplicado: 5, total: 55, pendiente: 55 });
     await estable();
     expect(raiz.textContent).toContain('Saldo a favor aplicado');
   });
 
+  it('sin CATALOGO:VER la promoción se escribe por código', async () => {
+    await montar({ venta: VENTA, permisos: ['VENTAS:CREAR', 'VENTAS:VER'] });
+    expect(raiz.querySelector('input#cobroPromocion')).not.toBeNull();
+  });
+
+  it('ofrece los medios activos de GET /medios-pago con sus ids (Duda 11)', async () => {
+    await montar({ venta: VENTA });
+    expect(raiz.querySelector('#pagoMonto11')).not.toBeNull();
+    expect(raiz.querySelector('#pagoMonto13')).toBeNull();
+    expect(raiz.querySelector('#pagoCanal11')).toBeNull();
+    expect(raiz.querySelector<HTMLSelectElement>('#pagoCanal12')?.value).toBe('QR');
+    expect(raiz.querySelector<HTMLSelectElement>('#pagoCanal14')?.value).toBe('LINK');
+  });
+
   it('RN11: no deja pasarse del total ni cerrar mientras falte pagar', async () => {
-    await montar(VENTA);
+    await montar({ venta: VENTA });
     expect(boton('Cerrar venta')?.disabled).toBe(true);
-    escribir('pagoMonto1', '70');
+    escribir('pagoMonto11', '70');
     await pagoEn('Efectivo');
     http.expectNone('/api/v1/ventas/8812/pagos');
     expect(raiz.querySelector('.alert.bad')?.textContent).toContain('RN11');
 
     await clic('Todo');
-    expect(raiz.querySelector<HTMLInputElement>('#pagoMonto1')?.value).toBe('60');
+    expect(raiz.querySelector<HTMLInputElement>('#pagoMonto11')?.value).toBe('60');
     await pagoEn('Efectivo');
     const peticion = http.expectOne('/api/v1/ventas/8812/pagos');
-    expect(peticion.request.body).toEqual({ pagos: [{ idMedioPago: 1, monto: 60 }] });
-    peticion.flush({
-      ...VENTA,
-      pagado: 60,
-      pendiente: 0,
-      pagos: [{ idPago: 9902, idMedioPago: 1, monto: 60 }],
-    });
+    expect(peticion.request.body).toEqual({ pagos: [{ idMedioPago: 11, monto: 60 }] });
+    peticion.flush({ ...PAGADA, pagos: [{ idPago: 9902, idMedioPago: 11, monto: 60 }] });
     await estable();
     expect(boton('Cerrar venta')?.disabled).toBe(false);
     expect(raiz.textContent).toContain('Pagos completos');
   });
 
-  it('RN42: muestra el QR, espera a Izipay y reenvía con el id de la transacción', async () => {
-    await montar(VENTA);
-    escribir('pagoMonto2', '40');
+  const cobrarConYape = async () => {
+    await montar({ venta: VENTA });
+    escribir('pagoMonto12', '40');
     await pagoEn('Yape');
     const cobro = http.expectOne('/api/v1/ventas/8812/pagos');
-    expect(cobro.request.body).toEqual({ pagos: [{ idMedioPago: 2, monto: 40, canal: 'QR' }] });
+    expect(cobro.request.body).toEqual({ pagos: [{ idMedioPago: 12, monto: 40, canal: 'QR' }] });
     cobro.flush(
       {
         ...VENTA,
@@ -178,58 +260,123 @@ describe('Cobros', () => {
       { status: 202, statusText: 'Accepted' },
     );
     await estable();
+  };
+
+  it('RN42 y Duda 8: consulta el estado con GET /ventas/{id} y, aprobado, reenvía el cobro', async () => {
+    await cobrarConYape();
     expect(raiz.querySelector('app-qr-pago path')?.getAttribute('d')).toContain('h1v1h-1z');
     expect(raiz.textContent).toContain('Esperando a Izipay');
     expect(boton('Cerrar venta')?.disabled).toBe(true);
     // Lo que espera a Izipay no se puede cobrar dos veces (RN11).
     await clic('Todo');
-    expect(raiz.querySelector<HTMLInputElement>('#pagoMonto1')?.value).toBe('20');
+    expect(raiz.querySelector<HTMLInputElement>('#pagoMonto11')?.value).toBe('20');
 
+    // Aún pendiente: sin reenviar y sin el 422 de la Iteración 1.
     await clic('Verificar aprobación');
-    http
-      .expectOne('/api/v1/ventas/8812/pagos')
-      .flush({ detail: 'Aún no', regla: 'RF103' }, { status: 422, statusText: 'Unprocessable' });
+    http.expectOne('/api/v1/ventas/8812').flush({
+      ...VENTA,
+      cobrosPendientes: [{ idTransaccion: 5510 }],
+      pagos: [
+        {
+          idPago: 9901,
+          idMedioPago: 12,
+          monto: 40,
+          idTransaccion: 5510,
+          estadoTransaccion: 'PENDIENTE',
+        },
+      ],
+    });
     await estable();
+    http.expectNone('/api/v1/ventas/8812/pagos');
     expect(raiz.textContent).toContain('Esperando a Izipay');
 
     await clic('Verificar aprobación');
+    http.expectOne('/api/v1/ventas/8812').flush({
+      ...VENTA,
+      cobrosPendientes: [{ idTransaccion: 5510 }],
+      pagos: [
+        {
+          idPago: 9901,
+          idMedioPago: 12,
+          monto: 40,
+          idTransaccion: 5510,
+          estadoTransaccion: 'APROBADA',
+        },
+      ],
+    });
+    await estable();
     const reenvio = http.expectOne('/api/v1/ventas/8812/pagos');
     expect(reenvio.request.body).toEqual({
-      pagos: [{ idMedioPago: 2, monto: 40, idTransaccion: 5510 }],
+      pagos: [{ idMedioPago: 12, monto: 40, idTransaccion: 5510 }],
     });
     reenvio.flush({
       ...VENTA,
       pagado: 40,
       pendiente: 20,
-      pagos: [{ idPago: 9901, idMedioPago: 2, monto: 40, referencia: 'IZ-1' }],
+      pagos: [
+        {
+          idPago: 9901,
+          idMedioPago: 12,
+          monto: 40,
+          referencia: 'IZ-1',
+          estadoTransaccion: 'APROBADA',
+          idTransaccion: 5510,
+        },
+      ],
     });
     await estable();
     expect(raiz.textContent).not.toContain('Esperando a Izipay');
     expect(raiz.textContent).toContain('IZ-1');
   });
 
-  it('un cobro por enlace se comparte, y conserva la espera al recargar', async () => {
-    await montar(VENTA);
-    escribir('pagoMonto4', '60');
-    await pagoEn('Tarjeta');
-    http.expectOne('/api/v1/ventas/8812/pagos').flush({
+  it('Duda 8: un cobro rechazado deja de esperarse y se avisa', async () => {
+    await cobrarConYape();
+    await clic('Verificar aprobación');
+    http.expectOne('/api/v1/ventas/8812').flush({
       ...VENTA,
-      cobrosPendientes: [{ idTransaccion: 5511, enlacePago: 'https://izipay.example/t' }],
+      pagos: [
+        {
+          idPago: 9901,
+          idMedioPago: 12,
+          monto: 40,
+          idTransaccion: 5510,
+          estadoTransaccion: 'RECHAZADA',
+        },
+      ],
     });
     await estable();
-    expect(raiz.querySelector('app-qr-pago')).toBeNull();
+    expect(raiz.textContent).not.toContain('Esperando a Izipay');
+    expect(raiz.querySelector('.alert.bad')?.textContent).toContain('rechazó');
+    expect(raiz.textContent).toContain('Rechazado por Izipay');
+  });
+
+  it('al retomar la venta muestra los cobros digitales que siguen pendientes', async () => {
+    await montar({
+      venta: {
+        ...VENTA,
+        cobrosPendientes: [{ idTransaccion: 5511, enlacePago: 'https://izipay.example/t' }],
+        pagos: [
+          {
+            idPago: 9903,
+            idMedioPago: 14,
+            monto: 60,
+            idTransaccion: 5511,
+            estadoTransaccion: 'PENDIENTE',
+          },
+        ],
+      },
+    });
+    expect(raiz.textContent).toContain('Esperando a Izipay');
+    expect(raiz.textContent).toContain('Tarjeta');
     expect(raiz.querySelector<HTMLInputElement>('app-compartir-enlace input')?.value).toBe(
       'https://izipay.example/t',
-    );
-    expect(JSON.parse(sessionStorage.getItem('cautiva.venta')!).enEspera[0].idTransaccion).toBe(
-      5511,
     );
     await clic('Quitar');
     expect(raiz.textContent).not.toContain('Esperando a Izipay');
   });
 
-  it('CUS19: consulta el RUC, emite la factura y muestra el estado SUNAT', async () => {
-    await montar({ ...VENTA, pagado: 60, pendiente: 0 });
+  it('CUS19: consulta el RUC, emite la factura y lee el estado SUNAT (Duda 12)', async () => {
+    await montar({ venta: PAGADA });
     await clic('Factura');
     escribir('compradorRuc', '20601234567');
     await clic('Consultar RUC');
@@ -252,15 +399,29 @@ describe('Cobros', () => {
     await estable();
     const comprobante = raiz.querySelector('app-comprobante-emitido')!;
     expect(comprobante.textContent).toContain('Factura F001-00000125');
+    http
+      .expectOne('/api/v1/comprobantes/7120')
+      .flush({ ...CERRADA.comprobante, estadoSunat: 'PENDIENTE' });
+    await estable();
     expect(comprobante.textContent).toContain('SUNAT: PENDIENTE');
     expect(comprobante.textContent).toContain('RN46');
-    expect(sessionStorage.getItem('cautiva.venta')).toBeNull();
+
+    await clic('Actualizar estado SUNAT');
+    http
+      .expectOne('/api/v1/comprobantes/7120')
+      .flush({ ...CERRADA.comprobante, estadoSunat: 'ACEPTADO', codigoRespuesta: '0' });
+    await estable();
+    expect(comprobante.textContent).toContain('SUNAT: ACEPTADO');
+    expect(boton('Actualizar estado SUNAT')).toBeUndefined();
+
     await clic('Listo');
+    http.expectOne('/api/v1/ventas/por-cobrar').flush(POR_COBRAR);
+    await estable();
     expect(raiz.querySelector('app-comprobante-emitido')).toBeNull();
   });
 
   it('CUS19: si la consulta no responde, la razón social se escribe a mano', async () => {
-    await montar({ ...VENTA, pagado: 60, pendiente: 0 });
+    await montar({ venta: PAGADA });
     await clic('Factura');
     escribir('compradorRuc', '20601234567');
     await clic('Consultar RUC');
@@ -275,7 +436,7 @@ describe('Cobros', () => {
   });
 
   it('RN08: avisa que la boleta alta lleva comprador; sin datos se envía solo el tipo', async () => {
-    await montar({ ...VENTA, subtotal: 800, total: 800, pagado: 800, pendiente: 0 });
+    await montar({ venta: { ...PAGADA, subtotal: 800, total: 800, pagado: 800 } });
     expect(raiz.querySelector('.alert.warn')?.textContent).toContain('RN08');
     await clic('Cerrar venta');
     const peticion = http.expectOne('/api/v1/ventas/8812/cierre');
@@ -285,8 +446,14 @@ describe('Cobros', () => {
     expect(raiz.querySelector('app-comprobante-emitido')).toBeNull();
   });
 
-  it('CUS20: imprime el PDF y comparte el enlace por correo', async () => {
-    await montar({ ...VENTA, pagado: 60, pendiente: 0 });
+  it('CUS20: imprime el PDF y «Enviar por correo» abre mailto con el enlace firmado', async () => {
+    const abrirCorreo = vi
+      .spyOn(
+        ComprobanteEmitido.prototype as unknown as { abrirCorreo: (u: string) => void },
+        'abrirCorreo',
+      )
+      .mockImplementation(() => undefined);
+    await montar({ venta: PAGADA });
     await clic('Cerrar venta');
     http.expectOne('/api/v1/ventas/8812/cierre').flush({
       ...CERRADA,
@@ -306,7 +473,6 @@ describe('Cobros', () => {
 
     await clic('Correo');
     escribir('entregaCorreo', 'no-es-correo');
-    await clic('Compartir comprobante');
     raiz.querySelector('app-comprobante-emitido form')!.dispatchEvent(new Event('submit'));
     await estable();
     http.expectNone((p) => p.url.includes('/enlace'));
@@ -314,24 +480,39 @@ describe('Cobros', () => {
       'correo',
     );
 
-    escribir('entregaCorreo', 'clienta@ejemplo.com');
-    raiz.querySelector('app-comprobante-emitido form')!.dispatchEvent(new Event('submit'));
+    // Sin correo escrito, se usa el de la ficha de la clienta que devuelve el back-end.
+    escribir('entregaCorreo', '');
+    await clic('Enviar por correo');
+    http.expectOne('/api/v1/comprobantes/7120/enlace?canal=CORREO').flush({
+      canal: 'CORREO',
+      correo: 'clienta@ejemplo.com',
+      enlace: 'https://backoffice.example/publico/7120?firma=ab12',
+    });
     await estable();
-    http
-      .expectOne('/api/v1/comprobantes/7120/enlace?canal=CORREO&correo=clienta@ejemplo.com')
-      .flush({ enlace: 'https://backoffice.example/publico/7120' });
-    await estable();
-    const correo = raiz.querySelector<HTMLAnchorElement>('app-compartir-enlace a')!;
-    expect(correo.getAttribute('href')).toContain('mailto:clienta%40ejemplo.com');
-    expect(correo.getAttribute('href')).toContain(
-      encodeURIComponent('https://backoffice.example/publico/7120'),
-    );
+    expect(abrirCorreo).toHaveBeenCalledTimes(1);
+    const url = abrirCorreo.mock.calls[0][0] as string;
+    expect(url.startsWith('mailto:clienta%40ejemplo.com?subject=')).toBe(true);
+    expect(url).toContain('subject=' + encodeURIComponent('Comprobante F001-00000125'));
+    expect(url).toContain(encodeURIComponent('https://backoffice.example/publico/7120?firma=ab12'));
   });
 
-  it('CUS21: arma la proforma, la imprime y no guarda nada', async () => {
+  it('CUS21: arma la proforma con el servicio de la lista y no guarda nada', async () => {
     await montar();
     const imprimir = vi.spyOn(window, 'print').mockImplementation(() => undefined);
     await clic('Emitir proforma');
+    http.expectOne('/api/v1/paquetes').flush([]);
+    http.expectOne('/api/v1/promociones?vigentes=true').flush([]);
+    http.expectOne('/api/v1/servicios?estado=ACTIVO').flush([
+      {
+        idServicio: 1,
+        idArea: 1,
+        nombre: 'Corte',
+        duracionRefMin: 30,
+        tipoRecurso: 'SILLON',
+        variantes: [{ idVariante: 2, nombreVariante: 'Clásico', precio: 35 }],
+      },
+    ] satisfies ServicioDTO[]);
+    await estable();
     const modal = () => raiz.querySelector('app-proforma')!;
     modal().querySelector('form')!.dispatchEvent(new Event('submit'));
     await estable();
@@ -339,8 +520,11 @@ describe('Cobros', () => {
 
     escribir('proformaNombre', 'Novia');
     escribir('proformaValidez', '2026-11-30');
-    escribir('proformaCodigo0', '2');
+    const servicio = raiz.querySelector<HTMLSelectElement>('#proforma0Servicio')!;
+    servicio.selectedIndex = 1;
+    servicio.dispatchEvent(new Event('change'));
     escribir('proformaCantidad0', '2');
+    await estable();
     modal().querySelector('form')!.dispatchEvent(new Event('submit'));
     const peticion = http.expectOne('/api/v1/proformas');
     expect(peticion.request.body).toEqual({
@@ -359,6 +543,5 @@ describe('Cobros', () => {
     expect(modal().textContent).toContain('RN09');
     await clic('Imprimir');
     expect(imprimir).toHaveBeenCalled();
-    expect(sessionStorage.getItem('cautiva.venta')).toBeNull();
   });
 });

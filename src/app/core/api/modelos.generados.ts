@@ -39,6 +39,57 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/atenciones/en-curso': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Retomar la atención en curso de una cita */
+    get: operations['obtenerEnCurso'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/atenciones/mi-agenda': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Mi agenda del día (la especialista de la sesión) */
+    get: operations['listarMiAgenda'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/atenciones/productos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Buscar productos para recomendar */
+    get: operations['buscarProductos_1'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/atenciones/{idAtencion}/fin': {
     parameters: {
       query?: never;
@@ -54,6 +105,40 @@ export interface paths {
     head?: never;
     /** Finalizar la atención */
     patch: operations['finalizar'];
+    trace?: never;
+  };
+  '/api/v1/atenciones/{idAtencion}/recomendaciones': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Registrar una recomendación de producto */
+    post: operations['recomendarProducto'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/auditoria': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Consultar la auditoría */
+    get: operations['consultar'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
     trace?: never;
   };
   '/api/v1/auth/cambio-clave': {
@@ -107,6 +192,40 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/auth/sesion': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Sesión vigente al recargar la página */
+    get: operations['obtenerSesion'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/avisos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Panel de avisos de Inicio */
+    get: operations['listarAvisos'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/cajas': {
     parameters: {
       query?: never;
@@ -118,6 +237,57 @@ export interface paths {
     put?: never;
     /** Abrir la caja de la sede */
     post: operations['abrir'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/cajas/abierta': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Caja abierta de la sede */
+    get: operations['obtenerAbierta'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/cajas/con-diferencia': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Listar los cierres con diferencia por aprobar */
+    get: operations['listarConDiferencia'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/cajas/del-dia': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Listar las cajas de hoy de la sede */
+    get: operations['obtenerDelDia'];
+    put?: never;
+    post?: never;
     delete?: never;
     options?: never;
     head?: never;
@@ -152,6 +322,58 @@ export interface paths {
     get: operations['calcularEsperado'];
     put?: never;
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/cajas/{idCaja}/reapertura': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Reabrir la caja del día */
+    patch: operations['reabrir'];
+    trace?: never;
+  };
+  '/api/v1/cajas/{idCaja}/revision': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Aprobar un cierre con diferencia */
+    patch: operations['aprobarCierre'];
+    trace?: never;
+  };
+  '/api/v1/categorias-producto': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Listar las categorías de producto */
+    get: operations['listarCategorias'];
+    put?: never;
+    /** Registrar una categoría de producto */
+    post: operations['registrarCategoria'];
     delete?: never;
     options?: never;
     head?: never;
@@ -209,7 +431,42 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/citas/filtros': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Especialistas y recursos de la sede para filtrar la agenda */
+    get: operations['listarFiltros'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/citas/lista-espera': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Listar las esperas pendientes del día */
+    get: operations['listarEspera'];
+    put?: never;
+    /** Anotar en la lista de espera */
+    post: operations['registrarEspera'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/citas/lista-espera/{idEspera}/descarte': {
     parameters: {
       query?: never;
       header?: never;
@@ -218,12 +475,12 @@ export interface paths {
     };
     get?: never;
     put?: never;
-    /** Anotar en la lista de espera */
-    post: operations['registrarEspera'];
+    post?: never;
     delete?: never;
     options?: never;
     head?: never;
-    patch?: never;
+    /** Descartar una espera */
+    patch: operations['descartarEspera'];
     trace?: never;
   };
   '/api/v1/citas/{idCita}/adelanto': {
@@ -243,6 +500,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/citas/{idCita}/cancelacion': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Cancelar una cita */
+    patch: operations['cancelar'];
+    trace?: never;
+  };
   '/api/v1/citas/{idCita}/enlace-adelanto': {
     parameters: {
       query?: never;
@@ -260,6 +534,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/citas/{idCita}/reprogramacion': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Reprogramar una cita */
+    post: operations['reprogramar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/clientes': {
     parameters: {
       query?: never;
@@ -271,7 +562,7 @@ export interface paths {
     get: operations['buscar'];
     put?: never;
     /** Registrar una clienta (PERSONA y CLIENTE en una transacción) */
-    post: operations['registrar_1'];
+    post: operations['registrar_2'];
     delete?: never;
     options?: never;
     head?: never;
@@ -295,6 +586,24 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/clientes/{idCliente}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Consultar la ficha de la clienta */
+    get: operations['obtenerFicha'];
+    /** Actualizar los datos de la clienta */
+    put: operations['actualizar'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/comprobantes/publico/{idComprobante}': {
     parameters: {
       query?: never;
@@ -304,6 +613,23 @@ export interface paths {
     };
     /** Abrir el comprobante desde el enlace firmado (no está en el draw.io, DF-53) */
     get: operations['obtenerPublico'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/comprobantes/{idComprobante}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Consultar el comprobante con su estado SUNAT */
+    get: operations['obtenerComprobante'];
     put?: never;
     post?: never;
     delete?: never;
@@ -346,6 +672,159 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/conciliaciones': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Conciliar las ventas del mes */
+    post: operations['conciliar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/conciliaciones/liquidacion': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Importar el reporte de liquidación de Izipay */
+    post: operations['importarLiquidacion'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/conciliaciones/{idConciliacion}/cierre': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Cerrar la conciliación del mes */
+    patch: operations['cerrar_2'];
+    trace?: never;
+  };
+  '/api/v1/conciliaciones/{idConciliacion}/items/{idItem}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Justificar o excluir una diferencia */
+    patch: operations['justificarItem'];
+    trace?: never;
+  };
+  '/api/v1/consumos-pendientes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Listar los consumos pendientes de la sede */
+    get: operations['listarConsumosPendientes'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/consumos-pendientes/{idConsumo}/descarte': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Descartar un consumo pendiente con su motivo */
+    patch: operations['descartar'];
+    trace?: never;
+  };
+  '/api/v1/consumos-pendientes/{idConsumo}/regularizacion': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Regularizar un consumo pendiente */
+    post: operations['regularizar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/medios-pago': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Listar los medios de pago */
+    get: operations['listarMediosPago'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/medios-pago/{idMedioPago}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Configurar un medio de pago */
+    patch: operations['configurarMedioPago'];
+    trace?: never;
+  };
   '/api/v1/pagos/notificaciones': {
     parameters: {
       query?: never;
@@ -357,6 +836,144 @@ export interface paths {
     put?: never;
     /** Webhook de Izipay */
     post: operations['recibir'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/paquetes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Listar paquetes y membresías */
+    get: operations['listarPaquetes'];
+    put?: never;
+    /** Registrar un paquete o membresía */
+    post: operations['registrarPaquete'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/parametros': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Listar los parámetros del negocio */
+    get: operations['listarParametros'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/parametros/{codigo}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Cambiar el valor de un parámetro */
+    patch: operations['cambiarValor'];
+    trace?: never;
+  };
+  '/api/v1/permisos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Listar los permisos (módulo y acción) */
+    get: operations['listarPermisos'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/productos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Listar productos e insumos con su stock de la sede */
+    get: operations['listarProductos'];
+    put?: never;
+    /** Registrar un producto o insumo */
+    post: operations['registrar_1'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/productos/{idProducto}/ajustes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Registrar un ajuste de inventario por conteo */
+    post: operations['registrarAjuste'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/productos/{idProducto}/kardex': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Consultar el kardex de un producto */
+    get: operations['consultarKardex'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/productos/{idProducto}/salidas': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Registrar una salida de insumo */
+    post: operations['registrarSalida'];
     delete?: never;
     options?: never;
     head?: never;
@@ -380,6 +997,24 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/promociones': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Listar promociones */
+    get: operations['listarPromociones'];
+    put?: never;
+    /** Registrar una promoción */
+    post: operations['registrarPromocion'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/recursos': {
     parameters: {
       query?: never;
@@ -387,10 +1022,45 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get?: never;
+    /** Listar los recursos de una sede */
+    get: operations['listarRecursos'];
     put?: never;
     /** Registrar un recurso con su limpieza */
     post: operations['registrarRecurso'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/reportes/{tipoReporte}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Generar un reporte gerencial */
+    get: operations['generar'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/reportes/{tipoReporte}/exportacion': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Exportar un reporte gerencial */
+    get: operations['exportar'];
+    put?: never;
+    post?: never;
     delete?: never;
     options?: never;
     head?: never;
@@ -431,6 +1101,24 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/series-comprobante': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Listar las series de comprobante de la sede */
+    get: operations['listarSeries'];
+    put?: never;
+    /** Registrar una serie de comprobante */
+    post: operations['registrarSerie'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/servicios': {
     parameters: {
       query?: never;
@@ -438,7 +1126,8 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get?: never;
+    /** Listar los servicios con sus variantes y precios */
+    get: operations['listarServicios'];
     put?: never;
     /** Registrar un servicio con sus variantes e insumos */
     post: operations['registrarServicio'];
@@ -448,7 +1137,24 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/v1/usuarios': {
+  '/api/v1/servicios/{idServicio}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Actualizar un servicio */
+    put: operations['actualizarServicio'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/servicios/{idServicio}/variantes/{idVariante}/precio': {
     parameters: {
       query?: never;
       header?: never;
@@ -457,12 +1163,149 @@ export interface paths {
     };
     get?: never;
     put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Cambiar el precio de una variante */
+    patch: operations['cambiarPrecio'];
+    trace?: never;
+  };
+  '/api/v1/solicitudes-anulacion': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Bandeja de solicitudes de anulación */
+    get: operations['listarPendientes'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/solicitudes-anulacion/{idSolicitud}/aprobacion': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Aprobar una solicitud de anulación */
+    post: operations['aprobar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/solicitudes-anulacion/{idSolicitud}/rechazo': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Rechazar una solicitud de anulación */
+    post: operations['rechazar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/tipos-documento': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Listar los tipos de documento */
+    get: operations['listarTiposDocumento'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/tipos-documento/{idTipoDocumento}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Configurar un tipo de documento */
+    patch: operations['configurarTipoDocumento'];
+    trace?: never;
+  };
+  '/api/v1/usuarios': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Listar los usuarios */
+    get: operations['listarUsuarios'];
+    put?: never;
     /** Registrar un usuario */
     post: operations['registrar'];
     delete?: never;
     options?: never;
     head?: never;
     patch?: never;
+    trace?: never;
+  };
+  '/api/v1/usuarios/personal-sin-usuario': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Personal activo que aún no tiene usuario */
+    get: operations['listarPersonalSinUsuario'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/usuarios/{idUsuario}/clave': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Restablecer la contraseña */
+    patch: operations['restablecerClave'];
     trace?: never;
   };
   '/api/v1/usuarios/{idUsuario}/rol': {
@@ -516,6 +1359,41 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/ventas/por-cobrar': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Atenciones por cobrar y ventas abiertas de la sede */
+    get: operations['listarPorCobrar'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/ventas/productos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Buscar productos para vender */
+    get: operations['buscarProductos'];
+    put?: never;
+    /** Vender productos */
+    post: operations['venderProductos'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/ventas/rapidas': {
     parameters: {
       query?: never;
@@ -542,6 +1420,23 @@ export interface paths {
     };
     /** Especialistas y recursos libres ahora */
     get: operations['libresAhora'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/ventas/{idVenta}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Consultar una venta con sus cobros digitales */
+    get: operations['obtenerVenta'];
     put?: never;
     post?: never;
     delete?: never;
@@ -584,6 +1479,40 @@ export interface paths {
     patch: operations['aplicarDescuentos'];
     trace?: never;
   };
+  '/api/v1/ventas/{idVenta}/devolucion': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Devolver los pagos con tarjeta por la pasarela */
+    post: operations['devolverPago'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/ventas/{idVenta}/devolucion-manual': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Registrar la devolución manual de Yape o Plin */
+    post: operations['registrarDevolucionManual'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/ventas/{idVenta}/pagos': {
     parameters: {
       query?: never;
@@ -601,6 +1530,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/ventas/{idVenta}/solicitudes-anulacion': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Solicitar la anulación de una venta */
+    post: operations['solicitarAnulacion'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -609,6 +1555,11 @@ export interface components {
       adelantoMonto: number;
       /** Format: int64 */
       idMedioPago: number;
+    };
+    AjusteDTO: {
+      /** Format: int32 */
+      cantidad?: number;
+      motivo?: string;
     };
     AperturaCajaDTO: {
       montoInicial: number;
@@ -636,7 +1587,22 @@ export interface components {
       /** Format: int64 */
       idRol: number;
     };
+    AtencionCobrable: {
+      adelantoMonto?: number;
+      /** Format: int64 */
+      idAtencion?: number;
+      /** Format: int64 */
+      idCliente?: number;
+      /** Format: int64 */
+      idClientePaquete?: number;
+      /** Format: int64 */
+      idPersonal?: number;
+      /** Format: int64 */
+      idVariante?: number;
+      nombreClientePaso?: string;
+    };
     AtencionDTO: {
+      consumosPendientes?: components['schemas']['ConsumoPendienteDTO'][];
       /** @enum {string} */
       estado?: 'EN_CURSO' | 'FINALIZADA' | 'COBRADA';
       /** Format: date-time */
@@ -661,22 +1627,49 @@ export interface components {
       /** Format: int32 */
       tiempoDeclaradoMin?: number;
     };
-    BloqueAgendaDTO: {
-      estado?: string;
+    AtencionFicha: {
+      /** @enum {string} */
+      estado?: 'EN_CURSO' | 'FINALIZADA' | 'COBRADA';
       /** Format: date-time */
-      fin?: string;
-      franja?: string;
+      horaFin?: string;
+      /** Format: date-time */
+      horaInicio?: string;
       /** Format: int64 */
-      idOrigen?: number;
+      idAtencion?: number;
+      /** Format: int64 */
+      idCita?: number;
+      /** Format: int64 */
+      idClientePaquete?: number;
       /** Format: int64 */
       idPersonal?: number;
       /** Format: int64 */
       idRecurso?: number;
       /** Format: int64 */
       idVariante?: number;
+      observaciones?: string;
+      recomendaciones?: components['schemas']['RecomendacionDTO'][];
+    };
+    AuditoriaDTO: {
+      accion?: string;
+      detalle?: string;
+      entidad?: string;
       /** Format: date-time */
-      inicio?: string;
-      origen?: string;
+      fechaHora?: string;
+      /** Format: int64 */
+      idAuditoria?: number;
+      /** Format: int32 */
+      idEntidad?: number;
+      modulo?: string;
+      rol?: string;
+      usuario?: string;
+    };
+    AvisoDTO: {
+      /** Format: int32 */
+      cantidad?: number;
+      mensaje?: string;
+      permisoRequerido?: string;
+      ruta?: string;
+      tipo?: string;
     };
     CajaDTO: {
       arqueos?: components['schemas']['ArqueoCalculadoDTO'][];
@@ -686,6 +1679,10 @@ export interface components {
       fechaApertura?: string;
       /** Format: date-time */
       fechaCierre?: string;
+      /** Format: date-time */
+      fechaReapertura?: string;
+      /** Format: date-time */
+      fechaRevision?: string;
       /** Format: int64 */
       idCaja?: number;
       /** Format: int64 */
@@ -694,11 +1691,24 @@ export interface components {
       idUsuarioApertura?: number;
       /** Format: int64 */
       idUsuarioCierre?: number;
+      /** Format: int64 */
+      idUsuarioReapertura?: number;
+      /** Format: int64 */
+      idUsuarioRevisa?: number;
       montoInicial?: number;
+      motivoReapertura?: string;
     };
     CambioClaveDTO: {
       claveActual: string;
       claveNueva: string;
+    };
+    CancelacionDTO: {
+      motivoCancelacion?: string;
+    };
+    CategoriaProductoDTO: {
+      /** Format: int64 */
+      idCategoria?: number;
+      nombre?: string;
     };
     CierreVentaDTO: {
       /** Format: int64 */
@@ -707,6 +1717,28 @@ export interface components {
       nroDocComprador?: string;
       /** @enum {string} */
       tipo: 'BOLETA' | 'FACTURA' | 'NC_BOLETA' | 'NC_FACTURA';
+    };
+    CitaAtencionDTO: {
+      /** Format: int32 */
+      duracionMin?: number;
+      /** @enum {string} */
+      estado?: 'PENDIENTE' | 'EN_ATENCION' | 'FINALIZADA' | 'CANCELADA' | 'REPROGRAMADA';
+      /** @enum {string} */
+      estadoAtencion?: 'EN_CURSO' | 'FINALIZADA' | 'COBRADA';
+      /** Format: date-time */
+      fechaHoraFin?: string;
+      /** Format: date-time */
+      fechaHoraInicio?: string;
+      /** Format: int64 */
+      idAtencion?: number;
+      /** Format: int64 */
+      idCita?: number;
+      /** Format: int64 */
+      idCliente?: number;
+      /** Format: int64 */
+      idRecurso?: number;
+      /** Format: int64 */
+      idVariante?: number;
     };
     CitaDTO: {
       adelantoMonto?: number;
@@ -725,7 +1757,11 @@ export interface components {
       /** Format: int64 */
       idCita?: number;
       /** Format: int64 */
+      idCitaOrigen?: number;
+      /** Format: int64 */
       idCliente: number;
+      /** Format: int64 */
+      idEspera?: number;
       /** Format: int64 */
       idMedioPago?: number;
       /** Format: int64 */
@@ -738,6 +1774,10 @@ export interface components {
       idUsuario?: number;
       /** Format: int64 */
       idVariante: number;
+      motivoCancelacion?: string;
+    };
+    ClaveDTO: {
+      clave: string;
     };
     ClienteDTO: {
       aceptaComunicaciones: boolean;
@@ -767,6 +1807,10 @@ export interface components {
       /** Format: int64 */
       idTransaccion?: number;
     };
+    Columna: {
+      campo?: string;
+      titulo?: string;
+    };
     ComprobanteDTO: {
       codigoRespuesta?: string;
       /** @enum {string} */
@@ -790,6 +1834,48 @@ export interface components {
       serie?: string;
       tipo?: string;
     };
+    ConciliacionDTO: {
+      /** Format: int32 */
+      anio?: number;
+      /** @enum {string} */
+      estado?: 'ABIERTA' | 'CERRADA';
+      /** Format: date-time */
+      fechaCierre?: string;
+      /** Format: int64 */
+      idConciliacion?: number;
+      /** Format: int64 */
+      idUsuario?: number;
+      items?: components['schemas']['Item'][];
+      /** Format: int32 */
+      mes?: number;
+      /** Format: int64 */
+      sinJustificar?: number;
+    };
+    ConsumoPendienteDTO: {
+      /** Format: int32 */
+      cantidadDescontada?: number;
+      /** Format: int32 */
+      cantidadEstimada?: number;
+      /** Format: int32 */
+      cantidadPendiente?: number;
+      codigo?: string;
+      estado?: string;
+      /** Format: date-time */
+      fechaRegistro?: string;
+      /** Format: int64 */
+      idAtencion?: number;
+      /** Format: int64 */
+      idConsumo?: number;
+      /** Format: int64 */
+      idMovimiento?: number;
+      /** Format: int64 */
+      idProducto?: number;
+      /** Format: int64 */
+      idSede?: number;
+      observacion?: string;
+      producto?: string;
+      unidad?: string;
+    };
     CrearVentaDTO: {
       /** Format: int64 */
       idAtencion: number;
@@ -797,6 +1883,9 @@ export interface components {
     CredencialesDTO: {
       clave: string;
       nombreUsuario: string;
+    };
+    DescarteDTO: {
+      observacion?: string;
     };
     DescuentosDTO: {
       /** Format: int64 */
@@ -815,13 +1904,29 @@ export interface components {
       /** Format: int64 */
       idDetalle?: number;
       /** Format: int64 */
+      idPaquete?: number;
+      /** Format: int64 */
       idPersonal?: number;
+      /** Format: int64 */
+      idProducto?: number;
       /** Format: int64 */
       idPromocion?: number;
       precioUnitario?: number;
       subtotal?: number;
       /** @enum {string} */
       tipoItem?: 'SERVICIO' | 'PRODUCTO' | 'PAQUETE';
+    };
+    DevolucionDTO: {
+      codigoOperacion?: string;
+      devoluciones?: components['schemas']['TransaccionDTO'][];
+      /** @enum {string} */
+      formaDevolucion?: 'MEDIO_ORIGINAL' | 'SALDO_FAVOR';
+      /** Format: int64 */
+      idNotaCredito?: number;
+      /** Format: int64 */
+      idTransaccion?: number;
+      /** Format: int64 */
+      idVenta?: number;
     };
     Egreso: {
       concepto: string;
@@ -841,6 +1946,12 @@ export interface components {
       /** Format: int64 */
       idTransaccion?: number;
     };
+    Especialista: {
+      apellidos?: string;
+      /** Format: int64 */
+      idPersonal?: number;
+      nombres?: string;
+    };
     EsperadoDTO: {
       comprobantesPendientes?: components['schemas']['ComprobantePendiente'][];
       /** @enum {string} */
@@ -856,6 +1967,54 @@ export interface components {
       /** Format: int64 */
       idMedioPago?: number;
       medioPago?: string;
+    };
+    FichaClienteDTO: {
+      atenciones?: components['schemas']['AtencionFicha'][];
+      citasPendientes?: components['schemas']['CitaDTO'][];
+      cliente?: components['schemas']['ClienteDTO'];
+      paquetes?: components['schemas']['PaqueteFicha'][];
+      productosComprados?: components['schemas']['ProductoCompradoDTO'][];
+      saldoFavor?: number;
+    };
+    FilaReporteDTO: {
+      /** Format: int64 */
+      cantidad?: number;
+      costo?: number;
+      grupo?: string;
+      importe?: number;
+      margen?: number;
+      /** Format: int64 */
+      minutos?: number;
+      /** Format: int64 */
+      stock?: number;
+    };
+    FiltrosAgendaDTO: {
+      especialistas?: components['schemas']['Especialista'][];
+      recursos?: components['schemas']['Recurso'][];
+    };
+    FranjaAgendaDTO: {
+      estado?: string;
+      /** Format: date-time */
+      fin?: string;
+      /** Format: date-time */
+      finServicio?: string;
+      franja?: string;
+      /** Format: int64 */
+      idCliente?: number;
+      /** Format: int64 */
+      idOrigen?: number;
+      /** Format: int64 */
+      idPersonal?: number;
+      /** Format: int64 */
+      idRecurso?: number;
+      /** Format: int64 */
+      idVariante?: number;
+      /** Format: date-time */
+      inicio?: string;
+      nombreCliente?: string;
+      nombreEspecialista?: string;
+      nombreServicio?: string;
+      origen?: string;
     };
     HoraLibre: {
       /** Format: int32 */
@@ -890,6 +2049,19 @@ export interface components {
       /** @enum {string} */
       tipoItem: 'SERVICIO' | 'PRODUCTO' | 'PAQUETE';
     };
+    JustificacionDTO: {
+      /** @enum {string} */
+      estado?: 'COINCIDE' | 'SIN_JUSTIFICAR' | 'JUSTIFICADA' | 'EXCLUIDA';
+      justificacion?: string;
+    };
+    Linea: {
+      /** Format: int32 */
+      cantidad: number;
+      /** Format: int64 */
+      idPersonal?: number;
+      /** Format: int64 */
+      idProducto: number;
+    };
     ListaEsperaDTO: {
       /** @enum {string} */
       estado?: 'PENDIENTE' | 'ASIGNADA' | 'DESCARTADA';
@@ -910,12 +2082,61 @@ export interface components {
       idUsuario?: number;
       /** Format: int64 */
       idVariante: number;
+      nombreCliente?: string;
+      nombreServicio?: string;
     };
     Medio: {
       /** Format: int64 */
       idMedioPago: number;
       montoContado: number;
       observacion?: string;
+    };
+    MedioPagoDTO: {
+      /** @enum {string} */
+      estado?: 'ACTIVO' | 'INACTIVO';
+      /** Format: int64 */
+      idMedioPago?: number;
+      nombre?: string;
+      usaPasarela?: boolean;
+    };
+    MovimientoDTO: {
+      /** Format: int32 */
+      cantidad?: number;
+      estaEnMinimo?: boolean;
+      /** Format: date-time */
+      fechaHora?: string;
+      /** Format: int64 */
+      idAtencion?: number;
+      /** Format: int64 */
+      idMovimiento?: number;
+      /** Format: int64 */
+      idProducto?: number;
+      /** Format: int64 */
+      idSede?: number;
+      motivo?: string;
+      /** Format: int32 */
+      saldo?: number;
+      /** @enum {string} */
+      tipo?: 'ENTRADA' | 'SALIDA' | 'AJUSTE';
+    };
+    MovimientoKardexDTO: {
+      /** Format: int32 */
+      cantidad?: number;
+      /** Format: date-time */
+      fechaHora?: string;
+      /** Format: int64 */
+      idAtencion?: number;
+      /** Format: int64 */
+      idDetalleCompra?: number;
+      /** Format: int64 */
+      idDetalleVenta?: number;
+      /** Format: int64 */
+      idMovimiento?: number;
+      motivo?: string;
+      /** Format: int32 */
+      saldo?: number;
+      tipo?: string;
+      usuario?: string;
     };
     Pago: {
       canal?: string;
@@ -926,6 +2147,7 @@ export interface components {
       monto: number;
     };
     PagoVentaDTO: {
+      estadoTransaccion?: string;
       /** Format: int64 */
       idMedioPago?: number;
       /** Format: int64 */
@@ -938,9 +2160,68 @@ export interface components {
     PagosDTO: {
       pagos: components['schemas']['Pago'][];
     };
+    PaqueteDTO: {
+      /** @enum {string} */
+      estado?: 'ACTIVO' | 'INACTIVO';
+      /** Format: int64 */
+      idPaquete?: number;
+      idsServicio?: number[];
+      nombre: string;
+      /** Format: int32 */
+      numSesiones?: number;
+      precio?: number;
+      /** @enum {string} */
+      tipo: 'PAQUETE' | 'MEMBRESIA';
+      /** Format: int32 */
+      vigenciaDias?: number;
+    };
+    PaqueteFicha: {
+      /** @enum {string} */
+      estado?: 'ACTIVO' | 'AGOTADO' | 'VENCIDO' | 'ANULADO';
+      /** Format: date */
+      fechaCompra?: string;
+      /** Format: date */
+      fechaVencimiento?: string;
+      /** Format: int64 */
+      idClientePaquete?: number;
+      /** Format: int64 */
+      idPaquete?: number;
+      /** Format: int32 */
+      sesionesRestantes?: number;
+      /** Format: int32 */
+      sesionesTotales?: number;
+      /** Format: int32 */
+      sesionesUsadas?: number;
+    };
+    ParametroDTO: {
+      codigo?: string;
+      descripcion?: string;
+      /** Format: date */
+      fechaVigencia?: string;
+      /** Format: int64 */
+      idParametro?: number;
+      /** Format: int64 */
+      idUsuario?: number;
+      valorNumero?: number;
+      valorTexto?: string;
+    };
     PermisoDTO: {
       accion: string;
       modulo: string;
+    };
+    PersonalSinUsuarioDTO: {
+      apellidos?: string;
+      cargo?: string;
+      /** Format: int64 */
+      idPersonal?: number;
+      nombres?: string;
+    };
+    PorCobrarDTO: {
+      atenciones?: components['schemas']['AtencionCobrable'][];
+      ventasAbiertas?: components['schemas']['VentaDTO'][];
+    };
+    PrecioDTO: {
+      precioNuevo?: number;
     };
     ProblemDetail: {
       detail?: string;
@@ -955,6 +2236,55 @@ export interface components {
       /** Format: uri */
       type?: string;
     };
+    ProductoCompradoDTO: {
+      /** Format: int32 */
+      cantidad?: number;
+      /** Format: date */
+      fecha?: string;
+      /** Format: int64 */
+      idProducto?: number;
+      /** Format: int64 */
+      idVenta?: number;
+      precioUnitario?: number;
+      producto?: string;
+      subtotal?: number;
+    };
+    ProductoDTO: {
+      codigo?: string;
+      costo?: number;
+      esPremium?: boolean;
+      /** @enum {string} */
+      estado?: 'ACTIVO' | 'INACTIVO';
+      /** Format: int64 */
+      idCategoria?: number;
+      /** Format: int64 */
+      idProducto?: number;
+      marca?: string;
+      margen?: number;
+      nombre?: string;
+      precioVenta?: number;
+      /** Format: int32 */
+      stockActual?: number;
+      /** Format: int32 */
+      stockMinimo?: number;
+      /** @enum {string} */
+      tipoUso?: 'VENTA' | 'INSUMO';
+      ubicacion?: string;
+      unidad?: string;
+    };
+    ProductoStockDTO: {
+      codigo?: string;
+      /** Format: int64 */
+      idCategoria?: number;
+      /** Format: int64 */
+      idProducto?: number;
+      marca?: string;
+      nombre?: string;
+      precioVenta?: number;
+      /** Format: int32 */
+      stockActual?: number;
+      unidad?: string;
+    };
     ProformaDTO: {
       /** Format: date */
       fechaValidez?: string;
@@ -963,6 +2293,45 @@ export interface components {
       items: components['schemas']['Item'][];
       nombreCliente?: string;
       total?: number;
+    };
+    PromocionDTO: {
+      /** @enum {string} */
+      estado?: 'ACTIVA' | 'INACTIVA';
+      /** Format: date */
+      fechaFin?: string;
+      /** Format: date */
+      fechaInicio?: string;
+      /** Format: int64 */
+      idPromocion?: number;
+      idsServicio?: number[];
+      nombre: string;
+      /** @enum {string} */
+      tipoDescuento: 'PORCENTAJE' | 'MONTO';
+      valor?: number;
+    };
+    ReaperturaDTO: {
+      motivoReapertura?: string;
+    };
+    RechazoDTO: {
+      motivoRechazo?: string;
+    };
+    RecomendacionDTO: {
+      /** Format: date-time */
+      fecha?: string;
+      /** Format: int64 */
+      idAtencion?: number;
+      /** Format: int64 */
+      idProducto: number;
+      /** Format: int64 */
+      idRecomendacion?: number;
+      observacion?: string;
+    };
+    Recurso: {
+      estado?: string;
+      /** Format: int64 */
+      idRecurso?: number;
+      nombre?: string;
+      tipo?: string;
     };
     RecursoDTO: {
       /** @enum {string} */
@@ -984,6 +2353,27 @@ export interface components {
         | 'LAVACABEZAS'
         | 'HIDROTERAPIA';
     };
+    ReporteDTO: {
+      agrupacion?: string;
+      columnas?: components['schemas']['Columna'][];
+      /** Format: date */
+      fechaFin?: string;
+      /** Format: date */
+      fechaInicio?: string;
+      filas?: components['schemas']['FilaReporteDTO'][];
+      /** Format: int64 */
+      idSede?: number;
+      tipoReporte?: string;
+      titulo?: string;
+    };
+    ReprogramacionDTO: {
+      /** Format: date-time */
+      fechaHoraInicio: string;
+      /** Format: int64 */
+      idPersonal: number;
+      /** Format: int64 */
+      idRecurso: number;
+    };
     ResultadoConsulta: {
       apellidos?: string;
       /** Format: date-time */
@@ -994,6 +2384,13 @@ export interface components {
       razonSocial?: string;
       resultado?: string;
     };
+    ResumenImportacionDTO: {
+      codigosSinTransaccion?: string[];
+      /** Format: int32 */
+      filasLeidas?: number;
+      /** Format: int32 */
+      filasRegistradas?: number;
+    };
     RolDTO: {
       descripcion?: string;
       /** @enum {string} */
@@ -1002,6 +2399,19 @@ export interface components {
       idRol?: number;
       nombre?: string;
       permisos: components['schemas']['PermisoDTO'][];
+    };
+    SerieDTO: {
+      /** @enum {string} */
+      estado?: 'ACTIVA' | 'INACTIVA';
+      /** Format: int64 */
+      idSede?: number;
+      /** Format: int64 */
+      idSerie?: number;
+      serie?: string;
+      /** @enum {string} */
+      tipo: 'BOLETA' | 'FACTURA' | 'NC_BOLETA' | 'NC_FACTURA';
+      /** Format: int32 */
+      ultimoNumero?: number;
     };
     ServicioDTO: {
       /** Format: int32 */
@@ -1025,13 +2435,68 @@ export interface components {
       variantes: components['schemas']['VarianteDTO'][];
     };
     SesionDTO: {
+      apellidos?: string;
       debeCambiarClave?: boolean;
+      /** Format: int64 */
+      idPersonal?: number;
       /** Format: int64 */
       idSede?: number;
       /** Format: int64 */
       idUsuario?: number;
       nombreUsuario?: string;
+      nombres?: string;
       permisos?: string[];
+      rol?: string;
+    };
+    SolicitudAnulacionDTO: {
+      codigoMotivo?: string;
+      comprobante?: string;
+      /** @enum {string} */
+      estado?: 'PENDIENTE' | 'APROBADA' | 'RECHAZADA';
+      /** Format: date-time */
+      fechaResolucion?: string;
+      /** Format: date-time */
+      fechaSolicitud?: string;
+      /** @enum {string} */
+      formaDevolucion?: 'MEDIO_ORIGINAL' | 'SALDO_FAVOR';
+      /** Format: int64 */
+      idCliente?: number;
+      /** Format: int64 */
+      idNotaCredito?: number;
+      /** Format: int64 */
+      idSolicitud?: number;
+      /** Format: int64 */
+      idUsuarioResuelve?: number;
+      /** Format: int64 */
+      idUsuarioSolicita?: number;
+      /** Format: int64 */
+      idVenta?: number;
+      motivo?: string;
+      motivoRechazo?: string;
+      totalVenta?: number;
+    };
+    TipoDocumentoDTO: {
+      abreviatura?: string;
+      codigoSunat?: string;
+      consultaApi?: boolean;
+      /** @enum {string} */
+      estado?: 'ACTIVO' | 'INACTIVO';
+      /** Format: int64 */
+      idTipoDocumento?: number;
+      /** Format: int32 */
+      longitudMax?: number;
+      /** Format: int32 */
+      longitudMin?: number;
+      nombre?: string;
+      soloNumeros?: boolean;
+    };
+    TransaccionDTO: {
+      canal?: string;
+      codigoOperacion?: string;
+      enlacePago?: string;
+      estado?: string;
+      /** Format: int64 */
+      idTransaccion?: number;
     };
     UsuarioDTO: {
       clave: string;
@@ -1077,6 +2542,21 @@ export interface components {
       subtotal?: number;
       total?: number;
     };
+    VentaProductosDTO: {
+      canal?: string;
+      /** Format: int64 */
+      idCliente?: number;
+      /** Format: int64 */
+      idMedioPago: number;
+      /** Format: int64 */
+      idTipoDocComprador?: number;
+      lineas: components['schemas']['Linea'][];
+      monto: number;
+      nombreComprador?: string;
+      nroDocComprador?: string;
+      /** @enum {string} */
+      tipo: 'BOLETA' | 'FACTURA' | 'NC_BOLETA' | 'NC_FACTURA';
+    };
     VentaRapidaDTO: {
       canal?: string;
       /** Format: int64 */
@@ -1108,51 +2588,96 @@ export interface components {
   pathItems: never;
 }
 export type AdelantoDTO = components['schemas']['AdelantoDTO'];
+export type AjusteDTO = components['schemas']['AjusteDTO'];
 export type AperturaCajaDTO = components['schemas']['AperturaCajaDTO'];
 export type AreaDTO = components['schemas']['AreaDTO'];
 export type ArqueoCalculadoDTO = components['schemas']['ArqueoCalculadoDTO'];
 export type ArqueoDTO = components['schemas']['ArqueoDTO'];
 export type AsignarRolDTO = components['schemas']['AsignarRolDTO'];
+export type AtencionCobrable = components['schemas']['AtencionCobrable'];
 export type AtencionDTO = components['schemas']['AtencionDTO'];
-export type BloqueAgendaDTO = components['schemas']['BloqueAgendaDTO'];
+export type AtencionFicha = components['schemas']['AtencionFicha'];
+export type AuditoriaDTO = components['schemas']['AuditoriaDTO'];
+export type AvisoDTO = components['schemas']['AvisoDTO'];
 export type CajaDTO = components['schemas']['CajaDTO'];
 export type CambioClaveDTO = components['schemas']['CambioClaveDTO'];
+export type CancelacionDTO = components['schemas']['CancelacionDTO'];
+export type CategoriaProductoDTO = components['schemas']['CategoriaProductoDTO'];
 export type CierreVentaDTO = components['schemas']['CierreVentaDTO'];
+export type CitaAtencionDTO = components['schemas']['CitaAtencionDTO'];
 export type CitaDTO = components['schemas']['CitaDTO'];
+export type ClaveDTO = components['schemas']['ClaveDTO'];
 export type ClienteDTO = components['schemas']['ClienteDTO'];
 export type CobroPendienteDTO = components['schemas']['CobroPendienteDTO'];
+export type Columna = components['schemas']['Columna'];
 export type ComprobanteDTO = components['schemas']['ComprobanteDTO'];
 export type ComprobantePendiente = components['schemas']['ComprobantePendiente'];
+export type ConciliacionDTO = components['schemas']['ConciliacionDTO'];
+export type ConsumoPendienteDTO = components['schemas']['ConsumoPendienteDTO'];
 export type CrearVentaDTO = components['schemas']['CrearVentaDTO'];
 export type CredencialesDTO = components['schemas']['CredencialesDTO'];
+export type DescarteDTO = components['schemas']['DescarteDTO'];
 export type DescuentosDTO = components['schemas']['DescuentosDTO'];
 export type DetalleAtencionDTO = components['schemas']['DetalleAtencionDTO'];
 export type DetalleVentaDTO = components['schemas']['DetalleVentaDTO'];
+export type DevolucionDTO = components['schemas']['DevolucionDTO'];
 export type Egreso = components['schemas']['Egreso'];
 export type EnlaceComprobanteDTO = components['schemas']['EnlaceComprobanteDTO'];
 export type EnlacePagoDTO = components['schemas']['EnlacePagoDTO'];
+export type Especialista = components['schemas']['Especialista'];
 export type EsperadoDTO = components['schemas']['EsperadoDTO'];
 export type EsperadoMedioDTO = components['schemas']['EsperadoMedioDTO'];
+export type FichaClienteDTO = components['schemas']['FichaClienteDTO'];
+export type FilaReporteDTO = components['schemas']['FilaReporteDTO'];
+export type FiltrosAgendaDTO = components['schemas']['FiltrosAgendaDTO'];
+export type FranjaAgendaDTO = components['schemas']['FranjaAgendaDTO'];
 export type HoraLibre = components['schemas']['HoraLibre'];
 export type InicioAtencionDTO = components['schemas']['InicioAtencionDTO'];
 export type InsumoDTO = components['schemas']['InsumoDTO'];
 export type Item = components['schemas']['Item'];
+export type JustificacionDTO = components['schemas']['JustificacionDTO'];
+export type Linea = components['schemas']['Linea'];
 export type ListaEsperaDTO = components['schemas']['ListaEsperaDTO'];
 export type Medio = components['schemas']['Medio'];
+export type MedioPagoDTO = components['schemas']['MedioPagoDTO'];
+export type MovimientoDTO = components['schemas']['MovimientoDTO'];
+export type MovimientoKardexDTO = components['schemas']['MovimientoKardexDTO'];
 export type Pago = components['schemas']['Pago'];
 export type PagoVentaDTO = components['schemas']['PagoVentaDTO'];
 export type PagosDTO = components['schemas']['PagosDTO'];
+export type PaqueteDTO = components['schemas']['PaqueteDTO'];
+export type PaqueteFicha = components['schemas']['PaqueteFicha'];
+export type ParametroDTO = components['schemas']['ParametroDTO'];
 export type PermisoDTO = components['schemas']['PermisoDTO'];
+export type PersonalSinUsuarioDTO = components['schemas']['PersonalSinUsuarioDTO'];
+export type PorCobrarDTO = components['schemas']['PorCobrarDTO'];
+export type PrecioDTO = components['schemas']['PrecioDTO'];
 export type ProblemDetail = components['schemas']['ProblemDetail'];
+export type ProductoCompradoDTO = components['schemas']['ProductoCompradoDTO'];
+export type ProductoDTO = components['schemas']['ProductoDTO'];
+export type ProductoStockDTO = components['schemas']['ProductoStockDTO'];
 export type ProformaDTO = components['schemas']['ProformaDTO'];
+export type PromocionDTO = components['schemas']['PromocionDTO'];
+export type ReaperturaDTO = components['schemas']['ReaperturaDTO'];
+export type RechazoDTO = components['schemas']['RechazoDTO'];
+export type RecomendacionDTO = components['schemas']['RecomendacionDTO'];
+export type Recurso = components['schemas']['Recurso'];
 export type RecursoDTO = components['schemas']['RecursoDTO'];
+export type ReporteDTO = components['schemas']['ReporteDTO'];
+export type ReprogramacionDTO = components['schemas']['ReprogramacionDTO'];
 export type ResultadoConsulta = components['schemas']['ResultadoConsulta'];
+export type ResumenImportacionDTO = components['schemas']['ResumenImportacionDTO'];
 export type RolDTO = components['schemas']['RolDTO'];
+export type SerieDTO = components['schemas']['SerieDTO'];
 export type ServicioDTO = components['schemas']['ServicioDTO'];
 export type SesionDTO = components['schemas']['SesionDTO'];
+export type SolicitudAnulacionDTO = components['schemas']['SolicitudAnulacionDTO'];
+export type TipoDocumentoDTO = components['schemas']['TipoDocumentoDTO'];
+export type TransaccionDTO = components['schemas']['TransaccionDTO'];
 export type UsuarioDTO = components['schemas']['UsuarioDTO'];
 export type VarianteDTO = components['schemas']['VarianteDTO'];
 export type VentaDTO = components['schemas']['VentaDTO'];
+export type VentaProductosDTO = components['schemas']['VentaProductosDTO'];
 export type VentaRapidaDTO = components['schemas']['VentaRapidaDTO'];
 export type $defs = Record<string, never>;
 export interface operations {
@@ -1201,21 +2726,12 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso CATALOGO:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -1274,21 +2790,12 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso CATALOGO:CREAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -1331,7 +2838,7 @@ export interface operations {
       };
     };
     responses: {
-      /** @description Atención EN_CURSO y cita EN_ATENCION */
+      /** @description Atención EN_CURSO y cita EN_ATENCION; solo la especialista asignada o la administradora (si no, 403 por RN50) */
       201: {
         headers: {
           [name: string]: unknown;
@@ -1371,21 +2878,12 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso ATENCION:CREAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -1445,6 +2943,232 @@ export interface operations {
       };
     };
   };
+  obtenerEnCurso: {
+    parameters: {
+      query: {
+        idCita: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description La atención EN_CURSO de la cita, para retomarla desde otro equipo */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "estado": "EN_CURSO",
+           *       "horaInicio": "2026-11-09T10:02:00",
+           *       "idAtencion": 1532,
+           *       "idCita": 950,
+           *       "idCliente": 407,
+           *       "idPersonal": 4,
+           *       "idRecurso": 1,
+           *       "idVariante": 2,
+           *       "tiempoDeclaradoMin": 45
+           *     }
+           */
+          'application/json': components['schemas']['AtencionDTO'];
+        };
+      };
+      /** @description Falta la cita */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Falta la cita",
+           *       "regla": "VALIDACION",
+           *       "status": 400,
+           *       "title": "Bad Request",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso ATENCION:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La cita no tiene una atención EN_CURSO */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La cita no tiene una atención EN_CURSO",
+           *       "regla": "RF13",
+           *       "status": 404,
+           *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  listarMiAgenda: {
+    parameters: {
+      query?: {
+        fecha?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Citas del día de la especialista de la sesión, con su atención EN_CURSO si la tiene; sin fecha, la de hoy */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example [
+           *       {
+           *         "duracionMin": 30,
+           *         "estado": "EN_ATENCION",
+           *         "estadoAtencion": "EN_CURSO",
+           *         "fechaHoraFin": "2026-11-09T10:40:00",
+           *         "fechaHoraInicio": "2026-11-09T10:00:00",
+           *         "idAtencion": 1532,
+           *         "idCita": 950,
+           *         "idCliente": 407,
+           *         "idRecurso": 1,
+           *         "idVariante": 2
+           *       }
+           *     ]
+           */
+          'application/json': components['schemas']['CitaAtencionDTO'][];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso ATENCION:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  buscarProductos_1: {
+    parameters: {
+      query?: {
+        nombre?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Productos de venta activos de la sede, con su precio y su stock (sin costo, RN24) */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example [
+           *       {
+           *         "codigo": "PRD-001",
+           *         "idCategoria": 2,
+           *         "idProducto": 40,
+           *         "marca": "Loreal",
+           *         "nombre": "Shampoo reparador",
+           *         "precioVenta": 45,
+           *         "stockActual": 8,
+           *         "unidad": "UND"
+           *       }
+           *     ]
+           */
+          'application/json': components['schemas']['ProductoStockDTO'][];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso ATENCION:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
   finalizar: {
     parameters: {
       query?: never;
@@ -1465,7 +3189,7 @@ export interface operations {
       };
     };
     responses: {
-      /** @description Atención y cita FINALIZADAS; con un paquete activo, la sesión se descuenta */
+      /** @description Atención y cita FINALIZADAS; con un paquete activo, la sesión se descuenta; solo la especialista asignada o la administradora (si no, 403 por RN50). Descuenta el consumo estimado de los insumos de la variante (RN53, RN54) y, si el stock no alcanza, trae los consumos pendientes creados */
       200: {
         headers: {
           [name: string]: unknown;
@@ -1473,6 +3197,22 @@ export interface operations {
         content: {
           /**
            * @example {
+           *       "consumosPendientes": [
+           *         {
+           *           "cantidadDescontada": 10,
+           *           "cantidadEstimada": 30,
+           *           "cantidadPendiente": 20,
+           *           "codigo": "INS-007",
+           *           "estado": "PENDIENTE",
+           *           "fechaRegistro": "2026-11-09T10:45:00",
+           *           "idAtencion": 1532,
+           *           "idConsumo": 12,
+           *           "idProducto": 40,
+           *           "idSede": 1,
+           *           "producto": "Keratina",
+           *           "unidad": "ML"
+           *         }
+           *       ],
            *       "estado": "FINALIZADA",
            *       "horaFin": "2026-11-09T10:45:00",
            *       "horaInicio": "2026-11-09T10:02:00",
@@ -1507,21 +3247,12 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso ATENCION:EDITAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -1553,6 +3284,196 @@ export interface operations {
            * @example {
            *       "detail": "Solo se finaliza una atención EN_CURSO",
            *       "regla": "RF13",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  recomendarProducto: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        idAtencion: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        /**
+         * @example {
+         *       "idProducto": 40,
+         *       "observacion": "Para mantener el color"
+         *     }
+         */
+        'application/json': components['schemas']['RecomendacionDTO'];
+      };
+    };
+    responses: {
+      /** @description La recomendación queda ligada a la atención y aparece en la ficha de la clienta */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "fecha": "2026-11-09T10:31:00",
+           *       "idAtencion": 1532,
+           *       "idProducto": 40,
+           *       "idRecomendacion": 8,
+           *       "observacion": "Para mantener el color"
+           *     }
+           */
+          'application/json': components['schemas']['RecomendacionDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso ATENCION:EDITAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82); Solo la especialista de la atención o la Administradora (RN50) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La atención no existe */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La atención no existe",
+           *       "regla": "RF13",
+           *       "status": 404,
+           *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description El producto ya se recomendó en esta atención */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "El producto ya se recomendó en esta atención",
+           *       "regla": "RF16",
+           *       "status": 409,
+           *       "title": "Conflict",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  consultar: {
+    parameters: {
+      query?: {
+        idUsuario?: number;
+        modulo?: string;
+        entidad?: string;
+        fechaInicio?: string;
+        fechaFin?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description V_AUDITORIA con filtros opcionales de usuario, módulo, entidad y fechas (sin fechas, los últimos 30 días) */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example [
+           *       {
+           *         "accion": "EDITAR",
+           *         "detalle": "estado: CERRADA -> ANULADA",
+           *         "entidad": "VENTA",
+           *         "fechaHora": "2026-11-09T11:30:00",
+           *         "idAuditoria": 900,
+           *         "idEntidad": 620,
+           *         "modulo": "Ventas",
+           *         "rol": "ADMINISTRADORA",
+           *         "usuario": "admin"
+           *       }
+           *     ]
+           */
+          'application/json': components['schemas']['AuditoriaDTO'][];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso SEGURIDAD:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La fecha de inicio es posterior a la de fin */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La fecha de inicio es posterior a la de fin",
+           *       "regla": "RF80",
            *       "status": 422,
            *       "title": "Unprocessable Content",
            *       "type": "about:blank"
@@ -1625,21 +3546,12 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene permiso para esta operación. (ACCESO_DENEGADO) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -1690,15 +3602,19 @@ export interface operations {
         content: {
           /**
            * @example {
+           *       "apellidos": "Quispe",
            *       "debeCambiarClave": false,
+           *       "idPersonal": 3,
            *       "idSede": 1,
            *       "idUsuario": 2,
            *       "nombreUsuario": "recepcion",
+           *       "nombres": "Rosa",
            *       "permisos": [
            *         "AGENDA:VER",
            *         "CLIENTAS:CREAR",
            *         "VENTAS:CREAR"
-           *       ]
+           *       ],
+           *       "rol": "RECEPCIONISTA"
            *     }
            */
           'application/json': components['schemas']['SesionDTO'];
@@ -1794,21 +3710,133 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene permiso para esta operación. (ACCESO_DENEGADO) */
       403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  obtenerSesion: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description La sesión del servidor, con el personal, sus nombres, el rol y los permisos; el navegador no la guarda */
+      200: {
         headers: {
           [name: string]: unknown;
         };
         content: {
           /**
            * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
+           *       "apellidos": "Quispe",
+           *       "debeCambiarClave": false,
+           *       "idPersonal": 3,
+           *       "idSede": 1,
+           *       "idUsuario": 2,
+           *       "nombreUsuario": "recepcion",
+           *       "nombres": "Rosa",
+           *       "permisos": [
+           *         "AGENDA:VER",
+           *         "VENTAS:CREAR"
+           *       ],
+           *       "rol": "RECEPCIONISTA"
+           *     }
+           */
+          'application/json': components['schemas']['SesionDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
            *       "type": "about:blank"
            *     }
            */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene permiso para esta operación. (ACCESO_DENEGADO) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  listarAvisos: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Los avisos de los módulos (AvisoProvider) que el rol de la sesión puede ver; vacía si no hay */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example [
+           *       {
+           *         "cantidad": 3,
+           *         "mensaje": "3 productos en stock mínimo",
+           *         "permisoRequerido": "PRODUCTOS:VER",
+           *         "ruta": "/inventario/productos",
+           *         "tipo": "STOCK_MINIMO"
+           *       }
+           *     ]
+           */
+          'application/json': components['schemas']['AvisoDTO'][];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene permiso para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -1870,21 +3898,12 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso CAJA:CREAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -1903,6 +3922,200 @@ export interface operations {
            *       "type": "about:blank"
            *     }
            */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  obtenerAbierta: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description La caja ABIERTA de la sede de la sesión */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "arqueos": [],
+           *       "estado": "ABIERTA",
+           *       "fechaApertura": "2026-10-22T08:55:00",
+           *       "idCaja": 214,
+           *       "idSede": 1,
+           *       "idUsuarioApertura": 2,
+           *       "montoInicial": 100
+           *     }
+           */
+          'application/json': components['schemas']['CajaDTO'];
+        };
+      };
+      /** @description La sede no tiene caja abierta */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso CAJA:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  listarConDiferencia: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Cajas CERRADAS de la sede con diferencia en algún medio y su observación, aún sin aprobar (RN30) */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example [
+           *       {
+           *         "arqueos": [
+           *           {
+           *             "diferencia": -10,
+           *             "idMedioPago": 1,
+           *             "montoContado": 440,
+           *             "montoEsperado": 450,
+           *             "observacion": "Faltó vuelto"
+           *           }
+           *         ],
+           *         "estado": "CERRADA",
+           *         "fechaApertura": "2026-11-09T08:55:00",
+           *         "fechaCierre": "2026-11-09T20:05:00",
+           *         "idCaja": 12,
+           *         "idSede": 1,
+           *         "idUsuarioApertura": 2,
+           *         "idUsuarioCierre": 2,
+           *         "montoInicial": 100
+           *       }
+           *     ]
+           */
+          'application/json': components['schemas']['CajaDTO'][];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso CONCILIACION:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  obtenerDelDia: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Cajas abiertas hoy en la sede, de la última a la primera, para reabrir la CERRADA (RF66) */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example [
+           *       {
+           *         "estado": "CERRADA",
+           *         "fechaApertura": "2026-11-09T08:55:00",
+           *         "fechaCierre": "2026-11-09T20:05:00",
+           *         "idCaja": 12,
+           *         "idSede": 1,
+           *         "montoInicial": 100
+           *       }
+           *     ]
+           */
+          'application/json': components['schemas']['CajaDTO'][];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso CONCILIACION:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -1991,21 +4204,12 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso CAJA:EDITAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -2116,21 +4320,12 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso CAJA:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -2154,6 +4349,375 @@ export interface operations {
       };
     };
   };
+  reabrir: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        idCaja: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        /**
+         * @example {
+         *       "motivoReapertura": "Venta registrada después del cierre"
+         *     }
+         */
+        'application/json': components['schemas']['ReaperturaDTO'];
+      };
+    };
+    responses: {
+      /** @description La caja vuelve a ABIERTA; Oracle guarda quién y cuándo y limpia el cierre y la revisión. Luego se vuelve a arquear y cerrar (CUS45) */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "estado": "ABIERTA",
+           *       "fechaReapertura": "2026-11-09T20:30:00",
+           *       "idCaja": 12,
+           *       "idSede": 1,
+           *       "idUsuarioReapertura": 1,
+           *       "motivoReapertura": "Venta registrada después del cierre"
+           *     }
+           */
+          'application/json': components['schemas']['CajaDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso CONCILIACION:EDITAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La caja no existe */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La caja no existe",
+           *       "regla": "RN30",
+           *       "status": 404,
+           *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La sede ya tiene otra caja ABIERTA (UQ_CAJA_ABIERTA_SEDE) */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La sede ya tiene otra caja ABIERTA (UQ_CAJA_ABIERTA_SEDE)",
+           *       "regla": "RN30",
+           *       "status": 409,
+           *       "title": "Conflict",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Falta el motivo, la caja no está CERRADA o no es la del día */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Falta el motivo, la caja no está CERRADA o no es la del día",
+           *       "regla": "RN30",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  aprobarCierre: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        idCaja: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description La caja sigue CERRADA y queda revisada (RF67) */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "estado": "CERRADA",
+           *       "fechaRevision": "2026-11-10T09:00:00",
+           *       "idCaja": 12,
+           *       "idSede": 1,
+           *       "idUsuarioRevisa": 1
+           *     }
+           */
+          'application/json': components['schemas']['CajaDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso CONCILIACION:EDITAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La caja no existe */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La caja no existe",
+           *       "regla": "RN30",
+           *       "status": 404,
+           *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La caja no está CERRADA, ya se aprobó o no tiene diferencias */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La caja no está CERRADA, ya se aprobó o no tiene diferencias",
+           *       "regla": "RF67",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  listarCategorias: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Categorías por nombre */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example [
+           *       {
+           *         "idCategoria": 1,
+           *         "nombre": "Cuidado Capilar"
+           *       }
+           *     ]
+           */
+          'application/json': components['schemas']['CategoriaProductoDTO'][];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso PRODUCTOS:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  registrarCategoria: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        /**
+         * @example {
+         *       "nombre": "Accesorios"
+         *     }
+         */
+        'application/json': components['schemas']['CategoriaProductoDTO'];
+      };
+    };
+    responses: {
+      /** @description Categoría creada */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "idCategoria": 5,
+           *       "nombre": "Accesorios"
+           *     }
+           */
+          'application/json': components['schemas']['CategoriaProductoDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso PRODUCTOS:CREAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Ya existe una categoría con ese nombre */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Ya existe una categoría con ese nombre",
+           *       "regla": "RF45",
+           *       "status": 409,
+           *       "title": "Conflict",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Falta el nombre */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Falta el nombre",
+           *       "regla": "RF45",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
   agendar: {
     parameters: {
       query?: never;
@@ -2168,6 +4732,7 @@ export interface operations {
          *       "duracionMin": 30,
          *       "fechaHoraInicio": "2026-11-09T10:00:00",
          *       "idCliente": 407,
+         *       "idEspera": 31,
          *       "idPersonal": 4,
          *       "idRecurso": 1,
          *       "idVariante": 2
@@ -2177,7 +4742,7 @@ export interface operations {
       };
     };
     responses: {
-      /** @description Cita creada; Oracle calcula el fin con la limpieza del recurso */
+      /** @description Cita creada; Oracle calcula el fin con la limpieza del recurso. Con idEspera, la espera queda ASIGNADA con esta cita (RF09) */
       201: {
         headers: {
           [name: string]: unknown;
@@ -2188,10 +4753,11 @@ export interface operations {
            *       "adelantoMonto": 0,
            *       "duracionMin": 30,
            *       "estado": "PENDIENTE",
-           *       "fechaHoraFin": "2026-11-09T11:00:00",
+           *       "fechaHoraFin": "2026-11-09T10:40:00",
            *       "fechaHoraInicio": "2026-11-09T10:00:00",
            *       "idCita": 950,
            *       "idCliente": 407,
+           *       "idEspera": 31,
            *       "idPersonal": 4,
            *       "idRecurso": 1,
            *       "idSede": 1,
@@ -2220,25 +4786,34 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso AGENDA:CREAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La espera no existe */
+      404: {
         headers: {
           [name: string]: unknown;
         };
         content: {
           /**
            * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
+           *       "detail": "La espera no existe",
+           *       "regla": "RF09",
+           *       "status": 404,
+           *       "title": "Not Found",
            *       "type": "about:blank"
            *     }
            */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description Cruce de horario de la especialista o del recurso */
+      /** @description Cruce de horario de la especialista o del recurso, con limpieza (RN02), o la espera ya no está PENDIENTE (RF09) */
       409: {
         headers: {
           [name: string]: unknown;
@@ -2246,7 +4821,7 @@ export interface operations {
         content: {
           /**
            * @example {
-           *       "detail": "Cruce de horario de la especialista o del recurso",
+           *       "detail": "Cruce de horario de la especialista o del recurso, con limpieza (RN02), o la espera ya no está PENDIENTE (RF09)",
            *       "regla": "RN02",
            *       "status": 409,
            *       "title": "Conflict",
@@ -2256,7 +4831,7 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description La especialista no tiene el área del servicio (-20012) o la clienta no existe */
+      /** @description La fecha y hora ya pasaron (RN49), la especialista no tiene el área del servicio (-20012) o la clienta no existe */
       422: {
         headers: {
           [name: string]: unknown;
@@ -2264,8 +4839,8 @@ export interface operations {
         content: {
           /**
            * @example {
-           *       "detail": "La especialista no tiene el área del servicio (-20012) o la clienta no existe",
-           *       "regla": "RF83",
+           *       "detail": "La fecha y hora ya pasaron (RN49), la especialista no tiene el área del servicio (-20012) o la clienta no existe",
+           *       "regla": "RN49",
            *       "status": 422,
            *       "title": "Unprocessable Content",
            *       "type": "about:blank"
@@ -2289,7 +4864,7 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description Franjas ocupadas (con limpieza) y libres; LIBRE es de una especialista o de un recurso */
+      /** @description Franjas ocupadas (fin con la limpieza del recurso; finServicio, sin ella, libera a la especialista, RN03) y libres; LIBRE es de una especialista o de un recurso. Cada franja trae los nombres de la clienta, la especialista y el servicio */
       200: {
         headers: {
           [name: string]: unknown;
@@ -2299,24 +4874,30 @@ export interface operations {
            * @example [
            *       {
            *         "estado": "PENDIENTE",
-           *         "fin": "2026-11-09T11:00:00",
+           *         "fin": "2026-11-09T10:40:00",
+           *         "finServicio": "2026-11-09T10:30:00",
            *         "franja": "OCUPADA",
+           *         "idCliente": 407,
            *         "idOrigen": 950,
            *         "idPersonal": 4,
            *         "idRecurso": 1,
            *         "idVariante": 2,
            *         "inicio": "2026-11-09T10:00:00",
+           *         "nombreCliente": "Marisol Quispe",
+           *         "nombreEspecialista": "Lucía Ramos",
+           *         "nombreServicio": "Corte de Cabello Caballero",
            *         "origen": "CITA"
            *       },
            *       {
            *         "fin": "2026-11-09T19:00:00",
            *         "franja": "LIBRE",
            *         "idPersonal": 4,
-           *         "inicio": "2026-11-09T11:00:00"
+           *         "inicio": "2026-11-09T10:30:00",
+           *         "nombreEspecialista": "Lucía Ramos"
            *       }
            *     ]
            */
-          'application/json': components['schemas']['BloqueAgendaDTO'][];
+          'application/json': components['schemas']['FranjaAgendaDTO'][];
         };
       };
       /** @description Falta la fecha */
@@ -2355,21 +4936,12 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso AGENDA:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -2387,7 +4959,7 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description Horas con las especialistas y recursos libres; la limpieza ya está descontada */
+      /** @description Horas cada AGENDA_PASO_MIN minutos (RN51) con las especialistas y recursos libres; la limpieza solo ocupa al recurso (RN03) */
       200: {
         headers: {
           [name: string]: unknown;
@@ -2430,21 +5002,12 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso AGENDA:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -2463,6 +5026,138 @@ export interface operations {
            *       "type": "about:blank"
            *     }
            */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  listarFiltros: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Especialistas (PersonalApi, con nombres de PersonaApi) y recursos (RecursoApi) de la sede de la sesión */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "especialistas": [
+           *         {
+           *           "apellidos": "Ramos",
+           *           "idPersonal": 4,
+           *           "nombres": "Lucía"
+           *         }
+           *       ],
+           *       "recursos": [
+           *         {
+           *           "estado": "DISPONIBLE",
+           *           "idRecurso": 1,
+           *           "nombre": "Sillón 1",
+           *           "tipo": "SILLON"
+           *         }
+           *       ]
+           *     }
+           */
+          'application/json': components['schemas']['FiltrosAgendaDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso AGENDA:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  listarEspera: {
+    parameters: {
+      query: {
+        fecha: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Esperas PENDIENTES de la sede en el orden en que se anotaron, con la clienta, el servicio y el rango de horas */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example [
+           *       {
+           *         "estado": "PENDIENTE",
+           *         "fechaDeseada": "2026-11-09",
+           *         "horaDesde": "15:00",
+           *         "horaHasta": "18:00",
+           *         "idCliente": 407,
+           *         "idEspera": 31,
+           *         "idSede": 1,
+           *         "idUsuario": 2,
+           *         "idVariante": 2,
+           *         "nombreCliente": "Rosaura Quispe",
+           *         "nombreServicio": "Corte de Cabello Caballero"
+           *       }
+           *     ]
+           */
+          'application/json': components['schemas']['ListaEsperaDTO'][];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso AGENDA:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -2560,21 +5255,12 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso AGENDA:CREAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -2590,6 +5276,104 @@ export interface operations {
            *       "regla": "FK_LISTA_ESPERA_CLIENTE",
            *       "status": 422,
            *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  descartarEspera: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        idEspera: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description La espera queda DESCARTADA */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "estado": "DESCARTADA",
+           *       "fechaDeseada": "2026-11-09",
+           *       "horaDesde": "15:00",
+           *       "horaHasta": "18:00",
+           *       "idCliente": 407,
+           *       "idEspera": 31,
+           *       "idSede": 1,
+           *       "idUsuario": 2,
+           *       "idVariante": 2
+           *     }
+           */
+          'application/json': components['schemas']['ListaEsperaDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso AGENDA:EDITAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La espera no existe */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La espera no existe",
+           *       "regla": "RF09",
+           *       "status": 404,
+           *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La espera ya se asignó o se descartó */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La espera ya se asignó o se descartó",
+           *       "regla": "RF09",
+           *       "status": 409,
+           *       "title": "Conflict",
            *       "type": "about:blank"
            *     }
            */
@@ -2663,21 +5447,12 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso AGENDA:EDITAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -2709,6 +5484,117 @@ export interface operations {
            * @example {
            *       "detail": "El medio es digital",
            *       "regla": "RN42",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  cancelar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        idCita: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        /**
+         * @example {
+         *       "motivoCancelacion": "No se presentó"
+         *     }
+         */
+        'application/json': components['schemas']['CancelacionDTO'];
+      };
+    };
+    responses: {
+      /** @description Cita CANCELADA; si tenía adelanto, pasa a saldo a favor de la clienta (RN05). La inasistencia es una cancelación con el motivo «No se presentó» */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "adelantoMonto": 20,
+           *       "duracionMin": 30,
+           *       "estado": "CANCELADA",
+           *       "fechaHoraFin": "2026-11-16T10:40:00",
+           *       "fechaHoraInicio": "2026-11-16T10:00:00",
+           *       "idCita": 951,
+           *       "idCliente": 407,
+           *       "idPersonal": 4,
+           *       "idRecurso": 1,
+           *       "idSede": 1,
+           *       "idUsuario": 2,
+           *       "idVariante": 2,
+           *       "motivoCancelacion": "No se presentó"
+           *     }
+           */
+          'application/json': components['schemas']['CitaDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso AGENDA:EDITAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La cita no existe */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La cita no existe",
+           *       "regla": "RF10",
+           *       "status": 404,
+           *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Falta el motivo o la cita no está PENDIENTE */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Falta el motivo o la cita no está PENDIENTE",
+           *       "regla": "RF12",
            *       "status": 422,
            *       "title": "Unprocessable Content",
            *       "type": "about:blank"
@@ -2776,21 +5662,12 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso AGENDA:EDITAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -2842,6 +5719,139 @@ export interface operations {
            *       "regla": "RF104",
            *       "status": 503,
            *       "title": "Service Unavailable",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  reprogramar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        idCita: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        /**
+         * @example {
+         *       "fechaHoraInicio": "2026-11-16T15:00:00",
+         *       "idPersonal": 4,
+         *       "idRecurso": 2
+         *     }
+         */
+        'application/json': components['schemas']['ReprogramacionDTO'];
+      };
+    };
+    responses: {
+      /** @description La cita origen queda REPROGRAMADA; la nueva hereda el adelanto y guarda id_cita_origen (RN05) */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "adelantoMonto": 20,
+           *       "duracionMin": 30,
+           *       "estado": "PENDIENTE",
+           *       "fechaHoraFin": "2026-11-16T15:40:00",
+           *       "fechaHoraInicio": "2026-11-16T15:00:00",
+           *       "idCaja": 12,
+           *       "idCita": 952,
+           *       "idCitaOrigen": 951,
+           *       "idCliente": 407,
+           *       "idMedioPago": 1,
+           *       "idPersonal": 4,
+           *       "idRecurso": 2,
+           *       "idSede": 1,
+           *       "idUsuario": 2,
+           *       "idVariante": 2
+           *     }
+           */
+          'application/json': components['schemas']['CitaDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso AGENDA:EDITAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La cita no existe */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La cita no existe",
+           *       "regla": "RF10",
+           *       "status": 404,
+           *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Cruce de horario de la especialista o del recurso */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Cruce de horario de la especialista o del recurso",
+           *       "regla": "RN02",
+           *       "status": 409,
+           *       "title": "Conflict",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La fecha y hora ya pasaron (RN49) o la cita no está PENDIENTE */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La fecha y hora ya pasaron (RN49) o la cita no está PENDIENTE",
+           *       "regla": "RN49",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
            *       "type": "about:blank"
            *     }
            */
@@ -2902,27 +5912,18 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso CLIENTAS:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
     };
   };
-  registrar_1: {
+  registrar_2: {
     parameters: {
       query?: never;
       header?: never;
@@ -3004,21 +6005,12 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso CLIENTAS:CREAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -3105,21 +6097,12 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso CLIENTAS:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -3132,6 +6115,294 @@ export interface operations {
           /**
            * @example {
            *       "detail": "El número no cumple su TIPO_DOCUMENTO o ese tipo no se consulta",
+           *       "regla": "RN45",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  obtenerFicha: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        idCliente: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Datos de PERSONA y CLIENTE, saldo a favor (RN05), atenciones con sus recomendaciones, citas pendientes, paquetes con sesiones (RN36) y productos comprados */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "atenciones": [
+           *         {
+           *           "estado": "COBRADA",
+           *           "horaFin": "2026-11-02T10:30:00",
+           *           "horaInicio": "2026-11-02T10:00:00",
+           *           "idAtencion": 1532,
+           *           "idPersonal": 4,
+           *           "idVariante": 2,
+           *           "recomendaciones": [
+           *             {
+           *               "fecha": "2026-11-02T10:31:00",
+           *               "idAtencion": 1532,
+           *               "idProducto": 40,
+           *               "idRecomendacion": 8,
+           *               "observacion": "Para mantener el color"
+           *             }
+           *           ]
+           *         }
+           *       ],
+           *       "citasPendientes": [
+           *         {
+           *           "duracionMin": 30,
+           *           "estado": "PENDIENTE",
+           *           "fechaHoraInicio": "2026-11-16T10:00:00",
+           *           "idCita": 951,
+           *           "idCliente": 407
+           *         }
+           *       ],
+           *       "cliente": {
+           *         "aceptaComunicaciones": true,
+           *         "apellidos": "Quispe",
+           *         "estado": "ACTIVO",
+           *         "idCliente": 407,
+           *         "nombres": "Rosaura",
+           *         "origenDatos": "MANUAL",
+           *         "telefono": "987610001"
+           *       },
+           *       "paquetes": [
+           *         {
+           *           "estado": "ACTIVO",
+           *           "fechaCompra": "2026-11-02",
+           *           "fechaVencimiento": "2027-01-31",
+           *           "idClientePaquete": 5,
+           *           "idPaquete": 3,
+           *           "sesionesRestantes": 2,
+           *           "sesionesTotales": 3,
+           *           "sesionesUsadas": 1
+           *         }
+           *       ],
+           *       "productosComprados": [
+           *         {
+           *           "cantidad": 1,
+           *           "fecha": "2026-11-02",
+           *           "idProducto": 40,
+           *           "idVenta": 610,
+           *           "precioUnitario": 45,
+           *           "producto": "Shampoo reparador",
+           *           "subtotal": 45
+           *         }
+           *       ],
+           *       "saldoFavor": 20
+           *     }
+           */
+          'application/json': components['schemas']['FichaClienteDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso CLIENTAS:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La clienta no existe */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La clienta no existe",
+           *       "regla": "RF02",
+           *       "status": 404,
+           *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  actualizar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        idCliente: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        /**
+         * @example {
+         *       "aceptaComunicaciones": true,
+         *       "apellidos": "Quispe",
+         *       "correo": "rosaura@correo.pe",
+         *       "fechaCumpleanos": "1992-03-15",
+         *       "fechaVerificacion": null,
+         *       "idTipoDocumento": 1,
+         *       "nombres": "Rosaura",
+         *       "numeroDocumento": "71234567",
+         *       "observaciones": "Alérgica al tinte",
+         *       "telefono": "987610001"
+         *     }
+         */
+        'application/json': components['schemas']['ClienteDTO'];
+      };
+    };
+    responses: {
+      /** @description PERSONA por PersonaApi y CLIENTE en agenda; un documento cambiado sin consulta nueva queda MANUAL (RN45) */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "aceptaComunicaciones": true,
+           *       "apellidos": "Quispe",
+           *       "correo": "rosaura@correo.pe",
+           *       "estado": "ACTIVO",
+           *       "fechaConsentimiento": "2026-11-09T10:00:00",
+           *       "fechaCumpleanos": "1992-03-15",
+           *       "idCliente": 407,
+           *       "idTipoDocumento": 1,
+           *       "nombres": "Rosaura",
+           *       "numeroDocumento": "71234567",
+           *       "observaciones": "Alérgica al tinte",
+           *       "origenDatos": "MANUAL",
+           *       "telefono": "987610001"
+           *     }
+           */
+          'application/json': components['schemas']['ClienteDTO'];
+        };
+      };
+      /** @description Faltan los nombres */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Faltan los nombres",
+           *       "regla": "VALIDACION",
+           *       "status": 400,
+           *       "title": "Bad Request",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso CLIENTAS:EDITAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La clienta no existe */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La clienta no existe",
+           *       "regla": "RF02",
+           *       "status": 404,
+           *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description El teléfono o el documento ya pertenecen a otra ficha */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "El teléfono o el documento ya pertenecen a otra ficha",
+           *       "regla": "RF05",
+           *       "status": 409,
+           *       "title": "Conflict",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description El número no cumple el formato del tipo de documento */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "El número no cumple el formato del tipo de documento",
            *       "regla": "RN45",
            *       "status": 422,
            *       "title": "Unprocessable Content",
@@ -3187,6 +6458,84 @@ export interface operations {
       };
     };
   };
+  obtenerComprobante: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        idComprobante: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Estado SUNAT actual (ACEPTADO, PENDIENTE o RECHAZADO), también después del reenvío automático (RN46) */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "codigoRespuesta": "0",
+           *       "estadoSunat": "ACEPTADO",
+           *       "fechaEmision": "2026-10-22",
+           *       "idComprobante": 7120,
+           *       "numero": "00000125",
+           *       "serie": "B001",
+           *       "tipo": "BOLETA"
+           *     }
+           */
+          'application/json': components['schemas']['ComprobanteDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso VENTAS:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description El comprobante no existe */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "El comprobante no existe",
+           *       "regla": "RF102",
+           *       "status": 404,
+           *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
   obtenerEnlace: {
     parameters: {
       query?: {
@@ -3201,7 +6550,7 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description Enlace para compartir por correo o WhatsApp */
+      /** @description Enlace para compartir por correo o WhatsApp; el correo lo abre el front-end con mailto (sin servidor de correo, D-12) */
       200: {
         headers: {
           [name: string]: unknown;
@@ -3235,21 +6584,12 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso VENTAS:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -3330,21 +6670,12 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso VENTAS:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -3360,6 +6691,886 @@ export interface operations {
            *       "regla": "RF102",
            *       "status": 404,
            *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  conciliar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        /**
+         * @example {
+         *       "anio": 2026,
+         *       "mes": 11
+         *     }
+         */
+        'application/json': components['schemas']['ConciliacionDTO'];
+      };
+    };
+    responses: {
+      /** @description Conciliación ABIERTA con una diferencia por venta, comprobante o transacción (RN31); las ventas anuladas no cuentan (RN33) */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "anio": 2026,
+           *       "estado": "ABIERTA",
+           *       "idConciliacion": 3,
+           *       "idUsuario": 1,
+           *       "items": [
+           *         {
+           *           "aceptadoSunat": true,
+           *           "estado": "COINCIDE",
+           *           "idItem": 40,
+           *           "idVenta": 620,
+           *           "pagoRespaldado": true,
+           *           "referenciaSunat": "B001-00000125"
+           *         },
+           *         {
+           *           "aceptadoSunat": false,
+           *           "estado": "SIN_JUSTIFICAR",
+           *           "idItem": 41,
+           *           "idTransaccion": 82,
+           *           "pagoRespaldado": false
+           *         }
+           *       ],
+           *       "mes": 11,
+           *       "sinJustificar": 1
+           *     }
+           */
+          'application/json': components['schemas']['ConciliacionDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso CONCILIACION:CREAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Ya existe la conciliación de ese mes */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Ya existe la conciliación de ese mes",
+           *       "regla": "RF75",
+           *       "status": 409,
+           *       "title": "Conflict",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Indique un mes válido desde 2026 */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Indique un mes válido desde 2026",
+           *       "regla": "RF75",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  importarLiquidacion: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        /**
+         * @example {
+         *       "archivoLiquidacion": "(archivo liquidacion-noviembre.csv o .xlsx descargado del panel de Izipay)"
+         *     }
+         */
+        'multipart/form-data': {
+          /** Format: binary */
+          archivoLiquidacion: string;
+        };
+      };
+    };
+    responses: {
+      /** @description Comisión y fecha de abono guardadas en cada cobro APROBADO por su código de operación; los códigos que no casaron se informan */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "codigosSinTransaccion": [
+           *         "CS-0000-DESCONOCIDO"
+           *       ],
+           *       "filasLeidas": 3,
+           *       "filasRegistradas": 2
+           *     }
+           */
+          'application/json': components['schemas']['ResumenImportacionDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso CONCILIACION:CREAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description El archivo está vacío, le falta una columna configurada o una comisión o fecha no se entiende */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "El archivo está vacío, le falta una columna configurada o una comisión o fecha no se entiende",
+           *       "regla": "RF105",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  cerrar_2: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        idConciliacion: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description CERRADA con su fecha; ya no cambia (CK_CONCILIACION_CIERRE) */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "anio": 2026,
+           *       "estado": "CERRADA",
+           *       "fechaCierre": "2026-12-02T10:00:00",
+           *       "idConciliacion": 3,
+           *       "idUsuario": 1,
+           *       "items": [],
+           *       "mes": 11,
+           *       "sinJustificar": 0
+           *     }
+           */
+          'application/json': components['schemas']['ConciliacionDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso CONCILIACION:EDITAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La conciliación no existe */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La conciliación no existe",
+           *       "regla": "RF75",
+           *       "status": 404,
+           *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Quedan diferencias SIN_JUSTIFICAR o ya está CERRADA */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Quedan diferencias SIN_JUSTIFICAR o ya está CERRADA",
+           *       "regla": "RF75",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  justificarItem: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        idConciliacion: number;
+        idItem: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        /**
+         * @example {
+         *       "estado": "JUSTIFICADA",
+         *       "justificacion": "Devolución de Yape hecha desde la app (CUS24)"
+         *     }
+         */
+        'application/json': components['schemas']['JustificacionDTO'];
+      };
+    };
+    responses: {
+      /** @description La diferencia queda JUSTIFICADA o EXCLUIDA */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "anio": 2026,
+           *       "estado": "ABIERTA",
+           *       "idConciliacion": 3,
+           *       "items": [
+           *         {
+           *           "aceptadoSunat": false,
+           *           "estado": "JUSTIFICADA",
+           *           "idItem": 41,
+           *           "idTransaccion": 82,
+           *           "justificacion": "Devolución de Yape hecha desde la app (CUS24)",
+           *           "pagoRespaldado": false
+           *         }
+           *       ],
+           *       "mes": 11,
+           *       "sinJustificar": 0
+           *     }
+           */
+          'application/json': components['schemas']['ConciliacionDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso CONCILIACION:EDITAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La conciliación no existe */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La conciliación no existe",
+           *       "regla": "RF75",
+           *       "status": 404,
+           *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Falta la justificación, el ítem coincide o no es de la conciliación, o la conciliación ya está CERRADA */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Falta la justificación, el ítem coincide o no es de la conciliación, o la conciliación ya está CERRADA",
+           *       "regla": "RF75",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  listarConsumosPendientes: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Lo que faltó descontar al finalizar atenciones (RN53), del más antiguo al más reciente */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example [
+           *       {
+           *         "cantidadDescontada": 10,
+           *         "cantidadEstimada": 30,
+           *         "cantidadPendiente": 20,
+           *         "codigo": "INS-007",
+           *         "estado": "PENDIENTE",
+           *         "fechaRegistro": "2026-11-09T10:45:00",
+           *         "idAtencion": 1532,
+           *         "idConsumo": 12,
+           *         "idProducto": 40,
+           *         "idSede": 1,
+           *         "producto": "Keratina",
+           *         "unidad": "ML"
+           *       }
+           *     ]
+           */
+          'application/json': components['schemas']['ConsumoPendienteDTO'][];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso KARDEX:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  descartar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        idConsumo: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        /**
+         * @example {
+         *       "observacion": "Se usó menos de lo estimado"
+         *     }
+         */
+        'application/json': components['schemas']['DescarteDTO'];
+      };
+    };
+    responses: {
+      /** @description Queda DESCARTADO con la observación */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "cantidadDescontada": 10,
+           *       "cantidadEstimada": 30,
+           *       "cantidadPendiente": 20,
+           *       "codigo": "INS-007",
+           *       "estado": "DESCARTADO",
+           *       "fechaRegistro": "2026-11-09T10:45:00",
+           *       "idAtencion": 1532,
+           *       "idConsumo": 12,
+           *       "idProducto": 40,
+           *       "idSede": 1,
+           *       "observacion": "Se usó menos de lo estimado",
+           *       "producto": "Keratina",
+           *       "unidad": "ML"
+           *     }
+           */
+          'application/json': components['schemas']['ConsumoPendienteDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso KARDEX:CREAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description El consumo pendiente no existe */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "El consumo pendiente no existe",
+           *       "regla": "RN53",
+           *       "status": 404,
+           *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Ya está resuelto y no cambia */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Ya está resuelto y no cambia",
+           *       "regla": "RN53",
+           *       "status": 409,
+           *       "title": "Conflict",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Falta la observación (CK_CONSUMO_PEND_DESCARTADO) */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Falta la observación (CK_CONSUMO_PEND_DESCARTADO)",
+           *       "regla": "RN53",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  regularizar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        idConsumo: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description SALIDA del mismo producto, sede y atención por lo pendiente; queda REGULARIZADO con su movimiento */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "cantidadDescontada": 10,
+           *       "cantidadEstimada": 30,
+           *       "cantidadPendiente": 20,
+           *       "codigo": "INS-007",
+           *       "estado": "REGULARIZADO",
+           *       "fechaRegistro": "2026-11-09T10:45:00",
+           *       "idAtencion": 1532,
+           *       "idConsumo": 12,
+           *       "idMovimiento": 330,
+           *       "idProducto": 40,
+           *       "idSede": 1,
+           *       "producto": "Keratina",
+           *       "unidad": "ML"
+           *     }
+           */
+          'application/json': components['schemas']['ConsumoPendienteDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso KARDEX:CREAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description El consumo pendiente no existe */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "El consumo pendiente no existe",
+           *       "regla": "RN53",
+           *       "status": 404,
+           *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Aún no hay stock (RN15) o ya está resuelto */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Aún no hay stock (RN15) o ya está resuelto",
+           *       "regla": "RN53",
+           *       "status": 409,
+           *       "title": "Conflict",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  listarMediosPago: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Efectivo, Yape, Plin y tarjeta con su estado y si usan la pasarela */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example [
+           *       {
+           *         "estado": "ACTIVO",
+           *         "idMedioPago": 1,
+           *         "nombre": "EFECTIVO",
+           *         "usaPasarela": false
+           *       },
+           *       {
+           *         "estado": "ACTIVO",
+           *         "idMedioPago": 2,
+           *         "nombre": "YAPE",
+           *         "usaPasarela": true
+           *       }
+           *     ]
+           */
+          'application/json': components['schemas']['MedioPagoDTO'][];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso VENTAS:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  configurarMedioPago: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        idMedioPago: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        /**
+         * @example {
+         *       "estado": "ACTIVO",
+         *       "usaPasarela": true
+         *     }
+         */
+        'application/json': components['schemas']['MedioPagoDTO'];
+      };
+    };
+    responses: {
+      /** @description Medio de pago actualizado */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "estado": "ACTIVO",
+           *       "idMedioPago": 2,
+           *       "nombre": "YAPE",
+           *       "usaPasarela": true
+           *     }
+           */
+          'application/json': components['schemas']['MedioPagoDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso CATALOGO:EDITAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description El medio de pago no existe */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "El medio de pago no existe",
+           *       "regla": "RF88",
+           *       "status": 404,
+           *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description El efectivo no se cobra por la pasarela (CK_MEDIO_PAGO_EFECTIVO) */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "El efectivo no se cobra por la pasarela (CK_MEDIO_PAGO_EFECTIVO)",
+           *       "regla": "RN42",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
            *       "type": "about:blank"
            *     }
            */
@@ -3439,6 +7650,933 @@ export interface operations {
            *       "regla": "RN42",
            *       "status": 404,
            *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  listarPaquetes: {
+    parameters: {
+      query?: {
+        tipo?: 'PAQUETE' | 'MEMBRESIA';
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Paquetes o membresías con sus servicios (sin tipo, todos) */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example [
+           *       {
+           *         "estado": "ACTIVO",
+           *         "idPaquete": 3,
+           *         "idsServicio": [
+           *           1
+           *         ],
+           *         "nombre": "Tres cortes",
+           *         "numSesiones": 3,
+           *         "precio": 90,
+           *         "tipo": "PAQUETE",
+           *         "vigenciaDias": 90
+           *       }
+           *     ]
+           */
+          'application/json': components['schemas']['PaqueteDTO'][];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso CATALOGO:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  registrarPaquete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        /**
+         * @example {
+         *       "idsServicio": [
+         *         1
+         *       ],
+         *       "nombre": "Tres cortes",
+         *       "numSesiones": 3,
+         *       "precio": 90,
+         *       "tipo": "PAQUETE",
+         *       "vigenciaDias": 90
+         *     }
+         */
+        'application/json': components['schemas']['PaqueteDTO'];
+      };
+    };
+    responses: {
+      /** @description Paquete con sus servicios en PAQUETE_SERVICIO; CUS11 descuenta de él las sesiones (RN36) */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "estado": "ACTIVO",
+           *       "idPaquete": 3,
+           *       "idsServicio": [
+           *         1
+           *       ],
+           *       "nombre": "Tres cortes",
+           *       "numSesiones": 3,
+           *       "precio": 90,
+           *       "tipo": "PAQUETE",
+           *       "vigenciaDias": 90
+           *     }
+           */
+          'application/json': components['schemas']['PaqueteDTO'];
+        };
+      };
+      /** @description Faltan el nombre o el tipo */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Faltan el nombre o el tipo",
+           *       "regla": "VALIDACION",
+           *       "status": 400,
+           *       "title": "Bad Request",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso CATALOGO:CREAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Al menos una sesión, precio mayor o igual a 0 y vigencia de al menos un día */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Al menos una sesión, precio mayor o igual a 0 y vigencia de al menos un día",
+           *       "regla": "RF84",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  listarParametros: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Parámetros con su valor, su vigencia y quién los cambió */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example [
+           *       {
+           *         "codigo": "AGENDA_PASO_MIN",
+           *         "descripcion": "Minutos entre horas libres de la agenda (RN51)",
+           *         "fechaVigencia": "2026-11-08",
+           *         "idParametro": 9,
+           *         "idUsuario": 1,
+           *         "valorNumero": 15
+           *       }
+           *     ]
+           */
+          'application/json': components['schemas']['ParametroDTO'][];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso SEGURIDAD:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  cambiarValor: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        codigo: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        /**
+         * @example {
+         *       "fechaVigencia": "2026-11-10",
+         *       "valorNumero": 10
+         *     }
+         */
+        'application/json': components['schemas']['ParametroDTO'];
+      };
+    };
+    responses: {
+      /** @description Valor cambiado; TRG_AUD_PARAMETRO lo audita (RN29) */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "codigo": "LIMPIEZA_MAX_MIN",
+           *       "descripcion": "Minutos máximos de limpieza del recurso (RN03)",
+           *       "fechaVigencia": "2026-11-10",
+           *       "idParametro": 8,
+           *       "idUsuario": 1,
+           *       "valorNumero": 10
+           *     }
+           */
+          'application/json': components['schemas']['ParametroDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso SEGURIDAD:EDITAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description El parámetro no existe (los códigos no se crean) */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "El parámetro no existe (los códigos no se crean)",
+           *       "regla": "RF87",
+           *       "status": 404,
+           *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Falta el valor (CK_PARAMETRO_VALOR), AGENDA_PASO_MIN no es un entero mayor que 0 (RN51) o LIMPIEZA_MAX_MIN no es un entero de 0 a 10 (RN03) */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Falta el valor (CK_PARAMETRO_VALOR), AGENDA_PASO_MIN no es un entero mayor que 0 (RN51) o LIMPIEZA_MAX_MIN no es un entero de 0 a 10 (RN03)",
+           *       "regla": "RN03",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  listarPermisos: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Permisos que existen, para armar los de un rol */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example [
+           *       {
+           *         "accion": "VER",
+           *         "modulo": "AGENDA"
+           *       },
+           *       {
+           *         "accion": "EDITAR",
+           *         "modulo": "SEGURIDAD"
+           *       }
+           *     ]
+           */
+          'application/json': components['schemas']['PermisoDTO'][];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso SEGURIDAD:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  listarProductos: {
+    parameters: {
+      query?: {
+        nombre?: string;
+        idCategoria?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Productos de la sede de la sesión, filtrados por nombre y categoría; el margen solo viene para la Administradora (RN24) */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example [
+           *       {
+           *         "codigo": "CAP-001",
+           *         "costo": 43.33,
+           *         "esPremium": false,
+           *         "estado": "ACTIVO",
+           *         "idCategoria": 1,
+           *         "idProducto": 1,
+           *         "marca": "Marca",
+           *         "nombre": "Champú Post-Alisado 400ml",
+           *         "precioVenta": 65,
+           *         "stockActual": 8,
+           *         "stockMinimo": 5,
+           *         "tipoUso": "VENTA",
+           *         "ubicacion": "Vitrina 1",
+           *         "unidad": "UND"
+           *       }
+           *     ]
+           */
+          'application/json': components['schemas']['ProductoDTO'][];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso PRODUCTOS:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  registrar_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        /**
+         * @example {
+         *       "codigo": "INS-007",
+         *       "costo": 0.5,
+         *       "esPremium": false,
+         *       "idCategoria": 4,
+         *       "nombre": "Keratina",
+         *       "stockMinimo": 100,
+         *       "tipoUso": "INSUMO",
+         *       "ubicacion": "Estante A",
+         *       "unidad": "ML"
+         *     }
+         */
+        'application/json': components['schemas']['ProductoDTO'];
+      };
+    };
+    responses: {
+      /** @description Producto creado con stock 0 en la sede de la sesión; precio = costo × (1 + margen de PARAMETRO o el que indique la encargada) (RF87) */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "codigo": "INS-007",
+           *       "costo": 0.5,
+           *       "esPremium": false,
+           *       "estado": "ACTIVO",
+           *       "idCategoria": 4,
+           *       "idProducto": 40,
+           *       "nombre": "Keratina",
+           *       "precioVenta": 0.75,
+           *       "stockActual": 0,
+           *       "stockMinimo": 100,
+           *       "tipoUso": "INSUMO",
+           *       "ubicacion": "Estante A",
+           *       "unidad": "ML"
+           *     }
+           */
+          'application/json': components['schemas']['ProductoDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso PRODUCTOS:CREAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Ya existe un producto con ese código */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Ya existe un producto con ese código",
+           *       "regla": "UQ_PRODUCTO_CODIGO",
+           *       "status": 409,
+           *       "title": "Conflict",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Un insumo va en su unidad mínima (ML, G o UND) o falta un dato */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Un insumo va en su unidad mínima (ML, G o UND) o falta un dato",
+           *       "regla": "RN54",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  registrarAjuste: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        idProducto: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        /**
+         * @example {
+         *       "cantidad": 5,
+         *       "motivo": "Conteo físico"
+         *     }
+         */
+        'application/json': components['schemas']['AjusteDTO'];
+      };
+    };
+    responses: {
+      /** @description AJUSTE por la diferencia con signo (contado − stock); estaEnMinimo avisa el stock mínimo (RF47) */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "cantidad": 5,
+           *       "estaEnMinimo": false,
+           *       "fechaHora": "2026-11-09T11:05:00",
+           *       "idMovimiento": 311,
+           *       "idProducto": 40,
+           *       "idSede": 1,
+           *       "motivo": "Conteo físico",
+           *       "saldo": 5,
+           *       "tipo": "AJUSTE"
+           *     }
+           */
+          'application/json': components['schemas']['MovimientoDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso KARDEX:CREAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description El producto no existe */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "El producto no existe",
+           *       "regla": "RF44",
+           *       "status": 404,
+           *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Lo contado es igual al stock, o falta el motivo */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Lo contado es igual al stock, o falta el motivo",
+           *       "regla": "RF48",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  consultarKardex: {
+    parameters: {
+      query?: {
+        idSede?: number;
+        fechaInicio?: string;
+        fechaFin?: string;
+      };
+      header?: never;
+      path: {
+        idProducto: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Movimientos de V_KARDEX en la sede (por defecto la de la sesión) entre las fechas (por defecto los últimos 30 días) */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example [
+           *       {
+           *         "cantidad": -3,
+           *         "fechaHora": "2026-11-09T11:05:00",
+           *         "idAtencion": 1532,
+           *         "idMovimiento": 311,
+           *         "motivo": "Consumo estimado de la atención N° 1532",
+           *         "saldo": 7,
+           *         "tipo": "SALIDA",
+           *         "usuario": "especialista1"
+           *       }
+           *     ]
+           */
+          'application/json': components['schemas']['MovimientoKardexDTO'][];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso KARDEX:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description El producto no existe */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "El producto no existe",
+           *       "regla": "RF44",
+           *       "status": 404,
+           *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La fecha de inicio es posterior a la de fin */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La fecha de inicio es posterior a la de fin",
+           *       "regla": "RF50",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  registrarSalida: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        idProducto: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        /**
+         * @example {
+         *       "cantidad": 4,
+         *       "idAtencion": 1532,
+         *       "motivo": "Uso en cabina"
+         *     }
+         */
+        'application/json': components['schemas']['MovimientoDTO'];
+      };
+    };
+    responses: {
+      /** @description Salida registrada; Oracle fija saldo, usuario y fecha. estaEnMinimo avisa que quedó en el stock mínimo (RF47) */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "cantidad": 4,
+           *       "estaEnMinimo": true,
+           *       "fechaHora": "2026-11-09T11:00:00",
+           *       "idAtencion": 1532,
+           *       "idMovimiento": 310,
+           *       "idProducto": 40,
+           *       "idSede": 1,
+           *       "motivo": "Uso en cabina",
+           *       "saldo": 1,
+           *       "tipo": "SALIDA"
+           *     }
+           */
+          'application/json': components['schemas']['MovimientoDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso KARDEX:CREAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description El producto no existe */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "El producto no existe",
+           *       "regla": "RF44",
+           *       "status": 404,
+           *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No hay stock suficiente en la sede */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "No hay stock suficiente en la sede",
+           *       "regla": "RN15",
+           *       "status": 409,
+           *       "title": "Conflict",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Falta el motivo o la cantidad no es mayor que 0 */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Falta el motivo o la cantidad no es mayor que 0",
+           *       "regla": "RN18",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
            *       "type": "about:blank"
            *     }
            */
@@ -3534,21 +8672,12 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso VENTAS:CREAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -3572,6 +8701,266 @@ export interface operations {
       };
     };
   };
+  listarPromociones: {
+    parameters: {
+      query?: {
+        vigentes?: boolean;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Con vigentes=true, solo las ACTIVAS cuya vigencia incluye hoy; si no, todas */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example [
+           *       {
+           *         "estado": "ACTIVA",
+           *         "fechaFin": "2026-11-30",
+           *         "fechaInicio": "2026-11-01",
+           *         "idPromocion": 7,
+           *         "idsServicio": [
+           *           1,
+           *           2
+           *         ],
+           *         "nombre": "Noviembre feliz",
+           *         "tipoDescuento": "PORCENTAJE",
+           *         "valor": 10
+           *       }
+           *     ]
+           */
+          'application/json': components['schemas']['PromocionDTO'][];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso CATALOGO:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  registrarPromocion: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        /**
+         * @example {
+         *       "fechaFin": "2026-11-30",
+         *       "fechaInicio": "2026-11-01",
+         *       "idsServicio": [
+         *         1,
+         *         2
+         *       ],
+         *       "nombre": "Noviembre feliz",
+         *       "tipoDescuento": "PORCENTAJE",
+         *       "valor": 10
+         *     }
+         */
+        'application/json': components['schemas']['PromocionDTO'];
+      };
+    };
+    responses: {
+      /** @description Promoción ACTIVA con sus servicios en PROMOCION_SERVICIO */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "estado": "ACTIVA",
+           *       "fechaFin": "2026-11-30",
+           *       "fechaInicio": "2026-11-01",
+           *       "idPromocion": 7,
+           *       "idsServicio": [
+           *         1,
+           *         2
+           *       ],
+           *       "nombre": "Noviembre feliz",
+           *       "tipoDescuento": "PORCENTAJE",
+           *       "valor": 10
+           *     }
+           */
+          'application/json': components['schemas']['PromocionDTO'];
+        };
+      };
+      /** @description Faltan el nombre o el tipo de descuento */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Faltan el nombre o el tipo de descuento",
+           *       "regla": "VALIDACION",
+           *       "status": 400,
+           *       "title": "Bad Request",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso CATALOGO:CREAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description El descuento es mayor que 0 (hasta 100 si es porcentaje) y la vigencia termina el mismo día o después */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "El descuento es mayor que 0 (hasta 100 si es porcentaje) y la vigencia termina el mismo día o después",
+           *       "regla": "RF84",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  listarRecursos: {
+    parameters: {
+      query: {
+        idSede: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Recursos con su tipo, estado y limpieza */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example [
+           *       {
+           *         "estado": "DISPONIBLE",
+           *         "idRecurso": 1,
+           *         "idSede": 1,
+           *         "minutosLimpieza": 10,
+           *         "nombre": "Sillón 1",
+           *         "tipo": "SILLON"
+           *       }
+           *     ]
+           */
+          'application/json': components['schemas']['RecursoDTO'][];
+        };
+      };
+      /** @description Falta la sede */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Falta la sede",
+           *       "regla": "VALIDACION",
+           *       "status": 400,
+           *       "title": "Bad Request",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso SEDES:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
   registrarRecurso: {
     parameters: {
       query?: never;
@@ -3584,7 +8973,7 @@ export interface operations {
         /**
          * @example {
          *       "idSede": 1,
-         *       "minutosLimpieza": 15,
+         *       "minutosLimpieza": 10,
          *       "nombre": "Sillón 11",
          *       "tipo": "SILLON"
          *     }
@@ -3604,7 +8993,7 @@ export interface operations {
            *       "estado": "DISPONIBLE",
            *       "idRecurso": 21,
            *       "idSede": 1,
-           *       "minutosLimpieza": 15,
+           *       "minutosLimpieza": 10,
            *       "nombre": "Sillón 11",
            *       "tipo": "SILLON"
            *     }
@@ -3630,25 +9019,16 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso SEDES:CREAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description El tiempo de limpieza va de 0 a LIMPIEZA_MAX_MIN minutos */
+      /** @description El tiempo de limpieza va de 0 a LIMPIEZA_MAX_MIN (10) minutos */
       422: {
         headers: {
           [name: string]: unknown;
@@ -3656,8 +9036,225 @@ export interface operations {
         content: {
           /**
            * @example {
-           *       "detail": "El tiempo de limpieza va de 0 a LIMPIEZA_MAX_MIN minutos",
+           *       "detail": "El tiempo de limpieza va de 0 a LIMPIEZA_MAX_MIN (10) minutos",
            *       "regla": "RN03",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  generar: {
+    parameters: {
+      query?: {
+        fechaInicio?: string;
+        fechaFin?: string;
+        agrupacion?: string;
+        idSede?: number;
+      };
+      header?: never;
+      path: {
+        tipoReporte: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description ventas (RF68), productos (RF69), margen (RF70), demanda (RF71), ocupacion (RF72) o especialistas (RF73), sin ventas anuladas (RN33); sin idSede, el consolidado (RF93) */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "agrupacion": "LINEA",
+           *       "columnas": [
+           *         {
+           *           "campo": "grupo",
+           *           "titulo": "Grupo"
+           *         },
+           *         {
+           *           "campo": "cantidad",
+           *           "titulo": "Ventas o unidades"
+           *         },
+           *         {
+           *           "campo": "importe",
+           *           "titulo": "Importe S/"
+           *         }
+           *       ],
+           *       "fechaFin": "2026-11-30",
+           *       "fechaInicio": "2026-11-01",
+           *       "filas": [
+           *         {
+           *           "cantidad": 42,
+           *           "grupo": "SALON",
+           *           "importe": 1470
+           *         },
+           *         {
+           *           "cantidad": 18,
+           *           "grupo": "SPA",
+           *           "importe": 1260
+           *         }
+           *       ],
+           *       "tipoReporte": "ventas",
+           *       "titulo": "Ventas"
+           *     }
+           */
+          'application/json': components['schemas']['ReporteDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso REPORTES:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82); Costos y márgenes (productos y margen) sin ser la Administradora (RN24) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description El tipo de reporte no existe */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "El tipo de reporte no existe",
+           *       "regla": "RF68",
+           *       "status": 404,
+           *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Faltan las fechas, el inicio es posterior al fin, el rango pasa de 366 días o la agrupación no es de ese reporte */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Faltan las fechas, el inicio es posterior al fin, el rango pasa de 366 días o la agrupación no es de ese reporte",
+           *       "regla": "RF68",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  exportar: {
+    parameters: {
+      query?: {
+        fechaInicio?: string;
+        fechaFin?: string;
+        agrupacion?: string;
+        idSede?: number;
+        formato?: string;
+      };
+      header?: never;
+      path: {
+        tipoReporte: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Descarga de reporte_<tipo>_<desde>_<hasta>.pdf (formato=PDF) o .xlsx (formato=EXCEL), con Content-Disposition: attachment */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/pdf': string;
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': string;
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso REPORTES:EXPORTAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82); Costos y márgenes (productos y margen) sin ser la Administradora (RN24) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description El tipo de reporte no existe */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "El tipo de reporte no existe",
+           *       "regla": "RF68",
+           *       "status": 404,
+           *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description El formato no es EXCEL ni PDF (RF74), o las fechas o la agrupación no son válidas (RF68) */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "El formato no es EXCEL ni PDF (RF74), o las fechas o la agrupación no son válidas (RF68)",
+           *       "regla": "RF74",
            *       "status": 422,
            *       "title": "Unprocessable Content",
            *       "type": "about:blank"
@@ -3720,21 +9317,12 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso SEGURIDAD:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -3816,21 +9404,12 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso SEGURIDAD:EDITAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -3849,6 +9428,282 @@ export interface operations {
            *       "type": "about:blank"
            *     }
            */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description El rol ADMINISTRADORA conserva SEGURIDAD:VER, SEGURIDAD:CREAR y SEGURIDAD:EDITAR */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "El rol ADMINISTRADORA conserva SEGURIDAD:VER, SEGURIDAD:CREAR y SEGURIDAD:EDITAR",
+           *       "regla": "RN48",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  listarSeries: {
+    parameters: {
+      query?: {
+        idSede?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Series de la sede (sin idSede, la de la sesión) con su último número, que lleva Oracle (RN47) */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example [
+           *       {
+           *         "estado": "ACTIVA",
+           *         "idSede": 1,
+           *         "idSerie": 1,
+           *         "serie": "B001",
+           *         "tipo": "BOLETA",
+           *         "ultimoNumero": 125
+           *       }
+           *     ]
+           */
+          'application/json': components['schemas']['SerieDTO'][];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso CATALOGO:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  registrarSerie: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        /**
+         * @example {
+         *       "idSede": 2,
+         *       "serie": "B002",
+         *       "tipo": "BOLETA"
+         *     }
+         */
+        'application/json': components['schemas']['SerieDTO'];
+      };
+    };
+    responses: {
+      /** @description Serie ACTIVA con el correlativo en 0 */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "estado": "ACTIVA",
+           *       "idSede": 2,
+           *       "idSerie": 9,
+           *       "serie": "B002",
+           *       "tipo": "BOLETA",
+           *       "ultimoNumero": 0
+           *     }
+           */
+          'application/json': components['schemas']['SerieDTO'];
+        };
+      };
+      /** @description Falta el tipo de comprobante */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Falta el tipo de comprobante",
+           *       "regla": "VALIDACION",
+           *       "status": 400,
+           *       "title": "Bad Request",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso CATALOGO:CREAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La sede ya tiene una serie ACTIVA de ese tipo o la serie ya existe */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La sede ya tiene una serie ACTIVA de ese tipo o la serie ya existe",
+           *       "regla": "UQ_SERIE_COMPR_ACTIVA",
+           *       "status": 409,
+           *       "title": "Conflict",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La serie tiene 4 caracteres y empieza con B o F según el tipo */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La serie tiene 4 caracteres y empieza con B o F según el tipo",
+           *       "regla": "RF107",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  listarServicios: {
+    parameters: {
+      query?: {
+        idArea?: number;
+        estado?: 'ACTIVO' | 'INACTIVO';
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Servicios del área y estado pedidos (filtros opcionales), con variantes, precios e insumos */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example [
+           *       {
+           *         "duracionRefMin": 60,
+           *         "estado": "ACTIVO",
+           *         "idArea": 1,
+           *         "idServicio": 21,
+           *         "nombre": "Corte de novia",
+           *         "tipoRecurso": "SILLON",
+           *         "variantes": [
+           *           {
+           *             "idVariante": 30,
+           *             "insumos": [
+           *               {
+           *                 "cantidadEstimada": 15,
+           *                 "idProducto": 4
+           *               }
+           *             ],
+           *             "nombreVariante": "Estándar",
+           *             "precio": 80
+           *           }
+           *         ]
+           *       }
+           *     ]
+           */
+          'application/json': components['schemas']['ServicioDTO'][];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso CATALOGO:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -3931,21 +9786,12 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso CATALOGO:CREAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -3964,6 +9810,798 @@ export interface operations {
            *       "type": "about:blank"
            *     }
            */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  actualizarServicio: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        idServicio: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        /**
+         * @example {
+         *       "duracionRefMin": 45,
+         *       "estado": "INACTIVO",
+         *       "idArea": 1,
+         *       "nombre": "Corte de novia",
+         *       "tipoRecurso": "SILLON",
+         *       "variantes": [
+         *         {
+         *           "idVariante": 30,
+         *           "insumos": [
+         *             {
+         *               "cantidadEstimada": 15,
+         *               "idProducto": 4
+         *             }
+         *           ],
+         *           "nombreVariante": "Estándar",
+         *           "precio": 80
+         *         }
+         *       ]
+         *     }
+         */
+        'application/json': components['schemas']['ServicioDTO'];
+      };
+    };
+    responses: {
+      /** @description Datos e insumos actualizados; desactivar es estado INACTIVO (no se borra). El precio se cambia aparte */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "duracionRefMin": 45,
+           *       "estado": "INACTIVO",
+           *       "idArea": 1,
+           *       "idServicio": 21,
+           *       "nombre": "Corte de novia",
+           *       "tipoRecurso": "SILLON",
+           *       "variantes": [
+           *         {
+           *           "idVariante": 30,
+           *           "insumos": [
+           *             {
+           *               "cantidadEstimada": 15,
+           *               "idProducto": 4
+           *             }
+           *           ],
+           *           "nombreVariante": "Estándar",
+           *           "precio": 80
+           *         }
+           *       ]
+           *     }
+           */
+          'application/json': components['schemas']['ServicioDTO'];
+        };
+      };
+      /** @description Faltan datos del servicio o de sus variantes */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Faltan datos del servicio o de sus variantes",
+           *       "regla": "VALIDACION",
+           *       "status": 400,
+           *       "title": "Bad Request",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso CATALOGO:EDITAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description El servicio no existe */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "El servicio no existe",
+           *       "regla": "RF83",
+           *       "status": 404,
+           *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La duración va de 5 a 600 minutos, la variante no es del servicio o el consumo estimado no es mayor que 0 (RN54) */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La duración va de 5 a 600 minutos, la variante no es del servicio o el consumo estimado no es mayor que 0 (RN54)",
+           *       "regla": "RF83",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  cambiarPrecio: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        idServicio: number;
+        idVariante: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        /**
+         * @example {
+         *       "precioNuevo": 95
+         *     }
+         */
+        'application/json': components['schemas']['PrecioDTO'];
+      };
+    };
+    responses: {
+      /** @description Precio cambiado; el anterior y el nuevo quedan en AUDITORIA (TRG_AUD_VARIANTE_SERVICIO, RN25) */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "duracionRefMin": 60,
+           *       "estado": "ACTIVO",
+           *       "idArea": 1,
+           *       "idServicio": 21,
+           *       "nombre": "Corte de novia",
+           *       "tipoRecurso": "SILLON",
+           *       "variantes": [
+           *         {
+           *           "idVariante": 30,
+           *           "nombreVariante": "Estándar",
+           *           "precio": 95
+           *         }
+           *       ]
+           *     }
+           */
+          'application/json': components['schemas']['ServicioDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso CATALOGO:EDITAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description El servicio no existe */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "El servicio no existe",
+           *       "regla": "RF83",
+           *       "status": 404,
+           *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description El precio es mayor o igual a 0 */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "El precio es mayor o igual a 0",
+           *       "regla": "RN40",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  listarPendientes: {
+    parameters: {
+      query?: {
+        estado?: 'PENDIENTE' | 'APROBADA' | 'RECHAZADA';
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Solicitudes de la sede con su venta, total, motivo, quién la pidió y cuándo; sin estado, las PENDIENTES */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example [
+           *       {
+           *         "codigoMotivo": "06",
+           *         "comprobante": "B001-00000125",
+           *         "estado": "PENDIENTE",
+           *         "fechaSolicitud": "2026-11-09T11:00:00",
+           *         "formaDevolucion": "SALDO_FAVOR",
+           *         "idCliente": 407,
+           *         "idSolicitud": 15,
+           *         "idUsuarioSolicita": 2,
+           *         "idVenta": 620,
+           *         "motivo": "La clienta desistió",
+           *         "totalVenta": 90
+           *       }
+           *     ]
+           */
+          'application/json': components['schemas']['SolicitudAnulacionDTO'][];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso VENTAS:EDITAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  aprobar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        idSolicitud: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description En una transacción: nota de crédito enviada a SUNAT (PENDIENTE si no responde), venta ANULADA (Oracle devuelve la atención, anula el paquete, abona el saldo y reingresa los productos) y solicitud APROBADA */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "codigoMotivo": "06",
+           *       "comprobante": "B001-00000125",
+           *       "estado": "APROBADA",
+           *       "fechaResolucion": "2026-11-09T11:30:00",
+           *       "fechaSolicitud": "2026-11-09T11:00:00",
+           *       "formaDevolucion": "SALDO_FAVOR",
+           *       "idCliente": 407,
+           *       "idNotaCredito": 701,
+           *       "idSolicitud": 15,
+           *       "idUsuarioResuelve": 1,
+           *       "idUsuarioSolicita": 2,
+           *       "idVenta": 620,
+           *       "motivo": "La clienta desistió",
+           *       "totalVenta": 90
+           *     }
+           */
+          'application/json': components['schemas']['SolicitudAnulacionDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso VENTAS:EDITAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La solicitud no existe */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La solicitud no existe",
+           *       "regla": "RN32",
+           *       "status": 404,
+           *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La solicitud ya está resuelta (RN32) o SUNAT aún no acepta el comprobante (RN46) */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La solicitud ya está resuelta (RN32) o SUNAT aún no acepta el comprobante (RN46)",
+           *       "regla": "RN32",
+           *       "status": 409,
+           *       "title": "Conflict",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  rechazar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        idSolicitud: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        /**
+         * @example {
+         *       "motivoRechazo": "La venta es correcta"
+         *     }
+         */
+        'application/json': components['schemas']['RechazoDTO'];
+      };
+    };
+    responses: {
+      /** @description Solicitud RECHAZADA con su motivo; la venta sigue CERRADA */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "codigoMotivo": "06",
+           *       "comprobante": "B001-00000125",
+           *       "estado": "RECHAZADA",
+           *       "fechaResolucion": "2026-11-09T11:30:00",
+           *       "fechaSolicitud": "2026-11-09T11:00:00",
+           *       "formaDevolucion": "MEDIO_ORIGINAL",
+           *       "idCliente": 407,
+           *       "idSolicitud": 15,
+           *       "idUsuarioResuelve": 1,
+           *       "idUsuarioSolicita": 2,
+           *       "idVenta": 620,
+           *       "motivo": "La clienta desistió",
+           *       "motivoRechazo": "La venta es correcta",
+           *       "totalVenta": 90
+           *     }
+           */
+          'application/json': components['schemas']['SolicitudAnulacionDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso VENTAS:EDITAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La solicitud no existe */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La solicitud no existe",
+           *       "regla": "RN32",
+           *       "status": 404,
+           *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La solicitud ya está resuelta */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La solicitud ya está resuelta",
+           *       "regla": "RN32",
+           *       "status": 409,
+           *       "title": "Conflict",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Falta el motivo del rechazo */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Falta el motivo del rechazo",
+           *       "regla": "RN32",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  listarTiposDocumento: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Catálogo 06 de SUNAT con su longitud y formato; reemplaza los id fijos del front-end */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example [
+           *       {
+           *         "abreviatura": "DNI",
+           *         "codigoSunat": "1",
+           *         "consultaApi": true,
+           *         "estado": "ACTIVO",
+           *         "idTipoDocumento": 1,
+           *         "longitudMax": 8,
+           *         "longitudMin": 8,
+           *         "nombre": "Documento Nacional de Identidad",
+           *         "soloNumeros": true
+           *       }
+           *     ]
+           */
+          'application/json': components['schemas']['TipoDocumentoDTO'][];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene permiso para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  configurarTipoDocumento: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        idTipoDocumento: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        /**
+         * @example {
+         *       "consultaApi": false,
+         *       "estado": "INACTIVO"
+         *     }
+         */
+        'application/json': components['schemas']['TipoDocumentoDTO'];
+      };
+    };
+    responses: {
+      /** @description Tipo de documento activado o desactivado y marcado para consultar en APISPERU */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "abreviatura": "PAS",
+           *       "codigoSunat": "7",
+           *       "consultaApi": false,
+           *       "estado": "INACTIVO",
+           *       "idTipoDocumento": 4,
+           *       "longitudMax": 12,
+           *       "longitudMin": 6,
+           *       "nombre": "Pasaporte",
+           *       "soloNumeros": false
+           *     }
+           */
+          'application/json': components['schemas']['TipoDocumentoDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso SEGURIDAD:EDITAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description El tipo de documento no existe */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "El tipo de documento no existe",
+           *       "regla": "RN45",
+           *       "status": 404,
+           *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Solo el DNI y el RUC se consultan en APISPERU */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Solo el DNI y el RUC se consultan en APISPERU",
+           *       "regla": "RN45",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  listarUsuarios: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Usuarios con su rol y estado */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example [
+           *       {
+           *         "debeCambiarClave": false,
+           *         "estado": "ACTIVO",
+           *         "idPersonal": 3,
+           *         "idRol": 2,
+           *         "idUsuario": 5,
+           *         "nombreUsuario": "recepcion2"
+           *       }
+           *     ]
+           */
+          'application/json': components['schemas']['UsuarioDTO'][];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso SEGURIDAD:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -4045,21 +10683,12 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso SEGURIDAD:CREAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -4075,6 +10704,167 @@ export interface operations {
            *       "regla": "UQ_USUARIO_NOMBRE_USUARIO",
            *       "status": 409,
            *       "title": "Conflict",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  listarPersonalSinUsuario: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description PersonalApi da el id y el cargo; los nombres los pone PersonaApi (DF-23) */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example [
+           *       {
+           *         "apellidos": "Ramos",
+           *         "cargo": "ESPECIALISTA_TECNICA",
+           *         "idPersonal": 7,
+           *         "nombres": "Lucía"
+           *       }
+           *     ]
+           */
+          'application/json': components['schemas']['PersonalSinUsuarioDTO'][];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso SEGURIDAD:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  restablecerClave: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        idUsuario: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        /**
+         * @example {
+         *       "clave": "Temporal2026"
+         *     }
+         */
+        'application/json': components['schemas']['ClaveDTO'];
+      };
+    };
+    responses: {
+      /** @description Clave temporal guardada como BCrypt, debe cambiarla en su siguiente ingreso, sin intentos fallidos y desbloqueada; la clave no vuelve */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "debeCambiarClave": true,
+           *       "estado": "ACTIVO",
+           *       "idPersonal": 4,
+           *       "idRol": 3,
+           *       "idUsuario": 3,
+           *       "nombreUsuario": "especialista1"
+           *     }
+           */
+          'application/json': components['schemas']['UsuarioDTO'];
+        };
+      };
+      /** @description La clave tiene de 8 a 72 caracteres */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La clave tiene de 8 a 72 caracteres",
+           *       "regla": "VALIDACION",
+           *       "status": 400,
+           *       "title": "Bad Request",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso SEGURIDAD:EDITAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description El usuario no existe */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "El usuario no existe",
+           *       "regla": "RF82",
+           *       "status": 404,
+           *       "title": "Not Found",
            *       "type": "about:blank"
            *     }
            */
@@ -4140,21 +10930,12 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso SEGURIDAD:EDITAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -4170,6 +10951,24 @@ export interface operations {
            *       "regla": "RF53",
            *       "status": 404,
            *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Es la última administradora activa o el rol no existe */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Es la última administradora activa o el rol no existe",
+           *       "regla": "RN48",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
            *       "type": "about:blank"
            *     }
            */
@@ -4254,21 +11053,12 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso VENTAS:CREAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -4389,21 +11179,12 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso VENTAS:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -4417,6 +11198,334 @@ export interface operations {
            * @example {
            *       "detail": "El número no cumple el formato de RUC",
            *       "regla": "RN45",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  listarPorCobrar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Atenciones FINALIZADAS que aún no están en una venta y ventas ABIERTAS para retomarlas (RN52) */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "atenciones": [
+           *         {
+           *           "adelantoMonto": 10,
+           *           "idAtencion": 1532,
+           *           "idCliente": 407,
+           *           "idPersonal": 4,
+           *           "idVariante": 2
+           *         }
+           *       ],
+           *       "ventasAbiertas": [
+           *         {
+           *           "cobrosPendientes": [],
+           *           "estado": "ABIERTA",
+           *           "idCaja": 214,
+           *           "idCliente": 407,
+           *           "idSede": 1,
+           *           "idVenta": 8812,
+           *           "pagado": 0,
+           *           "pendiente": 60,
+           *           "total": 60
+           *         }
+           *       ]
+           *     }
+           */
+          'application/json': components['schemas']['PorCobrarDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso VENTAS:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  buscarProductos: {
+    parameters: {
+      query?: {
+        nombre?: string;
+        marca?: string;
+        idCategoria?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Productos de venta activos con su precio y su stock en la sede de la sesión (los insumos no aparecen) */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example [
+           *       {
+           *         "codigo": "PRD-001",
+           *         "idCategoria": 2,
+           *         "idProducto": 40,
+           *         "marca": "Loreal",
+           *         "nombre": "Shampoo reparador",
+           *         "precioVenta": 45,
+           *         "stockActual": 8,
+           *         "unidad": "UND"
+           *       }
+           *     ]
+           */
+          'application/json': components['schemas']['ProductoStockDTO'][];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso VENTAS:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  venderProductos: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        /**
+         * @example {
+         *       "idCliente": 407,
+         *       "idMedioPago": 1,
+         *       "lineas": [
+         *         {
+         *           "cantidad": 2,
+         *           "idPersonal": 4,
+         *           "idProducto": 40
+         *         }
+         *       ],
+         *       "monto": 90,
+         *       "tipo": "BOLETA"
+         *     }
+         */
+        'application/json': components['schemas']['VentaProductosDTO'];
+      };
+    };
+    responses: {
+      /** @description Venta CERRADA con su boleta o factura; Oracle registra la salida de kardex al cerrar (TRG_VENTA_EFECTOS) */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "adelantoAplicado": 0,
+           *       "cobrosPendientes": [],
+           *       "comprobante": {
+           *         "estadoSunat": "PENDIENTE",
+           *         "idComprobante": 700,
+           *         "numero": "00000125",
+           *         "serie": "B001",
+           *         "tipo": "BOLETA"
+           *       },
+           *       "descuento": 0,
+           *       "detalles": [
+           *         {
+           *           "cantidad": 2,
+           *           "descuento": 0,
+           *           "idDetalle": 900,
+           *           "idPersonal": 4,
+           *           "idProducto": 40,
+           *           "precioUnitario": 45,
+           *           "subtotal": 90,
+           *           "tipoItem": "PRODUCTO"
+           *         }
+           *       ],
+           *       "estado": "CERRADA",
+           *       "idCaja": 12,
+           *       "idCliente": 407,
+           *       "idSede": 1,
+           *       "idVenta": 620,
+           *       "igv": 0,
+           *       "pagado": 90,
+           *       "pagos": [
+           *         {
+           *           "idMedioPago": 1,
+           *           "monto": 90
+           *         }
+           *       ],
+           *       "pendiente": 0,
+           *       "saldoFavorAplicado": 0,
+           *       "subtotal": 90,
+           *       "total": 90
+           *     }
+           */
+          'application/json': components['schemas']['VentaDTO'];
+        };
+      };
+      /** @description El cobro digital quedó PENDIENTE: la venta queda ABIERTA y se cierra con POST /ventas/{idVenta}/cierre cuando la pasarela lo aprueba (RN52) */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "cobrosPendientes": [
+           *         {
+           *           "enlacePago": "https://pasarela.example/qr/77",
+           *           "idTransaccion": 77
+           *         }
+           *       ],
+           *       "estado": "ABIERTA",
+           *       "idCaja": 12,
+           *       "idSede": 1,
+           *       "idVenta": 621,
+           *       "pagado": 0,
+           *       "pagos": [],
+           *       "pendiente": 45,
+           *       "total": 45
+           *     }
+           */
+          'application/json': components['schemas']['VentaDTO'];
+        };
+      };
+      /** @description Faltan las líneas */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Faltan las líneas",
+           *       "regla": "VALIDACION",
+           *       "status": 400,
+           *       "title": "Bad Request",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso VENTAS:CREAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No hay stock suficiente en la sede */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "No hay stock suficiente en la sede",
+           *       "regla": "RN15",
+           *       "status": 409,
+           *       "title": "Conflict",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description Sin caja abierta (RN30), el monto no es el total (RN11), un insumo no se vende (RN13) o la pasarela rechazó el cobro (RF103) */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Sin caja abierta (RN30), el monto no es el total (RN11), un insumo no se vende (RN13) o la pasarela rechazó el cobro (RF103)",
+           *       "regla": "RN11",
            *       "status": 422,
            *       "title": "Unprocessable Content",
            *       "type": "about:blank"
@@ -4452,7 +11561,7 @@ export interface operations {
       };
     };
     responses: {
-      /** @description Venta CERRADA; con Izipay real, un pago digital aún no se puede cerrar aquí (DF-51) */
+      /** @description Venta CERRADA con su comprobante */
       201: {
         headers: {
           [name: string]: unknown;
@@ -4480,6 +11589,33 @@ export interface operations {
           'application/json': components['schemas']['VentaDTO'];
         };
       };
+      /** @description El cobro digital quedó PENDIENTE en la pasarela; la atención y la venta ABIERTA quedan guardadas y se cierra después con POST /ventas/{idVenta}/cierre (RN52) */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "cobrosPendientes": [
+           *         {
+           *           "enlacePago": "https://enlace-de-izipay.example/xyz",
+           *           "idTransaccion": 5512
+           *         }
+           *       ],
+           *       "estado": "ABIERTA",
+           *       "idCaja": 214,
+           *       "idSede": 1,
+           *       "idVenta": 8814,
+           *       "pagado": 0,
+           *       "pagos": [],
+           *       "pendiente": 35,
+           *       "total": 35
+           *     }
+           */
+          'application/json': components['schemas']['VentaDTO'];
+        };
+      };
       /** @description Inicie sesión para continuar. */
       401: {
         headers: {
@@ -4498,21 +11634,12 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso VENTAS:CREAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -4625,18 +11752,98 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso VENTAS:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  obtenerVenta: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        idVenta: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description La venta; cada pago digital trae el estado actual de su transacción en la pasarela (RN42, RN52) */
+      200: {
         headers: {
           [name: string]: unknown;
         };
         content: {
           /**
            * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
+           *       "cobrosPendientes": [],
+           *       "estado": "ABIERTA",
+           *       "idCaja": 214,
+           *       "idCliente": 407,
+           *       "idSede": 1,
+           *       "idVenta": 8812,
+           *       "pagado": 40,
+           *       "pagos": [
+           *         {
+           *           "estadoTransaccion": "APROBADA",
+           *           "idMedioPago": 2,
+           *           "idPago": 9901,
+           *           "idTransaccion": 5510,
+           *           "monto": 40
+           *         }
+           *       ],
+           *       "pendiente": 20,
+           *       "total": 60
+           *     }
+           */
+          'application/json': components['schemas']['VentaDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso VENTAS:VER para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La venta no existe */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La venta no existe",
+           *       "regla": "RF21",
+           *       "status": 404,
+           *       "title": "Not Found",
            *       "type": "about:blank"
            *     }
            */
@@ -4711,21 +11918,12 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso VENTAS:CREAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -4834,21 +12032,12 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso VENTAS:CREAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -4880,6 +12069,263 @@ export interface operations {
            * @example {
            *       "detail": "La promoción no aplica (-20047) o el saldo no alcanza (-20064)",
            *       "regla": "ORA-20064",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  devolverPago: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        idVenta: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        /**
+         * @example {
+         *       "formaDevolucion": "MEDIO_ORIGINAL"
+         *     }
+         */
+        'application/json': components['schemas']['DevolucionDTO'];
+      };
+    };
+    responses: {
+      /** @description Una DEVOLUCION por cada pago con tarjeta de la venta ANULADA con nota MEDIO_ORIGINAL; no escribe saldo a favor */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "devoluciones": [
+           *         {
+           *           "canal": "POS",
+           *           "codigoOperacion": "REEMB-80",
+           *           "estado": "APROBADA",
+           *           "idTransaccion": 80
+           *         }
+           *       ],
+           *       "formaDevolucion": "MEDIO_ORIGINAL",
+           *       "idNotaCredito": 701,
+           *       "idVenta": 620
+           *     }
+           */
+          'application/json': components['schemas']['DevolucionDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso VENTAS:EDITAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La venta no existe */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La venta no existe",
+           *       "regla": "RF32",
+           *       "status": 404,
+           *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description El cobro ya tiene su devolución */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "El cobro ya tiene su devolución",
+           *       "regla": "RN44",
+           *       "status": 409,
+           *       "title": "Conflict",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La venta no está ANULADA con nota MEDIO_ORIGINAL, no tiene pagos con tarjeta o la pasarela rechazó la devolución */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La venta no está ANULADA con nota MEDIO_ORIGINAL, no tiene pagos con tarjeta o la pasarela rechazó la devolución",
+           *       "regla": "RN44",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  registrarDevolucionManual: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        idVenta: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        /**
+         * @example {
+         *       "codigoOperacion": "YAPE-123456",
+         *       "idTransaccion": 81
+         *     }
+         */
+        'application/json': components['schemas']['DevolucionDTO'];
+      };
+    };
+    responses: {
+      /** @description DEVOLUCION APROBADA, con canal QR y el número de operación de la app de la Administradora */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "codigoOperacion": "YAPE-123456",
+           *       "devoluciones": [
+           *         {
+           *           "canal": "QR",
+           *           "codigoOperacion": "YAPE-123456",
+           *           "estado": "APROBADA",
+           *           "idTransaccion": 82
+           *         }
+           *       ],
+           *       "formaDevolucion": "MEDIO_ORIGINAL",
+           *       "idNotaCredito": 701,
+           *       "idTransaccion": 81,
+           *       "idVenta": 620
+           *     }
+           */
+          'application/json': components['schemas']['DevolucionDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso VENTAS:EDITAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La venta o la transacción no existen */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La venta o la transacción no existen",
+           *       "regla": "RN44",
+           *       "status": 404,
+           *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description El cobro ya tiene su devolución */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "El cobro ya tiene su devolución",
+           *       "regla": "RN44",
+           *       "status": 409,
+           *       "title": "Conflict",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La venta no está ANULADA con nota MEDIO_ORIGINAL, el cobro no es de la venta o no se pagó por QR, o falta el número de operación */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La venta no está ANULADA con nota MEDIO_ORIGINAL, el cobro no es de la venta o no se pagó por QR, o falta el número de operación",
+           *       "regla": "RN44",
            *       "status": 422,
            *       "title": "Unprocessable Content",
            *       "type": "about:blank"
@@ -4953,7 +12399,7 @@ export interface operations {
           'application/json': components['schemas']['VentaDTO'];
         };
       };
-      /** @description Un cobro quedó PENDIENTE en Izipay y no suma; con el webhook aprobado se reenvía con idTransaccion (RN42) */
+      /** @description Un cobro quedó PENDIENTE en Izipay y no suma: la venta sigue ABIERTA (RN52); con el webhook aprobado se reenvía con idTransaccion (RN42) y se cierra */
       202: {
         headers: {
           [name: string]: unknown;
@@ -4996,21 +12442,12 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description No tiene permiso para esta operación. */
+      /** @description No tiene el permiso VENTAS:CREAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          /**
-           * @example {
-           *       "detail": "No tiene permiso para esta operación.",
-           *       "regla": "ACCESO_DENEGADO",
-           *       "status": 403,
-           *       "title": "Forbidden",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -5032,7 +12469,7 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description La pasarela rechazó el cobro o la transacción aún no está APROBADA */
+      /** @description La pasarela rechazó el cobro (la transacción RECHAZADA queda guardada, RN52) o la transacción aún no está APROBADA */
       422: {
         headers: {
           [name: string]: unknown;
@@ -5040,8 +12477,137 @@ export interface operations {
         content: {
           /**
            * @example {
-           *       "detail": "La pasarela rechazó el cobro o la transacción aún no está APROBADA",
+           *       "detail": "La pasarela rechazó el cobro (la transacción RECHAZADA queda guardada, RN52) o la transacción aún no está APROBADA",
            *       "regla": "RF103",
+           *       "status": 422,
+           *       "title": "Unprocessable Content",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+    };
+  };
+  solicitarAnulacion: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        idVenta: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        /**
+         * @example {
+         *       "codigoMotivo": "06",
+         *       "formaDevolucion": "SALDO_FAVOR",
+         *       "motivo": "La clienta desistió"
+         *     }
+         */
+        'application/json': components['schemas']['SolicitudAnulacionDTO'];
+      };
+    };
+    responses: {
+      /** @description Solicitud PENDIENTE en la bandeja de la Administradora; la venta no cambia */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "codigoMotivo": "06",
+           *       "comprobante": "B001-00000125",
+           *       "estado": "PENDIENTE",
+           *       "fechaSolicitud": "2026-11-09T11:00:00",
+           *       "formaDevolucion": "SALDO_FAVOR",
+           *       "idCliente": 407,
+           *       "idSolicitud": 15,
+           *       "idUsuarioSolicita": 2,
+           *       "idVenta": 620,
+           *       "motivo": "La clienta desistió",
+           *       "totalVenta": 90
+           *     }
+           */
+          'application/json': components['schemas']['SolicitudAnulacionDTO'];
+        };
+      };
+      /** @description Inicie sesión para continuar. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "Inicie sesión para continuar.",
+           *       "regla": "SIN_SESION",
+           *       "status": 401,
+           *       "title": "Unauthorized",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description No tiene el permiso VENTAS:ANULAR para esta operación. (ACCESO_DENEGADO); con la clave temporal sin cambiar (RF82) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La venta no existe */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La venta no existe",
+           *       "regla": "RF32",
+           *       "status": 404,
+           *       "title": "Not Found",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La venta ya tiene una solicitud de anulación PENDIENTE */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La venta ya tiene una solicitud de anulación PENDIENTE",
+           *       "regla": "UQ_SOL_ANUL_PENDIENTE",
+           *       "status": 409,
+           *       "title": "Conflict",
+           *       "type": "about:blank"
+           *     }
+           */
+          'application/problem+json': components['schemas']['ProblemDetail'];
+        };
+      };
+      /** @description La venta no está CERRADA (RN12), falta el motivo o el código no es 01, 02 o 06 (RN32), o un cliente de paso eligió saldo a favor (RN44) */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "detail": "La venta no está CERRADA (RN12), falta el motivo o el código no es 01, 02 o 06 (RN32), o un cliente de paso eligió saldo a favor (RN44)",
+           *       "regla": "RN12",
            *       "status": 422,
            *       "title": "Unprocessable Content",
            *       "type": "about:blank"
