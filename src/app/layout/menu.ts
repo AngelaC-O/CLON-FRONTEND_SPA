@@ -116,6 +116,14 @@ export const MENU: ItemMenu[] = [
     permisos: [PERMISOS.conciliacionVer, PERMISOS.conciliacionCrear, PERMISOS.conciliacionEditar],
   },
   {
+    ruta: '/reportes',
+    etiqueta: 'Reportes',
+    corta: 'Reportes',
+    grupo: 'Administración',
+    icono: 'M4 20V10M10 20V4M16 20v-7M22 20H2',
+    permisos: [PERMISOS.reportesVer],
+  },
+  {
     ruta: '/catalogo',
     etiqueta: 'Catálogo y configuración',
     corta: 'Catálogo',
