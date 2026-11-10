@@ -2,83 +2,133 @@
   <div class="row">
     <div class="sp">
       <h1 class="h1">Catálogo y configuración</h1>
-      <div class="mut">Áreas y servicios con variantes de precio fijo (CUS57).</div>
+      <div class="mut">
+        Servicios, paquetes y promociones, y la configuración de medios de pago, series y
+        parámetros.
+      </div>
     </div>
-    @if (puedeCrear()) {
+    @if (puedeCrear() && pestana() === 'servicios') {
       <button class="btn lg sec" type="button" (click)="abrirArea()">+ Área</button>
       <button class="btn lg" type="button" (click)="abrirServicio()">+ Servicio</button>
     }
   </div>
 
-  <nav class="tabs" aria-label="Secciones del catálogo">
-    <a
-      class="tab"
-      routerLink="/catalogo"
-      routerLinkActive="on"
-      [routerLinkActiveOptions]="{ exact: true }"
-    >
-      Servicios
-    </a>
-    @if (verRecursos()) {
-      <a class="tab" routerLink="/sedes/recursos" routerLinkActive="on">Recursos</a>
-    }
-  </nav>
-
-  <div class="row" style="gap: 8px">
-    <button
-      class="btn sm"
-      type="button"
-      [class.sec]="filtroArea() !== null"
-      (click)="filtroArea.set(null)"
-    >
-      Todas
-    </button>
-    @for (area of areas(); track area.idArea) {
+  <div class="tabs" role="tablist" aria-label="Secciones del catálogo">
+    @for (opcion of pestanas(); track opcion.id) {
       <button
-        class="btn sm"
+        class="tab"
         type="button"
-        [class.sec]="filtroArea() !== area.idArea"
-        (click)="filtroArea.set(area.idArea ?? null)"
+        role="tab"
+        [class.on]="pestana() === opcion.id"
+        [attr.aria-selected]="pestana() === opcion.id"
+        (click)="pestana.set(opcion.id)"
       >
-        {{ area.nombreArea }}
+        {{ opcion.texto }}
       </button>
     }
-  </div>
-
-  <div class="gf2">
-    @for (servicio of serviciosVisibles(); track servicio.idServicio) {
-      <div class="card col" style="gap: 10px">
-        <div class="row">
-          <div class="sp">
-            <div class="h3" style="font-size: 17px">{{ servicio.nombre }}</div>
-            <div class="xs mut">
-              {{ areaDe(servicio.idArea)?.nombreArea }} · ref. {{ servicio.duracionRefMin }} min
-            </div>
-          </div>
-          @if (areaDe(servicio.idArea); as area) {
-            <span
-              class="chip"
-              [class.salon]="area.linea === 'SALON'"
-              [class.spa]="area.linea === 'SPA'"
-            >
-              {{ area.linea === 'SALON' ? 'Salón' : 'Spa' }}
-            </span>
-          }
-        </div>
-        <div class="col" style="gap: 6px">
-          @for (variante of servicio.variantes; track variante.nombreVariante) {
-            <div class="row sm">
-              <span class="sp">{{ variante.nombreVariante }}</span>
-              <b class="num">S/ {{ variante.precio }}</b>
-            </div>
-          }
-        </div>
-      </div>
-    } @empty {
-      <div class="card vacio">Aquí aparecen los servicios que registres desde esta pantalla.</div>
+    @if (verRecursos()) {
+      <a class="tab" routerLink="/sedes/recursos">Recursos</a>
     }
   </div>
+
+  @switch (pestana()) {
+    @case ('paquetes') {
+      <app-paquetes [servicios]="serviciosActivos()" />
+    }
+    @case ('promociones') {
+      <app-promociones [servicios]="serviciosActivos()" />
+    }
+    @case ('medios') {
+      <app-medios-pago />
+    }
+    @case ('series') {
+      <app-series-comprobante />
+    }
+    @case ('parametros') {
+      <app-parametros />
+    }
+    @default {
+      <div class="row" style="gap: 8px">
+        <button
+          class="btn sm"
+          type="button"
+          [class.sec]="filtroArea() !== null"
+          (click)="filtroArea.set(null)"
+        >
+          Todas
+        </button>
+        @for (area of areas(); track area.idArea) {
+          <button
+            class="btn sm"
+            type="button"
+            [class.sec]="filtroArea() !== area.idArea"
+            (click)="filtroArea.set(area.idArea ?? null)"
+          >
+            {{ area.nombreArea }}
+          </button>
+        }
+      </div>
+
+      <div class="gf2">
+        @for (servicio of serviciosVisibles(); track servicio.idServicio) {
+          <div class="card col" style="gap: 10px">
+            <div class="row">
+              <div class="sp">
+                <div class="h3" style="font-size: 17px">{{ servicio.nombre }}</div>
+                <div class="xs mut">
+                  {{ areaDe(servicio.idArea)?.nombreArea }} · ref. {{ servicio.duracionRefMin }} min
+                </div>
+              </div>
+              @if (servicio.estado === 'INACTIVO') {
+                <span class="chip">Inactivo</span>
+              }
+              @if (areaDe(servicio.idArea); as area) {
+                <span
+                  class="chip"
+                  [class.salon]="area.linea === 'SALON'"
+                  [class.spa]="area.linea === 'SPA'"
+                >
+                  {{ area.linea === 'SALON' ? 'Salón' : 'Spa' }}
+                </span>
+              }
+            </div>
+            <div class="col" style="gap: 6px">
+              @for (variante of servicio.variantes; track variante.nombreVariante) {
+                <div class="row sm">
+                  <span class="sp">{{ variante.nombreVariante }}</span>
+                  <b class="num">S/ {{ variante.precio }}</b>
+                </div>
+              }
+            </div>
+            @if (puedeEditar()) {
+              <button
+                class="btn sec sm"
+                type="button"
+                style="align-self: flex-start"
+                [attr.aria-label]="'Editar servicio ' + servicio.nombre"
+                (click)="enEdicion.set(servicio)"
+              >
+                Editar servicio
+              </button>
+            }
+          </div>
+        } @empty {
+          <div class="card vacio">
+            {{ cargando() ? 'Cargando…' : 'No hay servicios en esta área.' }}
+          </div>
+        }
+      </div>
+    }
+  }
 </div>
+
+@if (enEdicion(); as servicio) {
+  <app-editar-servicio
+    [original]="servicio"
+    (cerrar)="enEdicion.set(null)"
+    (actualizado)="servicioActualizado($event)"
+  />
+}
 
 @if (modal() === 'area') {
   <app-modal titulo="Nueva área" [angosto]="true" (cerrar)="modal.set(null)">
