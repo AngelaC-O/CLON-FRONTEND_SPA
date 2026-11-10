@@ -8,9 +8,11 @@ import {
   CitaAtencionDTO,
   DetalleAtencionDTO,
   InicioAtencionDTO,
+  ProductoStockDTO,
+  RecomendacionDTO,
 } from '../modelos/agenda.modelos';
 
-/** CUS11. */
+/** CUS11 y CUS12. */
 @Injectable({ providedIn: 'root' })
 export class AtencionesService {
   private readonly http = inject(HttpClient);
@@ -34,5 +36,22 @@ export class AtencionesService {
 
   finalizar(idAtencion: number, detalle: DetalleAtencionDTO): Observable<AtencionDTO> {
     return this.http.patch<AtencionDTO>(`${this.url}/${idAtencion}/fin`, detalle);
+  }
+
+  /** CUS12: productos de venta activos de la sede, con precio y stock (sin costo, RN24). */
+  buscarProductos(nombre: string): Observable<ProductoStockDTO[]> {
+    return this.http.get<ProductoStockDTO[]>(`${this.url}/productos`, {
+      params: parametros({ nombre }),
+    });
+  }
+
+  recomendarProducto(
+    idAtencion: number,
+    recomendacion: RecomendacionDTO,
+  ): Observable<RecomendacionDTO> {
+    return this.http.post<RecomendacionDTO>(
+      `${this.url}/${idAtencion}/recomendaciones`,
+      recomendacion,
+    );
   }
 }
