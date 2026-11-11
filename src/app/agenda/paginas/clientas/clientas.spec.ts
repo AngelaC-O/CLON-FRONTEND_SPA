@@ -2,9 +2,34 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { TipoDocumentoDTO } from '../../../core/api/modelos.generados';
+import { entrarComo } from '../../../../testing/sesion';
 import { Clientas } from './clientas';
 
 const CONSULTA = '/api/v1/clientes/consulta-documento';
+const tipo = (
+  idTipoDocumento: number,
+  abreviatura: string,
+  min: number,
+  max: number,
+  soloNumeros: boolean,
+  consultaApi: boolean,
+  estado: TipoDocumentoDTO['estado'] = 'ACTIVO',
+): TipoDocumentoDTO => ({
+  idTipoDocumento,
+  abreviatura,
+  longitudMin: min,
+  longitudMax: max,
+  soloNumeros,
+  consultaApi,
+  estado,
+});
+const TIPOS: TipoDocumentoDTO[] = [
+  tipo(1, 'DNI', 8, 8, true, true),
+  tipo(2, 'CE', 8, 12, false, false, 'INACTIVO'),
+  tipo(3, 'RUC', 11, 11, true, true),
+  tipo(4, 'PASAPORTE', 6, 12, false, false),
+];
 
 describe('Clientas', () => {
   let fixture: ComponentFixture<Clientas>;
@@ -38,18 +63,16 @@ describe('Clientas', () => {
   };
 
   beforeEach(async () => {
-    sessionStorage.setItem(
-      'cautiva.sesion',
-      JSON.stringify({ idSede: 1, permisos: ['CLIENTAS:VER', 'CLIENTAS:CREAR'] }),
-    );
     TestBed.configureTestingModule({
       imports: [Clientas],
       providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     });
     http = TestBed.inject(HttpTestingController);
+    entrarComo({ idSede: 1, permisos: ['CLIENTAS:VER', 'CLIENTAS:CREAR'] });
     fixture = TestBed.createComponent(Clientas);
     await estable();
     raiz = fixture.nativeElement;
+    http.expectOne('/api/v1/tipos-documento').flush(TIPOS);
     http.expectOne('/api/v1/clientes').flush([
       {
         idCliente: 407,
@@ -72,9 +95,14 @@ describe('Clientas', () => {
     await estable();
   });
 
-  afterEach(() => {
-    http.verify();
-    sessionStorage.clear();
+  afterEach(() => http.verify());
+
+  it('ofrece los tipos activos de GET /tipos-documento, sin ids fijos (Duda 5)', async () => {
+    await abrir();
+    const opciones = [...raiz.querySelectorAll('#idTipoDocumento option')].map((o) =>
+      o.textContent?.trim(),
+    );
+    expect(opciones.slice(1)).toEqual(['DNI', 'RUC', 'PASAPORTE']);
   });
 
   it('CUS01: lista las clientas con el origen de sus datos', () => {
@@ -82,6 +110,15 @@ describe('Clientas', () => {
     expect(filas[0].textContent).toContain('Ingresada a mano');
     expect(filas[0].textContent).toContain('No desea comunicaciones');
     expect(filas[1].textContent).toContain('DNI verificado');
+  });
+
+  it('CUS03: «Ver ficha» lleva a la ficha de cada clienta', () => {
+    const enlaces = [...raiz.querySelectorAll<HTMLAnchorElement>('tbody a')];
+    expect(enlaces.map((a) => a.textContent?.trim())).toEqual(['Ver ficha', 'Ver ficha']);
+    expect(enlaces.map((a) => a.getAttribute('href'))).toEqual([
+      '/agenda/clientas/407',
+      '/agenda/clientas/408',
+    ]);
   });
 
   it('CUS01: busca por nombre o por teléfono según lo escrito', async () => {

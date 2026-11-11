@@ -9,7 +9,8 @@
     "test": "ng test",
     "e2e:bd": "node e2e/preparar-bd.mjs",
     "e2e": "playwright test",
-    "modelos": "npx --yes -p typescript@5.9.3 -p openapi-typescript@7.13.0 openapi-typescript docs/openapi.yaml -o src/app/core/api/modelos.generados.ts --root-types --root-types-no-schema-prefix --root-types-keep-casing && prettier --write src/app/core/api/modelos.generados.ts"
+    "e2e:it2": "playwright test --project=it2 --no-deps",
+    "modelos": "npx --yes -p typescript@5.9.3 -p openapi-typescript@7.13.0 openapi-typescript docs/openapi.yaml -o src/app/core/api/modelos.generados.ts --root-types --root-types-no-schema-prefix --root-types-keep-casing && node scripts/permisos.mjs && prettier --write src/app/core/api/modelos.generados.ts src/app/core/api/permisos.generados.ts"
   },
   "private": true,
   "packageManager": "npm@11.17.0",

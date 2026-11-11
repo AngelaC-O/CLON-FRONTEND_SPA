@@ -1,0 +1,287 @@
+<div class="col" style="gap: 16px">
+  <a class="btn ghost sm" style="align-self: flex-start" routerLink="/agenda/clientas">
+    ← Clientas
+  </a>
+
+  @if (ficha(); as datos) {
+    @if (cliente(); as clienta) {
+      <div class="card row">
+        <span class="avatar">{{ iniciales(clienta) }}</span>
+        <div class="sp">
+          <h1 class="h1">{{ nombreCompleto(clienta) }}</h1>
+          <div class="row" style="gap: 8px">
+            <span class="mut num">{{ clienta.telefono }}</span>
+            @if (clienta.origenDatos === 'VERIFICADO') {
+              <span class="chip ok">{{ abreviatura(clienta.idTipoDocumento) }} verificado</span>
+            } @else {
+              <span class="chip">Ingresada a mano</span>
+            }
+            @if (clienta.estado === 'INACTIVO') {
+              <span class="chip bad">Inactiva</span>
+            }
+          </div>
+          @if (clienta.fechaConsentimiento) {
+            <div class="xs mut">Consentimiento {{ fechaCorta(clienta.fechaConsentimiento) }}</div>
+          }
+        </div>
+        <div style="text-align: right">
+          <div class="xs mut">SALDO A FAVOR</div>
+          <div class="h2 num" id="saldoFavor">{{ soles(datos.saldoFavor) }}</div>
+        </div>
+      </div>
+    }
+
+    <div class="tabs" role="tablist" aria-label="Ficha de la clienta">
+      @for (opcion of pestanas; track opcion.id) {
+        <button
+          class="tab"
+          type="button"
+          role="tab"
+          [class.on]="pestana() === opcion.id"
+          [attr.aria-selected]="pestana() === opcion.id"
+          (click)="pestana.set(opcion.id)"
+        >
+          {{ opcion.texto }}
+        </button>
+      }
+    </div>
+
+    @switch (pestana()) {
+      @case ('datos') {
+        <form class="card col" [formGroup]="formulario" (ngSubmit)="guardar()">
+          @if (errorEdicion(); as mensaje) {
+            <div class="alert bad" role="alert">{{ mensaje }}</div>
+          }
+          <div class="g2">
+            <div class="fld">
+              <label class="lbl" for="fichaIdTipoDocumento">TIPO DE DOCUMENTO</label>
+              <select class="inp" id="fichaIdTipoDocumento" formControlName="idTipoDocumento">
+                <option [ngValue]="null">Sin documento</option>
+                @for (tipo of tiposOfrecidos(); track tipo.idTipoDocumento) {
+                  <option [ngValue]="tipo.idTipoDocumento">{{ tipo.abreviatura }}</option>
+                }
+              </select>
+            </div>
+            <div class="fld">
+              <label class="lbl" for="fichaNumeroDocumento">NÚMERO</label>
+              <input
+                class="inp"
+                id="fichaNumeroDocumento"
+                maxlength="15"
+                formControlName="numeroDocumento"
+              />
+            </div>
+          </div>
+          @if (puedeEditar()) {
+            <div class="row">
+              @if (tipoElegido()?.consultaApi) {
+                <button
+                  class="btn sec sm"
+                  type="button"
+                  [disabled]="consultando()"
+                  (click)="consultarDocumento()"
+                >
+                  Consultar documento
+                </button>
+              }
+              <span class="xs mut sp">
+                Al cambiar el documento, vuelve a consultarlo; si no se consulta, la ficha queda
+                ingresada a mano (RN45).
+              </span>
+            </div>
+            @if (avisoConsulta(); as aviso) {
+              <div class="alert" [class.ok]="aviso.ok" [class.warn]="!aviso.ok" role="status">
+                {{ aviso.texto }}
+              </div>
+            }
+          }
+          <div class="g2">
+            <div class="fld">
+              <label class="lbl" for="fichaNombres">NOMBRES O RAZÓN SOCIAL</label>
+              <input class="inp" id="fichaNombres" maxlength="80" formControlName="nombres" />
+            </div>
+            <div class="fld">
+              <label class="lbl" for="fichaApellidos">APELLIDOS</label>
+              <input class="inp" id="fichaApellidos" maxlength="80" formControlName="apellidos" />
+            </div>
+            <div class="fld">
+              <label class="lbl" for="fichaTelefono">TELÉFONO</label>
+              <input
+                class="inp"
+                id="fichaTelefono"
+                type="tel"
+                maxlength="15"
+                formControlName="telefono"
+              />
+            </div>
+            <div class="fld">
+              <label class="lbl" for="fichaCorreo">CORREO</label>
+              <input
+                class="inp"
+                id="fichaCorreo"
+                type="email"
+                maxlength="100"
+                formControlName="correo"
+              />
+            </div>
+            <div class="fld">
+              <label class="lbl" for="fichaFechaCumpleanos">CUMPLEAÑOS</label>
+              <input
+                class="inp"
+                id="fichaFechaCumpleanos"
+                type="date"
+                formControlName="fechaCumpleanos"
+              />
+            </div>
+          </div>
+          <div class="fld">
+            <label class="lbl" for="fichaObservaciones">OBSERVACIONES</label>
+            <textarea
+              class="inp"
+              id="fichaObservaciones"
+              maxlength="300"
+              formControlName="observaciones"
+            ></textarea>
+          </div>
+          <label class="row nw" style="gap: 10px">
+            <input
+              id="fichaAceptaComunicaciones"
+              type="checkbox"
+              formControlName="aceptaComunicaciones"
+            />
+            <span>Acepta recibir recordatorios y comunicaciones por WhatsApp</span>
+          </label>
+          @if (puedeEditar()) {
+            <div class="row">
+              <button class="btn" type="submit" [disabled]="enviando()">Guardar cambios</button>
+              <span class="xs mut">Se registra en auditoría: usuario, fecha y hora.</span>
+            </div>
+          }
+        </form>
+      }
+
+      @case ('historial') {
+        <div class="card col">
+          <h2 class="h3">Citas pendientes</h2>
+          @for (cita of datos.citasPendientes; track cita.idCita) {
+            <div class="row nw">
+              <span class="b num">{{ fechaCorta(cita.fechaHoraInicio, true) }}</span>
+              <span class="sp">Variante {{ cita.idVariante }} · {{ cita.duracionMin }} min</span>
+              <span class="chip" [class]="claseEstado(cita.estado)">
+                {{ etiquetaEstado(cita.estado) }}
+              </span>
+            </div>
+          } @empty {
+            <div class="mut sm">Sin citas pendientes.</div>
+          }
+        </div>
+
+        <div class="card col">
+          <h2 class="h3">Servicios</h2>
+          @for (atencion of datos.atenciones; track atencion.idAtencion) {
+            <div class="col" style="gap: 4px">
+              <div class="row nw">
+                <span class="b num">{{ fechaCorta(atencion.horaInicio, true) }}</span>
+                <span class="sp">
+                  Variante {{ atencion.idVariante }} · Especialista {{ atencion.idPersonal }}
+                </span>
+                <span class="chip" [class]="claseEstado(atencion.estado)">
+                  {{ etiquetaEstado(atencion.estado) }}
+                </span>
+              </div>
+              @if (atencion.observaciones) {
+                <div class="xs mut">{{ atencion.observaciones }}</div>
+              }
+              @for (
+                recomendacion of atencion.recomendaciones;
+                track recomendacion.idRecomendacion
+              ) {
+                <div class="xs">
+                  <span class="chip info">Recomendado</span>
+                  {{ producto(recomendacion.idProducto) }}
+                  @if (recomendacion.observacion) {
+                    · {{ recomendacion.observacion }}
+                  }
+                </div>
+              }
+            </div>
+          } @empty {
+            <div class="mut sm">Sin servicios registrados.</div>
+          }
+        </div>
+
+        <div class="card cp0 tw">
+          <table class="tbl">
+            <caption class="h3" style="text-align: left; padding: 14px 16px">
+              Productos comprados
+            </caption>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Producto</th>
+                <th class="r">Cantidad</th>
+                <th class="r">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (compra of datos.productosComprados; track $index) {
+                <tr>
+                  <td class="num">{{ fechaCorta(compra.fecha) }}</td>
+                  <td>{{ compra.producto }}</td>
+                  <td class="r num">{{ compra.cantidad }}</td>
+                  <td class="r num">{{ soles(compra.subtotal) }}</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td class="vacio" colspan="4">Sin compras de productos.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      @case ('paquetes') {
+        <div class="card col">
+          @for (paquete of datos.paquetes; track paquete.idClientePaquete) {
+            <div class="row nw">
+              <div class="sp">
+                <div class="b">Paquete {{ paquete.idPaquete }}</div>
+                <div class="xs mut">
+                  {{ paquete.sesionesUsadas }} de {{ paquete.sesionesTotales }} sesiones usadas ·
+                  vence {{ fechaCorta(paquete.fechaVencimiento) }} · se descuenta una al finalizar
+                  cada atención (RN36)
+                </div>
+              </div>
+              <span class="b num">{{ paquete.sesionesRestantes }} disponibles</span>
+              <span class="chip" [class]="estadoPaquete(paquete).clase">
+                {{ estadoPaquete(paquete).texto }}
+              </span>
+            </div>
+          } @empty {
+            <div class="mut sm">Sin paquetes ni membresías.</div>
+          }
+        </div>
+      }
+
+      @case ('saldo') {
+        <div class="card col">
+          <div class="h1 num">{{ soles(datos.saldoFavor) }}</div>
+          <div class="mut">
+            Se genera al cancelar una cita con adelanto o al anular una venta si la clienta lo elige
+            (RN05). No vence y se puede aplicar como adelanto al agendar o al cobrar la venta.
+          </div>
+        </div>
+      }
+    }
+  } @else if (cargando()) {
+    <div class="card vacio">Cargando la ficha…</div>
+  } @else {
+    <div class="card col">
+      <div class="alert bad" role="alert">{{ errorCarga() ?? 'No se pudo cargar la ficha.' }}</div>
+      <button class="btn sec" type="button" style="align-self: flex-start" (click)="cargar()">
+        Reintentar
+      </button>
+    </div>
+  }
+</div>

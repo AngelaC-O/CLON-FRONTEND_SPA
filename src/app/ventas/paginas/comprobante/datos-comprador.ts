@@ -1,10 +1,8 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, computed, inject, input, OnInit, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
-import {
-  numeroDocumentoValido,
-  tipoDocumento,
-  TIPOS_DOCUMENTO,
-} from '../../../core/api/tipos-documento';
+import { ListasService } from '../../../core/api/listas.service';
+import { TipoDocumentoDTO } from '../../../core/api/modelos.generados';
+import { numeroDocumentoValido, tiposActivos } from '../../../core/api/documentos';
 import { PERMISOS } from '../../../core/sesion/permisos';
 import { SesionService } from '../../../core/sesion/sesion.service';
 import { CierreVentaDTO } from '../../modelos/ventas.modelos';
@@ -12,7 +10,6 @@ import { VentasService } from '../../servicios/ventas.service';
 
 type TipoComprobante = 'BOLETA' | 'FACTURA';
 
-const ID_RUC = TIPOS_DOCUMENTO.find((tipo) => tipo.abreviatura === 'RUC')!.id;
 /** Referencia para avisar (RN08); quien decide es UMBRAL_BOLETA_DOC en el back-end. */
 const UMBRAL_BOLETA = 700;
 
@@ -27,15 +24,21 @@ export function crearFormularioComprador(fb: NonNullableFormBuilder) {
 
 export type FormularioComprador = ReturnType<typeof crearFormularioComprador>;
 
-/** Valida lo que se puede validar aquí y arma los datos del cierre, o dice qué falta. */
-export function leerComprador(formulario: FormularioComprador): CierreVentaDTO | string {
+/**
+ * Valida lo que se puede validar aquí y arma los datos del cierre, o dice qué falta. Los tipos de
+ * documento son los de GET /tipos-documento (Duda 5 de NOTAS_IT1).
+ */
+export function leerComprador(
+  formulario: FormularioComprador,
+  tipos: TipoDocumentoDTO[],
+): CierreVentaDTO | string {
   const { tipo, idTipoDocComprador } = formulario.getRawValue();
   const numero = formulario.controls.nroDocComprador.value.trim();
   const nombre = formulario.controls.nombreComprador.value.trim();
   if (tipo === 'FACTURA' && (!numero || !nombre)) {
     return 'La factura lleva el RUC y la razón social del comprador (RN08).';
   }
-  const documento = tipoDocumento(idTipoDocComprador);
+  const documento = tipos.find((t) => t.idTipoDocumento === idTipoDocComprador);
   if (numero && (!documento || !numeroDocumentoValido(documento, numero))) {
     return documento
       ? `El número no cumple el formato de ${documento.abreviatura}.`
@@ -46,7 +49,7 @@ export function leerComprador(formulario: FormularioComprador): CierreVentaDTO |
   }
   return {
     tipo,
-    ...(numero ? { idTipoDocComprador: documento?.id, nroDocComprador: numero } : {}),
+    ...(numero ? { idTipoDocComprador: documento?.idTipoDocumento, nroDocComprador: numero } : {}),
     ...(nombre ? { nombreComprador: nombre } : {}),
   };
 }
@@ -70,8 +73,8 @@ export function leerComprador(formulario: FormularioComprador): CierreVentaDTO |
             <label class="lbl" for="compradorTipoDoc">TIPO DE DOCUMENTO</label>
             <select class="inp" id="compradorTipoDoc" formControlName="idTipoDocComprador">
               <option [ngValue]="null">Sin documento</option>
-              @for (tipo of tipos; track tipo.id) {
-                <option [ngValue]="tipo.id">{{ tipo.abreviatura }}</option>
+              @for (tipo of ofrecidos(); track tipo.idTipoDocumento) {
+                <option [ngValue]="tipo.idTipoDocumento">{{ tipo.abreviatura }}</option>
               }
             </select>
           </div>
@@ -119,18 +122,24 @@ export function leerComprador(formulario: FormularioComprador): CierreVentaDTO |
     </div>
   `,
 })
-export class DatosComprador {
+export class DatosComprador implements OnInit {
   private readonly servicio = inject(VentasService);
   private readonly sesion = inject(SesionService);
+  private readonly listas = inject(ListasService);
 
   readonly formulario = input.required<FormularioComprador>();
   /** Subtotal más IGV, la cifra que compara el back-end con el umbral. */
   readonly importe = input(0);
 
-  protected readonly tipos = TIPOS_DOCUMENTO;
+  protected readonly tipos = signal<TipoDocumentoDTO[]>([]);
+  protected readonly ofrecidos = computed(() => tiposActivos(this.tipos()));
   protected readonly umbral = UMBRAL_BOLETA;
   protected readonly puedeConsultar = computed(() => this.sesion.tienePermiso(PERMISOS.ventasVer));
   protected readonly mensaje = signal<{ texto: string; clase: string } | null>(null);
+
+  ngOnInit(): void {
+    this.listas.tiposDocumento().subscribe((tipos) => this.tipos.set(tipos));
+  }
 
   protected esBoleta(): boolean {
     return this.formulario().controls.tipo.value === 'BOLETA';
@@ -139,7 +148,10 @@ export class DatosComprador {
   protected elegirTipo(tipo: TipoComprobante): void {
     this.formulario().reset({
       tipo,
-      idTipoDocComprador: tipo === 'FACTURA' ? ID_RUC : null,
+      idTipoDocComprador:
+        tipo === 'FACTURA'
+          ? (this.tipos().find((t) => t.abreviatura === 'RUC')?.idTipoDocumento ?? null)
+          : null,
       nroDocComprador: '',
       nombreComprador: '',
     });

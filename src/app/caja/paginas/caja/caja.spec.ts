@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { entrarComo } from '../../../../testing/sesion';
 import { Caja } from './caja';
 
 const TODOS = ['CAJA:VER', 'CAJA:CREAR', 'CAJA:EDITAR'];
@@ -11,6 +12,10 @@ const CAJA = {
   montoInicial: 100,
   fechaApertura: '2026-11-03T08:55:00',
 };
+const MEDIOS = [
+  { idMedioPago: 1, nombre: 'EFECTIVO', estado: 'ACTIVO', usaPasarela: false },
+  { idMedioPago: 2, nombre: 'YAPE', estado: 'ACTIVO', usaPasarela: true },
+];
 const ESPERADO = {
   idCaja: 214,
   estado: 'ABIERTA',
@@ -39,19 +44,22 @@ describe('Caja', () => {
     entrada.value = valor;
     entrada.dispatchEvent(new Event('input'));
   };
+  /** La caja abierta sale de GET /cajas/abierta: 200 con la caja o 204 sin caja (Duda 10). */
   const montar = async (permisos: string[], caja: object | null = null) => {
-    sessionStorage.setItem('cautiva.sesion', JSON.stringify({ idSede: 1, permisos }));
-    if (caja) {
-      sessionStorage.setItem('cautiva.caja', JSON.stringify(caja));
-    }
     TestBed.configureTestingModule({
       imports: [Caja],
       providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     });
     http = TestBed.inject(HttpTestingController);
+    entrarComo({ idSede: 1, permisos });
     fixture = TestBed.createComponent(Caja);
     await estable();
     raiz = fixture.nativeElement;
+    http.expectOne('/api/v1/medios-pago').flush(MEDIOS);
+    http
+      .expectOne('/api/v1/cajas/abierta')
+      .flush(caja, caja ? {} : { status: 204, statusText: 'No Content' });
+    await estable();
   };
   /** Con la caja abierta, llega hasta el modal del arqueo. */
   const abrirArqueo = async () => {
@@ -63,9 +71,15 @@ describe('Caja', () => {
     await estable();
   };
 
-  afterEach(() => {
-    http.verify();
-    sessionStorage.clear();
+  afterEach(() => http.verify());
+
+  it('lee la caja abierta de la sede sin pedir su código', async () => {
+    await montar(TODOS, CAJA);
+    http.expectOne('/api/v1/cajas/214/esperado').flush(ESPERADO);
+    await estable();
+    expect(raiz.textContent).toContain('Caja 214');
+    expect(raiz.querySelector('#cajaCodigo')).toBeNull();
+    expect(raiz.querySelector('.gf1')?.textContent).toContain('Efectivo');
   });
 
   it('CUS44: abre con el monto inicial y muestra lo esperado', async () => {
@@ -81,10 +95,10 @@ describe('Caja', () => {
     await estable();
     expect(raiz.textContent).toContain('Abierta desde 08:55');
     expect(raiz.querySelector('.gf1')?.textContent).toContain('S/ 160.00');
-    expect(sessionStorage.getItem('cautiva.caja')).toContain('214');
+    expect(sessionStorage.length).toBe(0);
   });
 
-  it('CUS44: si la sede ya tiene caja, ofrece retomarla por su código', async () => {
+  it('CUS44: si otra persona ya la abrió, la lee de GET /cajas/abierta', async () => {
     await montar(TODOS);
     escribir('cajaMontoInicial', '100');
     raiz.querySelector('form')!.dispatchEvent(new Event('submit'));
@@ -92,18 +106,15 @@ describe('Caja', () => {
       .expectOne('/api/v1/cajas')
       .flush({ detail: 'Ya abierta', regla: 'RN30' }, { status: 409, statusText: 'Conflict' });
     await estable();
-    expect(raiz.querySelector('.alert.warn')?.textContent).toContain('Retómala');
-    escribir('cajaCodigo', '214');
-    await clic('Retomar caja');
+    http.expectOne('/api/v1/cajas/abierta').flush(CAJA);
     http.expectOne('/api/v1/cajas/214/esperado').flush(ESPERADO);
     await estable();
     expect(boton('Cerrar caja')).toBeDefined();
   });
 
   it('oculta lo que el rol no puede hacer', async () => {
-    await montar(['CAJA:CREAR']);
-    expect(boton('Abrir caja')).toBeDefined();
-    expect(boton('Retomar caja')).toBeUndefined();
+    await montar(['CAJA:VER']);
+    expect(boton('Abrir caja')).toBeUndefined();
   });
 
   it('CUS45: sin diferencia cierra con esperado, egresos y contado', async () => {
@@ -135,7 +146,7 @@ describe('Caja', () => {
     await estable();
     expect(raiz.querySelector('app-modal')).toBeNull();
     expect(raiz.textContent).toContain('Cierre de la caja 214');
-    expect(sessionStorage.getItem('cautiva.caja')).toBeNull();
+    expect(boton('Abrir caja')).toBeDefined();
   });
 
   it('CUS45 y RN30: con diferencia exige la observación', async () => {
@@ -168,11 +179,10 @@ describe('Caja', () => {
     expect(raiz.querySelector('app-modal .alert.bad')?.textContent).toContain('contado');
   });
 
-  it('olvida la caja guardada si ya está cerrada', async () => {
+  it('si lo esperado dice CERRADA, ofrece abrir otra', async () => {
     await montar(TODOS, CAJA);
     http.expectOne('/api/v1/cajas/214/esperado').flush({ ...ESPERADO, estado: 'CERRADA' });
     await estable();
     expect(boton('Abrir caja')).toBeDefined();
-    expect(sessionStorage.getItem('cautiva.caja')).toBeNull();
   });
 });

@@ -2,41 +2,44 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { entrarComo } from '../../../testing/sesion';
 import { Inicio } from './inicio';
 
 describe('Inicio', () => {
+  let http: HttpTestingController;
+
   const montar = async (permisos: string[]) => {
-    sessionStorage.setItem(
-      'cautiva.sesion',
-      JSON.stringify({ idSede: 1, nombreUsuario: 'patricia.vargas', permisos }),
-    );
     TestBed.configureTestingModule({
       imports: [Inicio],
       providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     });
+    http = TestBed.inject(HttpTestingController);
+    entrarComo({ idSede: 1, nombreUsuario: 'patricia.vargas', nombres: 'Patricia', permisos });
     const fixture = TestBed.createComponent(Inicio);
+    fixture.detectChanges();
+    http.expectOne('/api/v1/avisos').flush([]);
     await fixture.whenStable();
     return fixture.nativeElement as HTMLElement;
   };
 
-  afterEach(() => sessionStorage.clear());
+  afterEach(() => http.verify());
 
-  it('saluda y muestra acciones y accesos según los permisos, sin llamar al back-end', async () => {
+  it('saluda y muestra acciones, avisos y accesos según los permisos', async () => {
     const raiz = await montar(['VENTAS:CREAR', 'AGENDA:VER', 'AGENDA:CREAR']);
     expect(raiz.querySelector('h1')?.textContent).toMatch(/Buen.*, Patricia/);
     expect(raiz.querySelector('.eyebrow')?.textContent).toContain('SEDE 1');
     expect(raiz.querySelector('a.btn.salon')?.textContent).toContain('Atención sin cita');
     expect(raiz.querySelector('a.btn.sec')?.textContent).toContain('Nueva cita');
-    expect([...raiz.querySelectorAll('.card .h3')].map((e) => e.textContent)).toEqual([
+    expect(raiz.querySelector('app-panel-avisos')).not.toBeNull();
+    expect([...raiz.querySelectorAll('.gf .card .h3')].map((e) => e.textContent)).toEqual([
       'Agenda',
       'Atención sin cita',
       'Cobros y comprobantes',
     ]);
-    TestBed.inject(HttpTestingController).verify();
   });
 
   it('oculta las acciones sin permiso', async () => {
     const raiz = await montar(['AGENDA:VER']);
-    expect(raiz.querySelector('a.btn')).toBeNull();
+    expect(raiz.querySelector('.row a.btn')).toBeNull();
   });
 });

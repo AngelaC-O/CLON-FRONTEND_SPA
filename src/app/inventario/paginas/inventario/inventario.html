@@ -1,0 +1,192 @@
+<div class="col" style="gap: 16px">
+  <div class="row">
+    <div class="sp">
+      <h1 class="h1">Productos e insumos</h1>
+      <div class="mut">
+        Productos de venta e insumos de la sede, con stock mínimo, salidas, ajustes y consumos
+        pendientes.
+      </div>
+    </div>
+    @if (verKardex()) {
+      <a class="btn ghost" routerLink="/inventario/kardex">Kardex</a>
+    }
+    @if (crearProductos()) {
+      <button class="btn lg" type="button" (click)="registroAbierto.set(true)">+ Producto</button>
+    }
+  </div>
+
+  @if (bajoMinimo().length) {
+    <div class="alert warn" role="status" id="alertaMinimo">
+      {{ bajoMinimo().length }} en stock mínimo o menos (RF47): {{ nombresBajoMinimo() }}.
+    </div>
+  }
+
+  <div class="tabs" role="tablist" aria-label="Inventario">
+    @for (opcion of pestanas(); track opcion.id) {
+      <button
+        class="tab"
+        type="button"
+        role="tab"
+        [class.on]="pestana() === opcion.id"
+        [attr.aria-selected]="pestana() === opcion.id"
+        (click)="pestana.set(opcion.id)"
+      >
+        {{ textoPestana(opcion) }}
+      </button>
+    }
+  </div>
+
+  @switch (pestana()) {
+    @case ('productos') {
+      <form
+        class="card row filtros"
+        style="align-items: flex-end"
+        [formGroup]="filtro"
+        (ngSubmit)="buscar()"
+      >
+        <div class="fld sp">
+          <label class="lbl" for="filtroNombre">NOMBRE O CÓDIGO</label>
+          <input class="inp" id="filtroNombre" formControlName="nombre" />
+        </div>
+        <div class="fld">
+          <label class="lbl" for="filtroCategoria">CATEGORÍA</label>
+          <select class="inp" id="filtroCategoria" formControlName="idCategoria">
+            <option [ngValue]="null">Todas</option>
+            @for (opcion of categorias(); track opcion.idCategoria) {
+              <option [ngValue]="opcion.idCategoria">{{ opcion.nombre }}</option>
+            }
+          </select>
+        </div>
+        <button class="btn sec" type="submit">Buscar</button>
+      </form>
+
+      <div class="card cp0 tw">
+        <table class="tbl" id="tablaProductos">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Producto</th>
+              <th>Categoría</th>
+              <th>Uso</th>
+              <th class="r">Stock</th>
+              <th class="r">Mín.</th>
+              <th>Ubicación</th>
+              <th class="r">P. venta</th>
+              @if (conCosto()) {
+                <th class="r">Costo</th>
+              }
+              @if (conMargen()) {
+                <th class="r">Margen</th>
+              }
+              @if (verKardex()) {
+                <th></th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (producto of productos(); track producto.idProducto) {
+              <tr>
+                <td class="num">{{ producto.codigo }}</td>
+                <td>
+                  <div class="b">{{ producto.nombre }}</div>
+                  @if (producto.marca) {
+                    <div class="xs mut">{{ producto.marca }}</div>
+                  }
+                </td>
+                <td>{{ categoria(producto.idCategoria) }}</td>
+                <td>
+                  <span class="chip" [class.info]="producto.tipoUso === 'INSUMO'">
+                    {{ producto.tipoUso === 'INSUMO' ? 'Insumo' : 'Venta' }}
+                  </span>
+                </td>
+                <td class="r num">
+                  @if (enMinimo(producto)) {
+                    <span class="chip warn">{{ producto.stockActual ?? 0 }}</span>
+                  } @else {
+                    {{ producto.stockActual ?? 0 }}
+                  }
+                  <span class="xs mut">{{ producto.unidad }}</span>
+                </td>
+                <td class="r num">{{ producto.stockMinimo }}</td>
+                <td>{{ producto.ubicacion }}</td>
+                <td class="r num">{{ soles(producto.precioVenta) }}</td>
+                @if (conCosto()) {
+                  <td class="r num">
+                    {{ producto.costo !== undefined ? soles(producto.costo) : '' }}
+                  </td>
+                }
+                @if (conMargen()) {
+                  <td class="r num">
+                    {{
+                      producto.margen !== undefined && producto.margen !== null
+                        ? margenTexto(producto.margen)
+                        : ''
+                    }}
+                  </td>
+                }
+                @if (verKardex()) {
+                  <td class="r">
+                    <a
+                      class="btn ghost sm"
+                      routerLink="/inventario/kardex"
+                      [queryParams]="{ idProducto: producto.idProducto }"
+                    >
+                      Kardex
+                    </a>
+                  </td>
+                }
+              </tr>
+            } @empty {
+              <tr>
+                <td class="vacio" colspan="11">
+                  {{ cargando() ? 'Cargando…' : 'No hay productos con ese filtro.' }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+    @case ('categorias') {
+      <app-categorias-producto
+        [categorias]="categorias()"
+        [porCategoria]="porCategoria()"
+        [puedeCrear]="crearProductos()"
+        (creada)="categoriaCreada($event)"
+      />
+    }
+    @case ('salida') {
+      <app-movimiento-inventario
+        tipo="SALIDA"
+        [productos]="productos()"
+        (registrado)="movimientoRegistrado($event)"
+      />
+    }
+    @case ('ajuste') {
+      <app-movimiento-inventario
+        tipo="AJUSTE"
+        [productos]="productos()"
+        (registrado)="movimientoRegistrado($event)"
+      />
+    }
+  }
+
+  <!-- Montada desde el inicio para que la pestaña muestre cuántos hay. -->
+  @if (verKardex()) {
+    <div [hidden]="pestana() !== 'consumos'">
+      <app-consumos-pendientes
+        [puedeResolver]="resolverConsumos()"
+        (cantidad)="pendientes.set($event)"
+        (regularizado)="consumoRegularizado()"
+      />
+    </div>
+  }
+</div>
+
+@if (registroAbierto()) {
+  <app-registro-producto
+    [categorias]="categorias()"
+    (cerrar)="registroAbierto.set(false)"
+    (registrado)="productoRegistrado($event)"
+  />
+}

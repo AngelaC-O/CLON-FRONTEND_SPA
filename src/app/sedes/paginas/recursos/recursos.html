@@ -2,9 +2,11 @@
   <div class="row">
     <div class="sp">
       <h1 class="h1">Catálogo y configuración</h1>
-      <div class="mut">Recursos de la sede con su tiempo de limpieza (CUS61).</div>
+      <div class="mut">Recursos de la sede {{ idSede() }} con su tiempo de limpieza (CUS61).</div>
     </div>
-    <button class="btn lg" type="button" (click)="abrir()">+ Recurso</button>
+    @if (puedeCrear()) {
+      <button class="btn lg" type="button" (click)="abrir()">+ Recurso</button>
+    }
   </div>
 
   <nav class="tabs" aria-label="Secciones del catálogo">
@@ -43,7 +45,7 @@
         } @empty {
           <tr>
             <td class="vacio" colspan="4">
-              Aquí aparecen los recursos que registres desde esta pantalla.
+              {{ cargando() ? 'Cargando los recursos…' : 'La sede aún no tiene recursos.' }}
             </td>
           </tr>
         }
@@ -51,8 +53,8 @@
     </table>
   </div>
   <div class="xs mut">
-    Cada recurso tiene su propio tiempo de limpieza, de 0 a 30 minutos (RN03), que la agenda bloquea
-    después de cada servicio.
+    Cada recurso tiene su propio tiempo de limpieza, de 0 a {{ limpiezaMax }} minutos (RN03), que la
+    agenda bloquea solo en el recurso después de cada servicio.
   </div>
 </div>
 
@@ -87,14 +89,12 @@
         </div>
         <div class="fld">
           <label class="lbl" for="minutosLimpieza">MINUTOS DE LIMPIEZA</label>
-          <input
-            class="inp"
-            id="minutosLimpieza"
-            type="number"
-            min="0"
-            max="30"
-            formControlName="minutosLimpieza"
-          />
+          <select class="inp" id="minutosLimpieza" formControlName="minutosLimpieza">
+            <option [ngValue]="null" disabled>Elige los minutos</option>
+            @for (minuto of minutos; track minuto) {
+              <option [ngValue]="minuto">{{ minuto }} min</option>
+            }
+          </select>
         </div>
       </div>
       <div class="mf">

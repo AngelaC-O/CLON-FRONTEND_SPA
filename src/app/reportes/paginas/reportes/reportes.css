@@ -1,0 +1,32 @@
+.filtros {
+  align-items: end;
+}
+.grafico {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-8);
+  margin: 0;
+}
+.barra {
+  display: grid;
+  grid-template-columns: minmax(90px, 180px) 1fr auto;
+  align-items: center;
+  gap: var(--e-10);
+}
+.grupo {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pista {
+  height: 12px;
+  border-radius: var(--r-8);
+  background: var(--relleno-tabla);
+  overflow: hidden;
+}
+.relleno {
+  display: block;
+  height: 100%;
+  border-radius: var(--r-8);
+  background: var(--salon);
+}

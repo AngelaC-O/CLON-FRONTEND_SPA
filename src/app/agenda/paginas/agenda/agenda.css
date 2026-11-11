@@ -57,3 +57,24 @@
   background: var(--ok-l);
   color: var(--ok);
 }
+.bloque.limpieza {
+  min-height: 0;
+  padding: 0 var(--e-8);
+  border-style: dashed;
+  border-color: var(--line);
+  background: var(--relleno-tabla);
+  color: var(--mut);
+}
+.bloque .abrir {
+  all: unset;
+  display: block;
+  cursor: pointer;
+  font-weight: 600;
+}
+.bloque .abrir:focus-visible {
+  outline: 2px solid var(--pri);
+}
+.espera {
+  padding: var(--e-10) 0;
+  border-top: 1px solid var(--linea-suave);
+}

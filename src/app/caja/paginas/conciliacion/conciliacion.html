@@ -1,0 +1,208 @@
+<div class="col" style="gap: 16px; max-width: 1100px">
+  <div class="row">
+    <div class="sp">
+      <h1 class="h1">Conciliación</h1>
+      <div class="mut">
+        Ventas, comprobantes SUNAT y cobros de Izipay del mes. Las ventas anuladas no cuentan
+        (RN33).
+      </div>
+    </div>
+    <a class="btn ghost" routerLink="/caja/revision">← Revisión de caja</a>
+  </div>
+
+  @if (puedeCrear()) {
+    <section class="card col" aria-labelledby="pasoReporte">
+      <h2 class="h3" id="pasoReporte">1 · Subir reporte de liquidación de Izipay</h2>
+      <div class="xs mut">
+        El CSV o Excel que se descarga del panel de Izipay: guarda la comisión y la fecha de abono
+        de cada cobro aprobado.
+      </div>
+      <div class="row nw" style="align-items: flex-end">
+        <div class="fld sp">
+          <label class="lbl" for="archivoLiquidacion">REPORTE (CSV O EXCEL)</label>
+          <input
+            class="inp"
+            id="archivoLiquidacion"
+            type="file"
+            accept=".csv,.xlsx,.xls,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            (change)="elegirArchivo($event)"
+          />
+        </div>
+        <button class="btn sec" type="button" [disabled]="importando()" (click)="importar()">
+          Importar liquidación
+        </button>
+      </div>
+      @if (errorImportacion(); as mensaje) {
+        <div class="alert bad" role="alert">{{ mensaje }}</div>
+      }
+      @if (resumen(); as datos) {
+        <div
+          class="alert"
+          [class.ok]="!datos.codigosSinTransaccion?.length"
+          [class.warn]="datos.codigosSinTransaccion?.length"
+          id="resumenLiquidacion"
+          role="status"
+        >
+          Casaron {{ datos.filasRegistradas }} de {{ datos.filasLeidas }} filas.
+          @if (datos.codigosSinTransaccion?.length) {
+            No casaron: {{ datos.codigosSinTransaccion!.join(', ') }}.
+          }
+        </div>
+      }
+    </section>
+
+    <form class="card col" [formGroup]="periodo" (ngSubmit)="conciliar()" aria-labelledby="pasoMes">
+      <h2 class="h3" id="pasoMes">2 · Mes por conciliar</h2>
+      <div class="row nw" style="align-items: flex-end">
+        <div class="fld">
+          <label class="lbl" for="conciliacionAnio">AÑO</label>
+          <input
+            class="inp"
+            id="conciliacionAnio"
+            type="number"
+            min="2026"
+            formControlName="anio"
+          />
+        </div>
+        <div class="fld sp">
+          <label class="lbl" for="conciliacionMes">MES</label>
+          <select class="inp" id="conciliacionMes" formControlName="mes">
+            @for (nombre of meses; track nombre; let i = $index) {
+              <option [ngValue]="i + 1">{{ nombre }}</option>
+            }
+          </select>
+        </div>
+        <button class="btn" type="submit" [disabled]="conciliando()">Conciliar</button>
+      </div>
+    </form>
+  }
+
+  @if (error(); as mensaje) {
+    <div class="alert bad" role="alert">{{ mensaje }}</div>
+  }
+
+  @if (conciliacion(); as actual) {
+    <section class="card col" aria-labelledby="pasoDiferencias">
+      <div class="row">
+        <h2 class="h3 sp" id="pasoDiferencias">
+          3 · Diferencias de {{ meses[(actual.mes ?? 1) - 1] }} {{ actual.anio }}
+        </h2>
+        <span class="chip ok">{{ coinciden() }} coinciden</span>
+        <span class="chip" [class.warn]="sinJustificar() > 0" [class.ok]="sinJustificar() === 0">
+          {{ sinJustificar() }} sin justificar
+        </span>
+        @if (cerrada()) {
+          <span class="chip dk">Cerrada</span>
+        }
+      </div>
+      @for (grupo of grupos(); track grupo.origen) {
+        <div class="col grupo" style="gap: 6px">
+          <div class="b">{{ grupo.origen }}</div>
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>Referencia</th>
+                <th>Estado</th>
+                <th>Justificación</th>
+                @if (puedeEditar() && !cerrada()) {
+                  <th></th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of grupo.items; track item.idItem) {
+                <tr>
+                  <td class="num">{{ referencia(item) }}</td>
+                  <td>
+                    @switch (item.estado) {
+                      @case ('SIN_JUSTIFICAR') {
+                        <span class="chip warn">Sin justificar</span>
+                      }
+                      @case ('JUSTIFICADA') {
+                        <span class="chip ok">Justificada</span>
+                      }
+                      @case ('EXCLUIDA') {
+                        <span class="chip">Excluida</span>
+                      }
+                    }
+                  </td>
+                  <td>
+                    @if (justificando() === item.idItem) {
+                      <div class="row nw">
+                        <input
+                          class="inp"
+                          maxlength="300"
+                          placeholder="Ej. Devolución de Yape hecha desde la app"
+                          [attr.aria-label]="'Justificación de ' + referencia(item)"
+                          [formControl]="justificacion"
+                        />
+                        <button
+                          class="btn sm"
+                          type="button"
+                          [disabled]="guardando()"
+                          (click)="guardarJustificacion(item)"
+                        >
+                          Guardar justificación
+                        </button>
+                      </div>
+                    } @else {
+                      {{ item.justificacion }}
+                    }
+                  </td>
+                  @if (puedeEditar() && !cerrada()) {
+                    <td class="r">
+                      @if (item.estado === 'SIN_JUSTIFICAR' && justificando() !== item.idItem) {
+                        <div class="row nw" style="justify-content: flex-end">
+                          <button
+                            class="btn sec sm"
+                            type="button"
+                            (click)="abrirJustificacion(item)"
+                          >
+                            Justificar
+                          </button>
+                          <button
+                            class="btn ghost sm"
+                            type="button"
+                            [disabled]="guardando()"
+                            (click)="excluir(item)"
+                          >
+                            Excluir
+                          </button>
+                        </div>
+                      }
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @empty {
+        <div class="alert ok">Todo coincide: no hay diferencias que justificar.</div>
+      }
+    </section>
+
+    @if (puedeEditar() && !cerrada()) {
+      <section class="card row" aria-labelledby="pasoCierre">
+        <div class="sp">
+          <h2 class="h3" id="pasoCierre">4 · Cerrar conciliación</h2>
+          <div class="xs mut">
+            @if (sinJustificar() > 0) {
+              Quedan {{ sinJustificar() }} diferencias sin justificar.
+            } @else {
+              Al cerrarla, ya no cambia.
+            }
+          </div>
+        </div>
+        <button
+          class="btn"
+          type="button"
+          [disabled]="sinJustificar() > 0 || guardando()"
+          (click)="cerrar()"
+        >
+          Cerrar conciliación
+        </button>
+      </section>
+    }
+  }
+</div>

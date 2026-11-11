@@ -1,7 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, input, OnInit, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { medioPago, MEDIOS_PAGO } from '../../../core/api/medios-pago';
+import { ListasService } from '../../../core/api/listas.service';
+import { canalPropuesto, etiquetaMedio, mediosActivos } from '../../../core/api/medios';
+import { MedioPagoDTO } from '../../../core/api/modelos.generados';
 import { mensajeDelProblema } from '../../../core/api/problema';
 import { CompartirEnlace } from '../../../layout/compartir-enlace/compartir-enlace';
 import { Modal } from '../../../layout/modal/modal';
@@ -67,14 +69,17 @@ import { CitasService } from '../../servicios/citas.service';
             <div class="fld">
               <span class="lbl">CÓMO PAGA EL ADELANTO</span>
               <div class="seg" role="group" aria-label="Medio del adelanto">
-                @for (medio of medios; track medio.id) {
+                @for (medio of medios(); track medio.idMedioPago) {
                   <button
                     type="button"
                     style="flex: 1; padding: 0 6px"
-                    [class.on]="formulario.controls.idMedioPago.value === medio.id"
-                    (click)="formulario.controls.idMedioPago.setValue(medio.id)"
+                    [class.on]="formulario.controls.idMedioPago.value === medio.idMedioPago"
+                    [attr.aria-pressed]="
+                      formulario.controls.idMedioPago.value === medio.idMedioPago
+                    "
+                    (click)="formulario.controls.idMedioPago.setValue(medio.idMedioPago ?? null)"
                   >
-                    {{ medio.etiqueta }}
+                    {{ etiquetaMedio(medio) }}
                   </button>
                 }
               </div>
@@ -99,13 +104,16 @@ import { CitasService } from '../../servicios/citas.service';
 export class AdelantoCita implements OnInit {
   private readonly citas = inject(CitasService);
   private readonly pagos = inject(PagosService);
+  private readonly listas = inject(ListasService);
 
   readonly idCita = input<number | null>(null);
   readonly cerrar = output<void>();
   readonly registrado = output<CitaDTO>();
 
   protected readonly horaDe = horaDe;
-  protected readonly medios = MEDIOS_PAGO;
+  protected readonly etiquetaMedio = etiquetaMedio;
+  /** GET /medios-pago (CUS62), en lugar de la copia fija (Duda 11 de NOTAS_IT1). */
+  protected readonly medios = signal<MedioPagoDTO[]>([]);
   protected readonly enlace = signal<EnlacePagoDTO | null>(null);
   protected readonly error = signal<string | null>(null);
   protected readonly enviando = signal(false);
@@ -113,21 +121,31 @@ export class AdelantoCita implements OnInit {
   protected readonly formulario = inject(FormBuilder).nonNullable.group({
     idCita: [null as number | null, [Validators.required, Validators.min(1)]],
     adelantoMonto: [null as number | null, [Validators.required, Validators.min(0.01)]],
-    idMedioPago: [MEDIOS_PAGO[0].id],
+    idMedioPago: [null as number | null, Validators.required],
   });
 
   ngOnInit(): void {
     this.formulario.controls.idCita.setValue(this.idCita());
+    this.listas.mediosPago().subscribe((medios) => {
+      const activos = mediosActivos(medios);
+      this.medios.set(activos);
+      // Se propone el efectivo: el primero que no pasa por la pasarela.
+      const propuesto = activos.find((m) => !m.usaPasarela) ?? activos[0];
+      if (this.formulario.controls.idMedioPago.value === null && propuesto) {
+        this.formulario.controls.idMedioPago.setValue(propuesto.idMedioPago ?? null);
+      }
+    });
   }
 
   protected esDigital(): boolean {
-    return !!medioPago(this.formulario.controls.idMedioPago.value)?.canal;
+    const id = this.formulario.controls.idMedioPago.value;
+    return !!canalPropuesto(this.medios().find((m) => m.idMedioPago === id));
   }
 
   protected enviar(): void {
     const { idCita, adelantoMonto, idMedioPago } = this.formulario.getRawValue();
-    if (this.formulario.invalid || !idCita || !adelantoMonto) {
-      this.error.set('Indica la cita y un adelanto mayor que cero.');
+    if (this.formulario.invalid || !idCita || !adelantoMonto || idMedioPago === null) {
+      this.error.set('Indica la cita, un adelanto mayor que cero y cómo lo paga.');
       return;
     }
     this.error.set(null);

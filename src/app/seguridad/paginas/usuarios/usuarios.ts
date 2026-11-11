@@ -1,18 +1,38 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { mensajeDelProblema } from '../../../core/api/problema';
+import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { leerProblema, mensajeDelProblema } from '../../../core/api/problema';
 import { NotificacionesService } from '../../../core/notificaciones/notificaciones.service';
 import { PERMISOS } from '../../../core/sesion/permisos';
 import { SesionService } from '../../../core/sesion/sesion.service';
 import { Modal } from '../../../layout/modal/modal';
-import { PermisoDTO, RolDTO, UsuarioDTO } from '../../modelos/seguridad.modelos';
+import {
+  PermisoDTO,
+  PersonalSinUsuarioDTO,
+  RolDTO,
+  UsuarioDTO,
+} from '../../modelos/seguridad.modelos';
 import { UsuariosService } from '../../servicios/usuarios.service';
+import { Auditoria } from '../auditoria/auditoria';
+import { RestablecerClave } from './restablecer-clave';
 
-/** IGU_Usuarios: CUS52 Registrar Usuario y CUS53 Asignar Rol. */
+/** Rol que no puede quedarse sin seguridad ni sin titular activa (RN48). */
+const ROL_ADMINISTRADORA = 'ADMINISTRADORA';
+const PERMISOS_RN48 = ['SEGURIDAD:VER', 'SEGURIDAD:CREAR', 'SEGURIDAD:EDITAR'];
+export const MENSAJE_RN48_PERMISOS =
+  'El rol ADMINISTRADORA conserva SEGURIDAD:VER, SEGURIDAD:CREAR y SEGURIDAD:EDITAR (RN48).';
+export const MENSAJE_RN48_ROL =
+  'Es la última administradora activa: asigna antes el rol a otra persona (RN48).';
+
+const clave = (p: PermisoDTO) => `${p.modulo}:${p.accion}`;
+
+/**
+ * IGU_Usuarios, nodo 4:245: CUS52 Registrar Usuario, CUS53 Asignar Rol y CUS54 Restablecer
+ * Contraseña; la pestaña «Auditoría» es IGU_Auditoria (CUS55).
+ */
 @Component({
   selector: 'app-usuarios',
-  imports: [ReactiveFormsModule, Modal],
+  imports: [ReactiveFormsModule, Modal, Auditoria, RestablecerClave],
   templateUrl: './usuarios.html',
 })
 export class Usuarios implements OnInit {
@@ -21,10 +41,13 @@ export class Usuarios implements OnInit {
   private readonly servicio = inject(UsuariosService);
   private readonly sesion = inject(SesionService);
 
-  protected readonly pestana = signal<'usuarios' | 'permisos'>('usuarios');
+  protected readonly pestana = signal<'usuarios' | 'permisos' | 'auditoria'>('usuarios');
+  /** Usuario cuya contraseña se restablece (CUS54). */
+  protected readonly porRestablecer = signal<UsuarioDTO | null>(null);
   protected readonly roles = signal<RolDTO[]>([]);
-  /** El contrato no tiene lista de usuarios: solo se ven los tocados en esta pantalla. */
   protected readonly usuarios = signal<UsuarioDTO[]>([]);
+  protected readonly personal = signal<PersonalSinUsuarioDTO[]>([]);
+  protected readonly permisos = signal<PermisoDTO[]>([]);
   protected readonly modalAbierto = signal(false);
   protected readonly errorRegistro = signal<string | null>(null);
   protected readonly errorAsignacion = signal<string | null>(null);
@@ -36,27 +59,39 @@ export class Usuarios implements OnInit {
     this.sesion.tienePermiso(PERMISOS.seguridadEditar),
   );
 
+  /** La clave no vuelve: se actualiza el estado del usuario (desbloqueado, debe cambiarla). */
+  protected claveRestablecida(usuario: UsuarioDTO): void {
+    this.porRestablecer.set(null);
+    this.usuarios.update((lista) =>
+      lista.map((u) => (u.idUsuario === usuario.idUsuario ? { ...u, ...usuario } : u)),
+    );
+    this.notificaciones.mostrar(
+      `Contraseña de ${usuario.nombreUsuario} restablecida: deberá cambiarla al entrar.`,
+    );
+  }
+
   protected readonly formUsuario = this.fb.group({
-    idPersonal: [null as number | null, [Validators.required, Validators.min(1)]],
+    idPersonal: [null as number | null, Validators.required],
     nombreUsuario: ['', [Validators.required, Validators.maxLength(50)]],
     clave: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(72)]],
-    idRol: [null as number | null, Validators.required],
-  });
-  protected readonly formAsignacion = this.fb.group({
-    idUsuario: [null as number | null, [Validators.required, Validators.min(1)]],
     idRol: [null as number | null, Validators.required],
   });
   protected readonly formRol = this.fb.group({
     idRol: [null as number | null, Validators.required],
     descripcion: ['', Validators.maxLength(150)],
     estado: ['ACTIVO' as RolDTO['estado'], Validators.required],
-    permisos: this.fb.array<ReturnType<Usuarios['nuevoPermiso']>>([]),
+    permisos: this.fb.record<boolean>({}),
   });
 
   /** Filas de la matriz: cada módulo con las acciones que tiene cada rol. */
   protected readonly matriz = computed(() => {
     const roles = this.roles();
-    const modulos = [...new Set(roles.flatMap((r) => (r.permisos ?? []).map((p) => p.modulo)))];
+    const modulos = [
+      ...new Set([
+        ...this.permisos().map((p) => p.modulo),
+        ...roles.flatMap((r) => (r.permisos ?? []).map((p) => p.modulo)),
+      ]),
+    ];
     return modulos.sort().map((modulo) => ({
       modulo,
       celdas: roles.map((rol) => ({
@@ -68,8 +103,19 @@ export class Usuarios implements OnInit {
       })),
     }));
   });
-  protected readonly modulosConocidos = computed(() => this.valoresConocidos('modulo'));
-  protected readonly accionesConocidas = computed(() => this.valoresConocidos('accion'));
+
+  /** Los permisos de GET /permisos agrupados por módulo, para las casillas del rol. */
+  protected readonly grupos = computed(() => {
+    const grupos = new Map<string, { clave: string; accion: string }[]>();
+    for (const permiso of this.permisos()) {
+      const lista = grupos.get(permiso.modulo) ?? [];
+      lista.push({ clave: clave(permiso), accion: permiso.accion });
+      grupos.set(permiso.modulo, lista);
+    }
+    return [...grupos.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([modulo, acciones]) => ({ modulo, acciones }));
+  });
 
   ngOnInit(): void {
     this.servicio.listarRoles().subscribe((roles) => {
@@ -79,22 +125,39 @@ export class Usuarios implements OnInit {
         this.cargarRol();
       }
     });
+    this.servicio.listar().subscribe((usuarios) => this.usuarios.set(usuarios));
+    this.servicio.listarPermisos().subscribe((permisos) => {
+      this.permisos.set(permisos);
+      const casillas = this.formRol.controls.permisos;
+      for (const permiso of permisos) {
+        if (!casillas.contains(clave(permiso))) {
+          casillas.addControl(clave(permiso), new FormControl(false, { nonNullable: true }));
+        }
+      }
+      this.cargarRol();
+    });
   }
 
   protected nombreRol(idRol?: number): string {
     return this.roles().find((r) => r.idRol === idRol)?.nombre ?? String(idRol ?? '');
   }
 
+  protected nombrePersonal(persona: PersonalSinUsuarioDTO): string {
+    const nombre = [persona.nombres, persona.apellidos].filter(Boolean).join(' ');
+    return nombre || `Personal ${persona.idPersonal}`;
+  }
+
   protected abrirRegistro(): void {
     this.formUsuario.reset();
     this.errorRegistro.set(null);
     this.modalAbierto.set(true);
+    this.servicio.listarPersonalSinUsuario().subscribe((personal) => this.personal.set(personal));
   }
 
   protected registrar(): void {
     if (this.formUsuario.invalid) {
       this.errorRegistro.set(
-        'Completa el código del personal, el usuario, una clave de 8 a 72 caracteres y el rol.',
+        'Elige el personal, escribe el usuario y una clave de 8 a 72 caracteres, y elige el rol.',
       );
       return;
     }
@@ -103,7 +166,8 @@ export class Usuarios implements OnInit {
     this.servicio.registrar(this.formUsuario.getRawValue() as UsuarioDTO).subscribe({
       next: (usuario) => {
         this.enviando.set(false);
-        this.agregarFila(usuario);
+        this.reemplazarFila(usuario);
+        this.personal.update((lista) => lista.filter((p) => p.idPersonal !== usuario.idPersonal));
         this.modalAbierto.set(false);
         this.notificaciones.mostrar('Usuario registrado; debe cambiar su clave al entrar.');
       },
@@ -117,30 +181,24 @@ export class Usuarios implements OnInit {
     });
   }
 
-  protected asignarDesdeFormulario(): void {
-    const { idUsuario, idRol } = this.formAsignacion.getRawValue();
-    if (this.formAsignacion.invalid || idUsuario === null || idRol === null) {
-      this.errorAsignacion.set('Indica el código del usuario y el rol.');
+  protected asignar(usuario: UsuarioDTO, idRol: number): void {
+    if (usuario.idUsuario === undefined || idRol === usuario.idRol) {
+      return;
+    }
+    if (this.esUltimaAdministradora(usuario)) {
+      this.errorAsignacion.set(MENSAJE_RN48_ROL);
       return;
     }
     this.errorAsignacion.set(null);
-    this.asignar(idUsuario, idRol);
-  }
-
-  protected asignar(idUsuario: number | undefined, idRol: number): void {
-    if (idUsuario === undefined) {
-      return;
-    }
-    this.servicio.asignarRol(idUsuario, { idRol }).subscribe({
-      next: (usuario) => {
-        this.agregarFila(usuario);
-        this.formAsignacion.reset();
+    this.servicio.asignarRol(usuario.idUsuario, { idRol }).subscribe({
+      next: (actualizado) => {
+        this.reemplazarFila(actualizado);
         this.notificaciones.mostrar('Rol asignado.');
       },
       error: (error: HttpErrorResponse) => {
-        // Sin endpoint de lista, un código equivocado solo se descubre aquí.
-        if (error.status === 404) {
-          this.errorAsignacion.set(mensajeDelProblema(error, 'El usuario no existe.'));
+        // El 422 (RN48) también lo avisa el interceptor; aquí queda junto a la tabla.
+        if (error.status === 404 || leerProblema(error)?.regla === 'RN48') {
+          this.errorAsignacion.set(mensajeDelProblema(error, MENSAJE_RN48_ROL));
         }
       },
     });
@@ -153,33 +211,33 @@ export class Usuarios implements OnInit {
     }
     this.errorRol.set(null);
     this.formRol.patchValue({ descripcion: rol.descripcion ?? '', estado: rol.estado });
-    const permisos = this.formRol.controls.permisos;
-    permisos.clear();
-    (rol.permisos ?? []).forEach((p) => permisos.push(this.nuevoPermiso(p)));
-  }
-
-  protected agregarPermiso(): void {
-    this.formRol.controls.permisos.push(this.nuevoPermiso());
-  }
-
-  protected quitarPermiso(indice: number): void {
-    this.formRol.controls.permisos.removeAt(indice);
+    const tiene = new Set((rol.permisos ?? []).map(clave));
+    const casillas = this.formRol.controls.permisos;
+    for (const nombre of Object.keys(casillas.controls)) {
+      casillas.controls[nombre].setValue(tiene.has(nombre));
+    }
   }
 
   protected guardarPermisos(): void {
     const { idRol, descripcion, estado, permisos } = this.formRol.getRawValue();
     if (this.formRol.invalid || idRol === null) {
-      this.errorRol.set('Cada permiso necesita módulo y acción.');
+      this.errorRol.set('Elige el rol.');
+      return;
+    }
+    const elegidos = this.permisos().filter((p) => permisos[clave(p)]);
+    const nombre = this.nombreRol(idRol);
+    if (
+      nombre === ROL_ADMINISTRADORA &&
+      PERMISOS_RN48.some((c) => !elegidos.some((p) => clave(p) === c))
+    ) {
+      this.errorRol.set(MENSAJE_RN48_PERMISOS);
       return;
     }
     const cuerpo: RolDTO = {
-      nombre: this.nombreRol(idRol),
+      nombre,
       descripcion,
       estado,
-      permisos: permisos.map((p) => ({
-        modulo: p.modulo.trim().toUpperCase(),
-        accion: p.accion.trim().toUpperCase(),
-      })),
+      permisos: elegidos.map((p) => ({ modulo: p.modulo, accion: p.accion })),
     };
     this.errorRol.set(null);
     this.enviando.set(true);
@@ -187,33 +245,38 @@ export class Usuarios implements OnInit {
       next: (rol) => {
         this.enviando.set(false);
         this.roles.update((roles) => roles.map((r) => (r.idRol === rol.idRol ? rol : r)));
-        this.notificaciones.mostrar('Permisos del rol guardados.');
+        this.notificaciones.mostrar(
+          'Permisos del rol guardados; valen desde el siguiente ingreso.',
+        );
       },
       error: (error: HttpErrorResponse) => {
         this.enviando.set(false);
         if (error.status === 404) {
           this.errorRol.set(mensajeDelProblema(error, 'El rol no existe.'));
+        } else if (leerProblema(error)?.regla === 'RN48') {
+          this.errorRol.set(mensajeDelProblema(error, MENSAJE_RN48_PERMISOS));
         }
       },
     });
   }
 
-  private nuevoPermiso(permiso?: PermisoDTO) {
-    return this.fb.group({
-      modulo: [permiso?.modulo ?? '', [Validators.required, Validators.maxLength(40)]],
-      accion: [permiso?.accion ?? '', [Validators.required, Validators.maxLength(30)]],
-    });
+  /** Quitarle el rol a la única ADMINISTRADORA activa la dejaría sin seguridad (RN48). */
+  private esUltimaAdministradora(usuario: UsuarioDTO): boolean {
+    const idAdministradora = this.roles().find((r) => r.nombre === ROL_ADMINISTRADORA)?.idRol;
+    if (idAdministradora === undefined || usuario.idRol !== idAdministradora) {
+      return false;
+    }
+    const activas = this.usuarios().filter(
+      (u) => u.idRol === idAdministradora && u.estado === 'ACTIVO',
+    );
+    return activas.length <= 1;
   }
 
-  private agregarFila(usuario: UsuarioDTO): void {
-    this.usuarios.update((filas) => [
-      usuario,
-      ...filas.filter((f) => f.idUsuario !== usuario.idUsuario),
-    ]);
-  }
-
-  private valoresConocidos(campo: keyof PermisoDTO): string[] {
-    const valores = this.roles().flatMap((r) => (r.permisos ?? []).map((p) => p[campo]));
-    return [...new Set(valores)].sort();
+  private reemplazarFila(usuario: UsuarioDTO): void {
+    this.usuarios.update((filas) =>
+      filas.some((f) => f.idUsuario === usuario.idUsuario)
+        ? filas.map((f) => (f.idUsuario === usuario.idUsuario ? usuario : f))
+        : [...filas, usuario],
+    );
   }
 }

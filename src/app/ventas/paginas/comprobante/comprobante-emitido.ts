@@ -1,12 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, DestroyRef, inject, input, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, input, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { soles } from '../../../core/api/moneda';
 import { mensajeDelProblema } from '../../../core/api/problema';
 import { PERMISOS } from '../../../core/sesion/permisos';
 import { SesionService } from '../../../core/sesion/sesion.service';
+import { RouterLink } from '@angular/router';
 import { CompartirEnlace } from '../../../layout/compartir-enlace/compartir-enlace';
-import { VentaDTO } from '../../modelos/ventas.modelos';
+import { ComprobanteDTO, VentaDTO } from '../../modelos/ventas.modelos';
 import { ComprobantesService } from '../../servicios/comprobantes.service';
 
 type Canal = 'WHATSAPP' | 'CORREO';
@@ -19,15 +20,32 @@ const CLASE_SUNAT: Record<string, string> = {
   RECHAZADO: 'bad',
 };
 
-/** Resultado de CUS19 con la entrega de CUS20. La usan IGU_Cobro e IGU_VentaRapida. */
+/** Estados que SUNAT aún puede cambiar con el reenvío automático (RN46). */
+const SIN_RESPUESTA_FINAL = ['PENDIENTE', 'ENVIADO'];
+
+/**
+ * Resultado de CUS19 con la entrega de CUS20. La usan IGU_Cobro e IGU_VentaRapida. El estado SUNAT
+ * se vuelve a leer con GET /comprobantes/{idComprobante} (Duda 12 de NOTAS_IT1), y el correo lo
+ * abre el navegador con mailto: el back-end no envía correos (D-12).
+ */
 @Component({
   selector: 'app-comprobante-emitido',
-  imports: [ReactiveFormsModule, CompartirEnlace],
+  imports: [ReactiveFormsModule, RouterLink, CompartirEnlace],
   template: `
     <div class="col comprobante">
       <div class="row" style="gap: 6px">
         <span class="chip ok">Venta cerrada</span>
         <span class="chip" [class]="claseSunat()">SUNAT: {{ comprobante()?.estadoSunat }}</span>
+        @if (puedeEntregar() && sinRespuestaFinal()) {
+          <button
+            class="btn ghost sm"
+            type="button"
+            [disabled]="consultando()"
+            (click)="consultarEstado()"
+          >
+            Actualizar estado SUNAT
+          </button>
+        }
       </div>
       <h2 class="h2">
         {{ comprobante()?.tipo === 'FACTURA' ? 'Factura' : 'Boleta' }}
@@ -94,13 +112,17 @@ const CLASE_SUNAT: Record<string, string> = {
           </div>
           @if (entrega.controls.canal.value === 'CORREO') {
             <div class="fld">
-              <label class="lbl" for="entregaCorreo">CORREO</label>
+              <label class="lbl" for="entregaCorreo">CORREO (SI LA CLIENTA NO TIENE UNO)</label>
               <input class="inp" id="entregaCorreo" type="email" formControlName="correo" />
             </div>
+            <button class="btn sec" type="submit" style="align-self: flex-start">
+              Enviar por correo
+            </button>
+          } @else {
+            <button class="btn sec" type="submit" style="align-self: flex-start">
+              Compartir comprobante
+            </button>
           }
-          <button class="btn sec" type="submit" style="align-self: flex-start">
-            Compartir comprobante
-          </button>
         </form>
         @if (enlace(); as generado) {
           <app-compartir-enlace
@@ -111,10 +133,21 @@ const CLASE_SUNAT: Record<string, string> = {
           />
         }
       }
+
+      @if (puedeAnular() && venta().estado === 'CERRADA') {
+        <a
+          class="btn ghost sm"
+          style="align-self: flex-start"
+          routerLink="/ventas/anulaciones"
+          [queryParams]="{ idVenta: venta().idVenta }"
+        >
+          Solicitar anulación
+        </a>
+      }
     </div>
   `,
 })
-export class ComprobanteEmitido {
+export class ComprobanteEmitido implements OnInit {
   private readonly servicio = inject(ComprobantesService);
   private readonly sesion = inject(SesionService);
   private marco?: { iframe: HTMLIFrameElement; url: string };
@@ -122,12 +155,20 @@ export class ComprobanteEmitido {
   readonly venta = input.required<VentaDTO>();
 
   protected readonly soles = soles;
-  protected readonly comprobante = computed(() => this.venta().comprobante);
+  /** El de la venta, o el que devolvió la última consulta del estado SUNAT. */
+  private readonly consultado = signal<ComprobanteDTO | null>(null);
+  protected readonly comprobante = computed(() => this.consultado() ?? this.venta().comprobante);
+  protected readonly sinRespuestaFinal = computed(() =>
+    SIN_RESPUESTA_FINAL.includes(this.comprobante()?.estadoSunat ?? 'PENDIENTE'),
+  );
+  protected readonly consultando = signal(false);
   protected readonly claseSunat = computed(
     () => CLASE_SUNAT[this.comprobante()?.estadoSunat ?? ''] ?? 'warn',
   );
   /** Las dos lecturas del comprobante piden VENTAS:VER; cobrar pide VENTAS:CREAR. */
   protected readonly puedeEntregar = computed(() => this.sesion.tienePermiso(PERMISOS.ventasVer));
+  /** CUS22: la solicitud se arma en IGU_Anulacion con esta venta. */
+  protected readonly puedeAnular = computed(() => this.sesion.tienePermiso(PERMISOS.ventasAnular));
   protected readonly imprimiendo = signal(false);
   protected readonly enlace = signal<string | null>(null);
   protected readonly error = signal<string | null>(null);
@@ -139,6 +180,31 @@ export class ComprobanteEmitido {
 
   constructor() {
     inject(DestroyRef).onDestroy(() => this.quitarMarco());
+  }
+
+  /** Un comprobante PENDIENTE pudo cambiar con el reenvío (RN46): se lee una vez al mostrarlo. */
+  ngOnInit(): void {
+    if (this.puedeEntregar() && this.sinRespuestaFinal()) {
+      this.consultarEstado();
+    }
+  }
+
+  protected consultarEstado(): void {
+    const idComprobante = this.comprobante()?.idComprobante;
+    if (idComprobante === undefined) {
+      return;
+    }
+    this.consultando.set(true);
+    this.servicio.obtener(idComprobante).subscribe({
+      next: (comprobante) => {
+        this.consultando.set(false);
+        this.consultado.set(comprobante);
+      },
+      error: (error: HttpErrorResponse) => {
+        this.consultando.set(false);
+        this.atender(error);
+      },
+    });
   }
 
   protected elegirCanal(canal: Canal): void {
@@ -171,20 +237,43 @@ export class ComprobanteEmitido {
     if (idComprobante === undefined) {
       return;
     }
-    if (canal === 'CORREO' && (!correo.trim() || this.entrega.controls.correo.invalid)) {
+    if (canal === 'CORREO' && correo.trim() && this.entrega.controls.correo.invalid) {
       this.error.set('Escribe un correo válido.');
       return;
     }
     this.error.set(null);
-    const destino = canal === 'CORREO' ? correo.trim() : undefined;
+    const destino = canal === 'CORREO' ? correo.trim() || undefined : undefined;
     this.servicio.obtenerEnlace(idComprobante, canal, destino).subscribe({
-      next: ({ enlace }) => this.enlace.set(enlace ?? null),
+      next: (respuesta) => {
+        if (canal !== 'CORREO') {
+          this.enlace.set(respuesta.enlace ?? null);
+          return;
+        }
+        const para = respuesta.correo || destino;
+        if (!para) {
+          this.error.set('La clienta no tiene correo: escribe uno.');
+          return;
+        }
+        this.abrirCorreo(this.correoDelComprobante(para, respuesta.enlace ?? ''));
+      },
       error: (error: HttpErrorResponse) => this.atender(error),
     });
   }
 
+  /** mailto:<correo de la clienta> con el asunto y el enlace firmado en el cuerpo (CUS20). */
+  protected correoDelComprobante(para: string, enlace: string): string {
+    const asunto = `Comprobante ${this.comprobante()?.serie}-${this.comprobante()?.numero} de Cautiva Spa`;
+    const cuerpo = `Hola, aquí está tu comprobante electrónico: ${enlace}`;
+    return `mailto:${encodeURIComponent(para)}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
+  }
+
+  /** Abre el cliente de correo del equipo; no es una ventana emergente. */
+  protected abrirCorreo(url: string): void {
+    window.location.href = url;
+  }
+
   private atender(error: HttpErrorResponse): void {
-    if (error.status === 404) {
+    if (error.status === 404 || error.status === 503) {
       this.error.set(mensajeDelProblema(error, 'El comprobante no existe.'));
     }
   }

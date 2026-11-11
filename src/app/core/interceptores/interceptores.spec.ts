@@ -88,6 +88,19 @@ describe('interceptores', () => {
     expect(notificaciones.actual()?.texto).toBe('Inicie sesión para continuar.');
   });
 
+  it('el 401 de GET /auth/sesion al cargar no avisa ni navega: lo resuelven las guardas', () => {
+    const limpiar = vi.spyOn(sesion, 'limpiar');
+    let recibido: unknown;
+    cliente.get('/api/v1/auth/sesion').subscribe({ error: (e) => (recibido = e) });
+    http
+      .expectOne('/api/v1/auth/sesion')
+      .flush({ regla: 'SIN_SESION' }, { status: 401, statusText: 'Unauthorized' });
+    expect(recibido).toBeTruthy();
+    expect(limpiar).toHaveBeenCalled();
+    expect(navegar).not.toHaveBeenCalled();
+    expect(notificaciones.actual()).toBeNull();
+  });
+
   it('el 401 del login lo atiende su formulario', () => {
     fallar('/api/v1/auth/login', 401, { detail: 'Usuario o clave incorrectos' });
     expect(navegar).not.toHaveBeenCalled();

@@ -32,6 +32,7 @@
           <th>Clienta</th>
           <th>Teléfono</th>
           <th>Datos</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
@@ -56,10 +57,19 @@
                 <span class="chip">Ingresada a mano</span>
               }
             </td>
+            <td class="r">
+              <a
+                class="btn sec sm"
+                [routerLink]="['/agenda/clientas', clienta.idCliente]"
+                [attr.aria-label]="'Ver ficha de ' + clienta.nombres"
+              >
+                Ver ficha
+              </a>
+            </td>
           </tr>
         } @empty {
           <tr>
-            <td class="vacio" colspan="3">No se encontraron clientas.</td>
+            <td class="vacio" colspan="4">No se encontraron clientas.</td>
           </tr>
         }
       </tbody>
@@ -80,8 +90,8 @@
             <label class="lbl" for="idTipoDocumento">TIPO DE DOCUMENTO</label>
             <select class="inp" id="idTipoDocumento" formControlName="idTipoDocumento">
               <option [ngValue]="null">Sin documento</option>
-              @for (tipo of tipos; track tipo.id) {
-                <option [ngValue]="tipo.id">{{ tipo.abreviatura }}</option>
+              @for (tipo of tiposOfrecidos(); track tipo.idTipoDocumento) {
+                <option [ngValue]="tipo.idTipoDocumento">{{ tipo.abreviatura }}</option>
               }
             </select>
           </div>
@@ -96,7 +106,7 @@
           </div>
         </div>
         <div class="row">
-          @if (tipoElegido()?.consulta) {
+          @if (tipoElegido()?.consultaApi) {
             <button
               class="btn sec sm"
               type="button"
@@ -116,7 +126,7 @@
           <div class="alert" [class.ok]="aviso.ok" [class.warn]="!aviso.ok" role="status">
             {{ aviso.texto }}
           </div>
-        } @else if (tipoElegido() && !tipoElegido()?.consulta) {
+        } @else if (tipoElegido() && !tipoElegido()?.consultaApi) {
           <div class="xs mut">
             Este tipo de documento no se consulta: la ficha quedará ingresada a mano.
           </div>

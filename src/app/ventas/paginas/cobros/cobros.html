@@ -6,6 +6,10 @@
         Cobra la atención. El sistema emite la boleta o factura electrónica y la envía a SUNAT.
       </div>
     </div>
+    @if (puedeVerAnulaciones()) {
+      <a class="btn ghost" routerLink="/ventas/anulaciones">Anulaciones</a>
+    }
+    <a class="btn sec" routerLink="/ventas/productos">Venta de productos</a>
     <button class="btn sec" type="button" (click)="proforma.set(true)">Emitir proforma</button>
   </div>
 
@@ -14,6 +18,12 @@
   }
 
   @if (venta(); as actual) {
+    <div class="row">
+      <span class="b sp">Venta {{ actual.idVenta }} · {{ clienta(actual) }}</span>
+      <button class="btn ghost sm" type="button" (click)="volverALista()">
+        Volver a «Por cobrar»
+      </button>
+    </div>
     <div class="gs">
       <div class="col" style="gap: 16px">
         <div class="card cp0">
@@ -44,16 +54,35 @@
         <form class="card col" [formGroup]="descuentos" (ngSubmit)="aplicarDescuentos()">
           <div class="h3">1 · Descuentos y saldo a favor</div>
           <div class="g2">
-            <div class="fld">
-              <label class="lbl" for="cobroPromocion">CÓDIGO DE PROMOCIÓN</label>
-              <input
-                class="inp"
-                id="cobroPromocion"
-                type="number"
-                min="1"
-                formControlName="idPromocion"
-              />
-            </div>
+            @if (conCatalogo()) {
+              <div class="fld">
+                <label class="lbl" for="cobroPromocion">PROMOCIÓN VIGENTE</label>
+                <select class="inp" id="cobroPromocion" formControlName="idPromocion">
+                  <option [ngValue]="null">Sin promoción</option>
+                  @for (promocion of promociones(); track promocion.idPromocion) {
+                    <option [ngValue]="promocion.idPromocion">
+                      {{ promocion.nombre }} ·
+                      {{
+                        promocion.tipoDescuento === 'PORCENTAJE'
+                          ? promocion.valor + ' %'
+                          : soles(promocion.valor)
+                      }}
+                    </option>
+                  }
+                </select>
+              </div>
+            } @else {
+              <div class="fld">
+                <label class="lbl" for="cobroPromocion">CÓDIGO DE PROMOCIÓN</label>
+                <input
+                  class="inp"
+                  id="cobroPromocion"
+                  type="number"
+                  min="1"
+                  formControlName="idPromocion"
+                />
+              </div>
+            }
             <div class="fld">
               <label class="lbl" for="cobroSaldo">SALDO A FAVOR QUE SE APLICA (S/)</label>
               <input
@@ -90,10 +119,10 @@
             y solo cuentan cuando Izipay los aprueba (RN42).
           </div>
 
-          @for (fila of filas; track fila.medio.id) {
+          @for (fila of filas(); track fila.medio.idMedioPago) {
             <div class="row" style="gap: 8px; align-items: flex-end">
               <div class="fld" style="flex: 1; min-width: 150px">
-                <label class="lbl" [for]="'pagoMonto' + fila.medio.id">
+                <label class="lbl" [for]="'pagoMonto' + fila.medio.idMedioPago">
                   {{ fila.medio.nombre }} (S/)
                 </label>
                 <input
@@ -102,14 +131,18 @@
                   min="0"
                   step="0.01"
                   placeholder="0.00"
-                  [id]="'pagoMonto' + fila.medio.id"
+                  [id]="'pagoMonto' + fila.medio.idMedioPago"
                   [formControl]="fila.monto"
                 />
               </div>
-              @if (fila.medio.canal) {
+              @if (esDigital(fila)) {
                 <div class="fld" style="width: 110px">
-                  <label class="lbl" [for]="'pagoCanal' + fila.medio.id">CANAL</label>
-                  <select class="inp" [id]="'pagoCanal' + fila.medio.id" [formControl]="fila.canal">
+                  <label class="lbl" [for]="'pagoCanal' + fila.medio.idMedioPago">CANAL</label>
+                  <select
+                    class="inp"
+                    [id]="'pagoCanal' + fila.medio.idMedioPago"
+                    [formControl]="fila.canal"
+                  >
                     <option value="QR">QR</option>
                     <option value="LINK">Enlace</option>
                   </select>
@@ -127,7 +160,7 @@
                 class="btn sm"
                 type="button"
                 style="min-height: 44px"
-                [attr.aria-label]="'Registrar pago en ' + fila.medio.etiqueta"
+                [attr.aria-label]="'Registrar pago en ' + etiqueta(fila.medio.idMedioPago)"
                 [disabled]="enviando() || esperando(fila)"
                 (click)="registrarPago(fila)"
               >
@@ -140,7 +173,10 @@
             <div class="card col espera">
               <div class="row">
                 <span class="b sp">
-                  {{ medioPago(cobro.idMedioPago)?.etiqueta }} · {{ soles(cobro.monto) }}
+                  {{ etiqueta(cobro.idMedioPago) }}
+                  @if (cobro.monto !== undefined) {
+                    · {{ soles(cobro.monto) }}
+                  }
                 </span>
                 <span class="chip warn">Esperando a Izipay…</span>
               </div>
@@ -166,10 +202,18 @@
             </div>
           }
 
-          @for (pago of actual.pagos; track pago.idPago) {
+          @for (pago of rechazados(actual); track pago.idPago) {
+            <div class="row sm">
+              <span class="sp">{{ etiqueta(pago.idMedioPago) }}</span>
+              <span class="chip bad">Rechazado por Izipay</span>
+              <b class="num">{{ soles(pago.monto) }}</b>
+            </div>
+          }
+
+          @for (pago of registrados(actual); track pago.idPago) {
             <div class="row sm">
               <span class="sp">
-                {{ medioPago(pago.idMedioPago)?.etiqueta }}
+                {{ etiqueta(pago.idMedioPago) }}
                 @if (pago.referencia) {
                   · {{ pago.referencia }}
                 }
@@ -246,17 +290,104 @@
       </div>
     </div>
   } @else {
-    <form class="card col" style="max-width: 520px" [formGroup]="atencion" (ngSubmit)="cobrar()">
-      <h2 class="h2">Atención por cobrar</h2>
-      <div class="fld">
-        <label class="lbl" for="cobroIdAtencion">CÓDIGO DE LA ATENCIÓN</label>
-        <input class="inp" id="cobroIdAtencion" type="number" min="1" [formControl]="idAtencion" />
+    <div class="card cp0">
+      <div class="row" style="padding: 16px 18px 8px">
+        <h2 class="h2 sp">Por cobrar</h2>
+        <span class="xs mut">
+          La atención debe estar finalizada y la caja, abierta.
+          <a routerLink="/caja">Ir a Caja</a>
+        </span>
       </div>
-      <div class="xs mut">
-        La atención debe estar finalizada y la caja, abierta. <a routerLink="/caja">Ir a Caja</a>
+      <div class="tw">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Atención</th>
+              <th>Clienta</th>
+              <th class="r">Adelanto</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (atencion of atenciones(); track atencion.idAtencion) {
+              <tr [class.resaltada]="atencion.idAtencion === idAtencionResaltada">
+                <td class="b num">
+                  Atención {{ atencion.idAtencion }}
+                  <div class="xs mut">Variante {{ atencion.idVariante }}</div>
+                </td>
+                <td>
+                  {{ clienta(atencion) }}
+                  @if (atencion.idClientePaquete) {
+                    <span class="chip info">Paquete</span>
+                  }
+                </td>
+                <td class="r num">{{ soles(atencion.adelantoMonto) }}</td>
+                <td class="r">
+                  <button
+                    class="btn sm"
+                    type="button"
+                    [attr.aria-label]="'Cobrar la atención ' + atencion.idAtencion"
+                    [disabled]="enviando()"
+                    (click)="cobrar(atencion)"
+                  >
+                    Cobrar
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td class="vacio" colspan="4">
+                  {{ porCobrar() ? 'No hay atenciones por cobrar.' : 'Cargando las atenciones.' }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
       </div>
-      <button class="btn lg blk" type="submit" [disabled]="enviando()">Cobrar</button>
-    </form>
+    </div>
+
+    @if (ventasAbiertas().length) {
+      <div class="card cp0">
+        <div class="row" style="padding: 16px 18px 8px">
+          <h2 class="h2 sp">Ventas abiertas</h2>
+          <span class="xs mut">Con un cobro digital por aprobar o sin cerrar (RN52).</span>
+        </div>
+        <div class="tw">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>Venta</th>
+                <th>Clienta</th>
+                <th class="r">Total</th>
+                <th class="r">Falta</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (abierta of ventasAbiertas(); track abierta.idVenta) {
+                <tr>
+                  <td class="b num">Venta {{ abierta.idVenta }}</td>
+                  <td>{{ clienta(abierta) }}</td>
+                  <td class="r num">{{ soles(abierta.total) }}</td>
+                  <td class="r num">{{ soles(abierta.pendiente) }}</td>
+                  <td class="r">
+                    <button
+                      class="btn sec sm"
+                      type="button"
+                      [attr.aria-label]="'Retomar la venta ' + abierta.idVenta"
+                      [disabled]="enviando()"
+                      (click)="retomar(abierta.idVenta!)"
+                    >
+                      Retomar
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
   }
 </div>
 
