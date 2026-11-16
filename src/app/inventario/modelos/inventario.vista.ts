@@ -1,3 +1,4 @@
+import { nombreO, numero } from '../../core/api/nombres';
 import { MovimientoKardexDTO, ProductoDTO } from './inventario.modelos';
 
 /** Un insumo va en su unidad mínima (RN54). */
@@ -32,16 +33,19 @@ export function margenTexto(margen: number): string {
   return `${Math.round(margen * 1000) / 10} %`;
 }
 
-/** De dónde salió un movimiento: la atención, la venta, la compra o un registro manual. */
+/**
+ * De dónde salió un movimiento: la atención, la venta por su comprobante (Venta B001-123), la
+ * compra por su documento (Compra F001-45) o un registro manual (Duda 21, It. 2.1).
+ */
 export function origenMovimiento(movimiento: MovimientoKardexDTO): string {
   if (movimiento.idAtencion) {
-    return `Atención N° ${movimiento.idAtencion}`;
+    return `Atención ${numero(movimiento.idAtencion)}`;
   }
-  if (movimiento.idDetalleVenta) {
-    return `Venta (línea ${movimiento.idDetalleVenta})`;
+  if (movimiento.idDetalleVenta || movimiento.comprobante) {
+    return `Venta ${nombreO(movimiento.comprobante)}`;
   }
-  if (movimiento.idDetalleCompra) {
-    return `Compra (línea ${movimiento.idDetalleCompra})`;
+  if (movimiento.idDetalleCompra || movimiento.documentoCompra) {
+    return `Compra ${nombreO(movimiento.documentoCompra)}`;
   }
   return 'Manual';
 }
