@@ -9,6 +9,7 @@ import { SolicitudAnulacion } from './solicitud-anulacion';
 const CERRADA: VentaDTO = {
   idVenta: 620,
   idCliente: 407,
+  nombreCliente: 'Rosaura Quispe',
   estado: 'CERRADA',
   total: 90,
   comprobante: { idComprobante: 700, tipo: 'BOLETA', serie: 'B001', numero: '00000125' },
@@ -63,6 +64,14 @@ describe('SolicitudAnulacion (CUS22)', () => {
     ]);
     expect(raiz.querySelector('input[type="password"]')).toBeNull();
     expect(raiz.textContent).not.toContain('USUARIO');
+  });
+
+  it('It. 2.1: la venta nombra a la clienta, no su id', async () => {
+    await montar();
+    const venta = raiz.querySelector('#ventaAnular')!.textContent!;
+    expect(venta).toContain('Rosaura Quispe');
+    expect(venta).toContain('Venta N° 620');
+    expect(venta).not.toContain('Clienta 407');
   });
 
   it('envía la solicitud y la venta muestra «Anulación pendiente»', async () => {

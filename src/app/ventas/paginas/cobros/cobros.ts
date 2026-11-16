@@ -7,6 +7,7 @@ import { ListasService } from '../../../core/api/listas.service';
 import { CanalCobro, canalPropuesto, etiquetaMedio, mediosActivos } from '../../../core/api/medios';
 import { MedioPagoDTO, TipoDocumentoDTO } from '../../../core/api/modelos.generados';
 import { redondear, soles } from '../../../core/api/moneda';
+import { comprobanteDe, nombreO, nombreVenta, numero } from '../../../core/api/nombres';
 import { mensajeDelProblema } from '../../../core/api/problema';
 import { NotificacionesService } from '../../../core/notificaciones/notificaciones.service';
 import { PERMISOS } from '../../../core/sesion/permisos';
@@ -15,6 +16,7 @@ import { CompartirEnlace } from '../../../layout/compartir-enlace/compartir-enla
 import { Modal } from '../../../layout/modal/modal';
 import {
   AtencionCobrable,
+  CobroPendienteDTO,
   DetalleVentaDTO,
   PagoVentaDTO,
   PorCobrarDTO,
@@ -37,20 +39,9 @@ interface FilaPago {
   canal: FormControl<CanalCobro | null>;
 }
 
-/**
- * Cobro digital que espera a la pasarela. Medio y monto se recuerdan del envío; si la venta se
- * retomó, salen de sus pagos (GET /ventas/{idVenta}).
- */
-export interface CobroEnEspera {
-  idTransaccion: number;
-  idMedioPago?: number;
-  monto?: number;
-  canal?: string;
-  enlacePago?: string;
-}
-
 const APROBADA = 'APROBADA';
 const RECHAZADA = 'RECHAZADA';
+const PENDIENTE = 'PENDIENTE';
 
 /** IGU_Cobro: CUS18, CUS19, CUS20 y CUS21. Anulación y nota de crédito son de otra entrega. */
 @Component({
@@ -85,8 +76,20 @@ export class Cobros implements OnInit {
   private readonly ruta = inject(ActivatedRoute);
 
   protected readonly soles = soles;
+  protected readonly nombreO = nombreO;
+  protected readonly numero = numero;
+  protected readonly nombreVenta = nombreVenta;
+  protected readonly comprobanteDe = comprobanteDe;
   protected readonly venta = signal<VentaDTO | null>(null);
-  protected readonly enEspera = signal<CobroEnEspera[]>([]);
+  /**
+   * Cobros digitales que esperan a la pasarela: los cobrosPendientes de la venta, con medio, monto,
+   * canal y enlace (Duda 4, It. 2.1). También los iniciados en otro equipo; nada se recuerda aquí.
+   */
+  protected readonly enEspera = computed(() =>
+    (this.venta()?.cobrosPendientes ?? []).filter(
+      (c) => c.idTransaccion !== undefined && c.estado !== RECHAZADA,
+    ),
+  );
   protected readonly porCobrar = signal<PorCobrarDTO | null>(null);
   protected readonly medios = signal<MedioPagoDTO[]>([]);
   protected readonly filas = signal<FilaPago[]>([]);
@@ -108,7 +111,7 @@ export class Cobros implements OnInit {
   );
   protected readonly motivoSinCierre = computed(() => {
     if (this.enEspera().length) {
-      return 'Hay un pago digital sin aprobar: verifícalo o quítalo (RN42).';
+      return 'Hay un pago digital sin aprobar: verifica su aprobación (RN42).';
     }
     const pendiente = this.venta()?.pendiente ?? 0;
     return pendiente > 0
@@ -159,9 +162,14 @@ export class Cobros implements OnInit {
   }
 
   protected etiqueta(idMedioPago?: number): string {
+    return etiquetaMedio(this.medios().find((m) => m.idMedioPago === idMedioPago));
+  }
+
+  /** El medio del pago: el de la lista o el nombreMedioPago que trae la venta (It. 2.1). */
+  protected etiquetaPago(pago: PagoVentaDTO): string {
     return etiquetaMedio(
-      this.medios().find((m) => m.idMedioPago === idMedioPago),
-      idMedioPago,
+      this.medios().find((m) => m.idMedioPago === pago.idMedioPago),
+      pago.nombreMedioPago,
     );
   }
 
@@ -169,15 +177,20 @@ export class Cobros implements OnInit {
     return canalPropuesto(fila.medio) !== null;
   }
 
+  /** La clienta por su nombre (It. 2.1), la de paso por el que se escribió, o «Clienta de paso». */
   protected clienta(atencion: AtencionCobrable | VentaDTO): string {
     if ('nombreClientePaso' in atencion && atencion.nombreClientePaso) {
       return atencion.nombreClientePaso;
     }
-    return atencion.idCliente ? `Clienta ${atencion.idCliente}` : 'Clienta de paso';
+    return atencion.idCliente ? nombreO(atencion.nombreCliente) : 'Clienta de paso';
   }
 
+  /** Servicio y variante, producto o paquete, con la especialista si la hay (It. 2.1). */
   protected descripcion(detalle: DetalleVentaDTO): string {
-    return detalle.idAtencion ? `Atención ${detalle.idAtencion}` : `Detalle ${detalle.idDetalle}`;
+    const descripcion = nombreO(detalle.descripcion);
+    return detalle.nombreEspecialista
+      ? `${descripcion} · ${detalle.nombreEspecialista}`
+      : descripcion;
   }
 
   protected importe(): number {
@@ -210,7 +223,7 @@ export class Cobros implements OnInit {
         ),
       )
       .subscribe({
-        next: (venta) => this.actualizar(venta, []),
+        next: (venta) => this.actualizar(venta),
         error: (error: HttpErrorResponse) => this.fallar(error, 'La atención no existe.'),
       });
   }
@@ -222,11 +235,12 @@ export class Cobros implements OnInit {
       next: (venta) => {
         if (venta.estado !== 'ABIERTA') {
           this.enviando.set(false);
-          this.error.set(`La venta ${idVenta} ya está ${venta.estado?.toLowerCase()}.`);
+          const nombre = nombreVenta(comprobanteDe(venta.comprobante), idVenta);
+          this.error.set(`La ${nombre} ya está ${venta.estado?.toLowerCase()}.`);
           this.cargarPorCobrar();
           return;
         }
-        this.actualizar(venta, []);
+        this.actualizar(venta);
       },
       error: (error: HttpErrorResponse) => {
         this.fallar(error, 'La venta no existe.');
@@ -237,7 +251,6 @@ export class Cobros implements OnInit {
 
   protected volverALista(): void {
     this.venta.set(null);
-    this.enEspera.set([]);
     this.error.set(null);
     this.cargarPorCobrar();
   }
@@ -286,26 +299,12 @@ export class Cobros implements OnInit {
       return;
     }
     const canal = this.esDigital(fila) ? (fila.canal.value ?? canalPropuesto(fila.medio)) : null;
-    const antes = new Set(this.venta()?.cobrosPendientes?.map((c) => c.idTransaccion));
     this.iniciar();
     this.servicio
       .registrarPagos(idVenta, { pagos: [{ idMedioPago, monto, ...(canal ? { canal } : {}) }] })
       .subscribe({
         next: (venta) => {
-          const nuevo = venta.cobrosPendientes?.find((c) => !antes.has(c.idTransaccion));
-          const enEspera = nuevo?.idTransaccion
-            ? [
-                ...this.enEspera(),
-                {
-                  idTransaccion: nuevo.idTransaccion,
-                  idMedioPago,
-                  monto,
-                  canal: canal ?? undefined,
-                  enlacePago: nuevo.enlacePago,
-                },
-              ]
-            : this.enEspera();
-          this.actualizar(venta, enEspera);
+          this.actualizar(venta);
           fila.monto.reset();
         },
         error: (error: HttpErrorResponse) => this.fallar(error, 'La venta no existe.'),
@@ -314,9 +313,10 @@ export class Cobros implements OnInit {
 
   /**
    * Consulta el estado del cobro con GET /ventas/{idVenta} (Duda 8): si la pasarela lo aprobó y
-   * aún no suma, se reenvía con su idTransaccion (RN42); si lo rechazó, deja de esperarse.
+   * aún no suma, se reenvía con su idTransaccion, su medio y su monto (RN42); si sigue PENDIENTE,
+   * se espera; si lo rechazó, deja de esperarse.
    */
-  protected verificar(cobro: CobroEnEspera): void {
+  protected verificar(cobro: CobroPendienteDTO): void {
     const idVenta = this.venta()?.idVenta;
     if (!idVenta) {
       return;
@@ -325,28 +325,24 @@ export class Cobros implements OnInit {
     this.servicio.obtener(idVenta).subscribe({
       next: (venta) => {
         const pago = venta.pagos?.find((p) => p.idTransaccion === cobro.idTransaccion);
-        const sigue = venta.cobrosPendientes?.some((c) => c.idTransaccion === cobro.idTransaccion);
-        const estado = pago?.estadoTransaccion ?? (sigue ? 'PENDIENTE' : APROBADA);
+        const pendiente = venta.cobrosPendientes?.find(
+          (c) => c.idTransaccion === cobro.idTransaccion,
+        );
+        const estado =
+          pago?.estadoTransaccion ?? pendiente?.estado ?? (pendiente ? PENDIENTE : APROBADA);
+        this.actualizar(venta);
         if (estado === RECHAZADA) {
-          this.actualizar(venta, this.sinCobro(cobro));
           this.error.set(`Izipay rechazó el pago de ${this.etiqueta(cobro.idMedioPago)}.`);
         } else if (estado !== APROBADA) {
-          this.actualizar(venta);
           this.notificaciones.mostrar('Izipay aún no aprueba el pago. Vuelve a verificar luego.');
-        } else if (!sigue) {
-          this.actualizar(venta, this.sinCobro(cobro));
+        } else if (!pendiente) {
           this.notificaciones.mostrar('Izipay aprobó el pago.');
         } else {
-          this.confirmar(idVenta, cobro, pago);
+          this.confirmar(idVenta, pendiente);
         }
       },
       error: (error: HttpErrorResponse) => this.fallar(error, 'La venta no existe.'),
     });
-  }
-
-  /** Solo deja de esperarlo en esta pantalla: el contrato no permite anular la transacción. */
-  protected quitar(cobro: CobroEnEspera): void {
-    this.enEspera.set(this.sinCobro(cobro));
   }
 
   protected cerrar(): void {
@@ -365,7 +361,6 @@ export class Cobros implements OnInit {
         this.enviando.set(false);
         this.cerrada.set(venta);
         this.venta.set(null);
-        this.enEspera.set([]);
       },
       error: (error: HttpErrorResponse) => this.fallar(error, 'La venta no existe.'),
     });
@@ -378,23 +373,21 @@ export class Cobros implements OnInit {
     this.cargarPorCobrar();
   }
 
-  private confirmar(idVenta: number, cobro: CobroEnEspera, pago?: PagoVentaDTO): void {
-    const idMedioPago = cobro.idMedioPago ?? pago?.idMedioPago;
-    const monto = cobro.monto ?? pago?.monto;
+  /** Reenvía el cobro aprobado con el medio y el monto que trae cobrosPendientes (RN42). */
+  private confirmar(idVenta: number, cobro: CobroPendienteDTO): void {
+    const { idMedioPago, monto } = cobro;
     if (idMedioPago === undefined || monto === undefined) {
-      this.enviando.set(false);
-      this.error.set(
-        'No se sabe el medio ni el monto de este cobro: quítalo y regístralo otra vez.',
-      );
+      this.error.set('La venta no trae el medio o el monto de este cobro: vuelve a verificarlo.');
       return;
     }
+    this.iniciar();
     this.servicio
       .registrarPagos(idVenta, {
         pagos: [{ idMedioPago, monto, idTransaccion: cobro.idTransaccion }],
       })
       .subscribe({
         next: (venta) => {
-          this.actualizar(venta, this.sinCobro(cobro));
+          this.actualizar(venta);
           this.notificaciones.mostrar('Izipay aprobó el pago.');
         },
         error: (error: HttpErrorResponse) => this.fallar(error, 'La venta no existe.'),
@@ -408,35 +401,15 @@ export class Cobros implements OnInit {
     });
   }
 
-  private sinCobro(cobro: CobroEnEspera): CobroEnEspera[] {
-    return this.enEspera().filter((c) => c.idTransaccion !== cobro.idTransaccion);
-  }
-
   private iniciar(): void {
     this.error.set(null);
     this.enviando.set(true);
   }
 
-  /**
-   * Los cobros en espera son los que esta pantalla envió más los cobrosPendientes que trae la
-   * venta (al retomarla), con el medio y el monto de sus pagos.
-   */
-  private actualizar(venta: VentaDTO, enEspera: CobroEnEspera[] = this.enEspera()): void {
+  /** La venta del servidor manda: sus cobrosPendientes son los cobros en espera. */
+  private actualizar(venta: VentaDTO): void {
     this.enviando.set(false);
     this.venta.set(venta);
-    const conocidos = new Set(enEspera.map((c) => c.idTransaccion));
-    const delServidor = (venta.cobrosPendientes ?? [])
-      .filter((c) => c.idTransaccion !== undefined && !conocidos.has(c.idTransaccion))
-      .map((c) => {
-        const pago = venta.pagos?.find((p) => p.idTransaccion === c.idTransaccion);
-        return {
-          idTransaccion: c.idTransaccion!,
-          idMedioPago: pago?.idMedioPago,
-          monto: pago?.monto,
-          enlacePago: c.enlacePago,
-        };
-      });
-    this.enEspera.set([...enEspera, ...delServidor]);
   }
 
   /** Los 409 y 422 de la regla ya los muestra el interceptor. */

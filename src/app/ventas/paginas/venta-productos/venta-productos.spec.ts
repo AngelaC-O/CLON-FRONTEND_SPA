@@ -115,7 +115,7 @@ describe('VentaProductos (CUS25 y CUS26)', () => {
     }
     if (permisos.includes('AGENDA:VER')) {
       http.expectOne('/api/v1/citas/filtros').flush({
-        especialistas: [{ idPersonal: 4, nombres: 'Lucía', apellidos: 'Ramos' }],
+        especialistas: [{ idPersonal: 4, nombres: 'Lucía', apellidos: 'Ramos' }, { idPersonal: 7 }],
         recursos: [],
       });
     }
@@ -175,6 +175,17 @@ describe('VentaProductos (CUS25 y CUS26)', () => {
     expect(comprobante.textContent).toContain('Boleta B001-00000125');
     // Desde la venta CERRADA se pide la anulación (CUS22).
     expect(comprobante.querySelector('a[href="/ventas/anulaciones?idVenta=620"]')).not.toBeNull();
+  });
+
+  it('It. 2.1: la especialista sin nombre se ve como «—», nunca como su id', async () => {
+    await montar();
+    await buscar();
+    await agregar('Shampoo reparador');
+    const opciones = [...raiz.querySelectorAll('#recomendo0 option')].map((o) =>
+      o.textContent?.trim(),
+    );
+    expect(opciones).toEqual(['Nadie', 'Lucía Ramos', '—']);
+    expect(raiz.textContent).not.toContain('Especialista 7');
   });
 
   it('CUS26: quitar la última unidad saca el producto del carrito', async () => {

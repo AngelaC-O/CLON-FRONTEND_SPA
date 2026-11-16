@@ -8,7 +8,18 @@ import { entrarComo } from '../../../../testing/sesion';
 import { SinCita } from './sin-cita';
 
 const LIBRES = [
-  { inicio: '2026-11-03T10:15:00', duracionMin: 30, idsPersonal: [4, 5], idsRecurso: [1, 2] },
+  {
+    inicio: '2026-11-03T10:15:00',
+    duracionMin: 30,
+    idsPersonal: [4, 5],
+    idsRecurso: [1, 2],
+    // Diferencia 11 cerrada en la It. 2.1: los nombres llegan en la hora libre.
+    especialistas: [{ idPersonal: 4, nombre: 'Lucía Ramos' }],
+    recursos: [
+      { idRecurso: 1, nombre: 'Sillón 1' },
+      { idRecurso: 2, nombre: 'Sillón 2' },
+    ],
+  },
 ];
 const MEDIOS: MedioPagoDTO[] = [
   { idMedioPago: 11, nombre: 'EFECTIVO', estado: 'ACTIVO', usaPasarela: false },
@@ -166,6 +177,16 @@ describe('SinCita', () => {
     await enviar();
     http.expectNone('/api/v1/ventas/rapidas');
     expect(raiz.querySelector('.alert.bad')?.textContent).toContain('RN35');
+  });
+
+  it('It. 2.1: especialistas y recursos libres por su nombre; sin nombre, «—», nunca el id', async () => {
+    await montar();
+    await elegirServicio();
+    const opciones = (id: string) =>
+      [...raiz.querySelectorAll(`#${id} option`)].map((o) => o.textContent?.trim());
+    expect(opciones('rapidaPersonal')).toEqual(['Lucía Ramos', '—']);
+    expect(opciones('rapidaRecurso')).toEqual(['Sillón 1', 'Sillón 2']);
+    expect(raiz.textContent).not.toMatch(/Especialista 5|Recurso 1/);
   });
 
   it('avisa si no hay especialista o recurso libres, y no deja cobrar', async () => {

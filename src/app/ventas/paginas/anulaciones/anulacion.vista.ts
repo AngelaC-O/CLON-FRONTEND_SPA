@@ -1,3 +1,4 @@
+import { comprobanteDe as serieNumero, nombreVenta } from '../../../core/api/nombres';
 import { SolicitudAnulacionDTO, VentaDTO } from '../../modelos/ventas.modelos';
 
 /** Códigos de motivo de la nota de crédito que admite la anulación (RN32). */
@@ -18,12 +19,14 @@ export function textoMotivo(codigo?: string): string {
   return MOTIVOS_SUNAT.find((m) => m.codigo === codigo)?.texto ?? codigo ?? '';
 }
 
-/** «B001-00000125» o, sin comprobante, «Venta 620». */
+/** «B001-00000125» o, sin comprobante, «Venta N° 620» (It. 2.1). */
 export function comprobanteDe(venta: VentaDTO): string {
-  const comprobante = venta.comprobante;
-  return comprobante?.serie
-    ? `${comprobante.serie}-${comprobante.numero}`
-    : `Venta ${venta.idVenta ?? ''}`;
+  return nombreVenta(serieNumero(venta.comprobante), venta.idVenta);
+}
+
+/** La venta de una solicitud, por su comprobante; sin él, «Venta N° 620». */
+export function ventaDe(solicitud: SolicitudAnulacionDTO): string {
+  return nombreVenta(solicitud.comprobante, solicitud.idVenta);
 }
 
 /** 09/11/2026 11:00 de una fecha-hora del back-end. */

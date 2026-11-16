@@ -2,13 +2,14 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, OnInit, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { soles } from '../../../core/api/moneda';
+import { nombreO, numero } from '../../../core/api/nombres';
 import { mensajeDelProblema } from '../../../core/api/problema';
 import { NotificacionesService } from '../../../core/notificaciones/notificaciones.service';
 import { Modal } from '../../../layout/modal/modal';
 import { ComprobanteDTO, SolicitudAnulacionDTO } from '../../modelos/ventas.modelos';
 import { AnulacionesService } from '../../servicios/anulaciones.service';
 import { ComprobantesService } from '../../servicios/comprobantes.service';
-import { FORMAS_DEVOLUCION, fechaHora, textoMotivo } from './anulacion.vista';
+import { FORMAS_DEVOLUCION, fechaHora, textoMotivo, ventaDe } from './anulacion.vista';
 
 const CLASE_SUNAT: Record<string, string> = {
   ACEPTADO: 'ok',
@@ -36,7 +37,7 @@ interface Aprobada {
       @if (aprobada(); as resultado) {
         <div class="card col" id="notaCredito">
           <div class="row">
-            <span class="chip ok">Venta {{ resultado.solicitud.idVenta }} anulada</span>
+            <span class="chip ok">{{ ventaDe(resultado.solicitud) }} anulada</span>
             @if (resultado.nota; as nota) {
               <span class="chip" [class]="claseSunat(nota.estadoSunat)">
                 SUNAT: {{ nota.estadoSunat }}
@@ -59,7 +60,9 @@ interface Aprobada {
               </div>
             }
           } @else if (resultado.solicitud.idNotaCredito) {
-            <h2 class="h2">Nota de crédito {{ resultado.solicitud.idNotaCredito }} emitida</h2>
+            <h2 class="h2">
+              Nota de crédito {{ numero(resultado.solicitud.idNotaCredito) }} emitida
+            </h2>
           } @else {
             <div class="alert info">
               SUNAT había rechazado el comprobante: la venta se anuló sin nota de crédito.
@@ -98,9 +101,9 @@ interface Aprobada {
             @for (solicitud of solicitudes(); track solicitud.idSolicitud) {
               <tr>
                 <td>
-                  <div class="b">{{ solicitud.comprobante || 'Venta ' + solicitud.idVenta }}</div>
+                  <div class="b">{{ ventaDe(solicitud) }}</div>
                   <div class="xs mut">
-                    Venta {{ solicitud.idVenta }} ·
+                    {{ nombreO(solicitud.nombreCliente) }} ·
                     {{ formas[solicitud.formaDevolucion ?? 'MEDIO_ORIGINAL'] }}
                   </div>
                 </td>
@@ -110,7 +113,7 @@ interface Aprobada {
                   <div class="xs mut">{{ textoMotivo(solicitud.codigoMotivo) }}</div>
                 </td>
                 <td>
-                  <div>Usuario {{ solicitud.idUsuarioSolicita }}</div>
+                  <div>{{ nombreO(solicitud.nombreUsuarioSolicita) }}</div>
                   <div class="xs mut num">{{ fechaHora(solicitud.fechaSolicitud) }}</div>
                 </td>
                 <td class="r">
@@ -141,8 +144,8 @@ interface Aprobada {
         <div class="mb">
           <p style="margin: 0">
             Se emitirá la nota de crédito de
-            {{ solicitud.comprobante || 'la venta ' + solicitud.idVenta }} por
-            {{ soles(solicitud.totalVenta) }} y la venta quedará anulada (RN12, RN32).
+            {{ ventaDe(solicitud) }} por {{ soles(solicitud.totalVenta) }} y la venta quedará
+            anulada (RN12, RN32).
           </p>
         </div>
         <div class="mf">
@@ -158,9 +161,7 @@ interface Aprobada {
       <app-modal titulo="Rechazar solicitud" [angosto]="true" (cerrar)="porRechazar.set(null)">
         <form [formGroup]="rechazo" (ngSubmit)="rechazar()">
           <div class="mb">
-            <div class="mut sm">
-              {{ solicitud.comprobante || 'Venta ' + solicitud.idVenta }} · la venta sigue cerrada.
-            </div>
+            <div class="mut sm">{{ ventaDe(solicitud) }} · la venta sigue cerrada.</div>
             @if (errorRechazo(); as mensaje) {
               <div class="alert bad" role="alert">{{ mensaje }}</div>
             }
@@ -192,6 +193,9 @@ export class BandejaAnulaciones implements OnInit {
   readonly aprobacion = output<SolicitudAnulacionDTO>();
 
   protected readonly soles = soles;
+  protected readonly nombreO = nombreO;
+  protected readonly numero = numero;
+  protected readonly ventaDe = ventaDe;
   protected readonly fechaHora = fechaHora;
   protected readonly textoMotivo = textoMotivo;
   protected readonly formas = FORMAS_DEVOLUCION;

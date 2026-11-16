@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, input, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { soles } from '../../../core/api/moneda';
+import { nombreO, numero } from '../../../core/api/nombres';
 import { leerProblema, mensajeDelProblema } from '../../../core/api/problema';
 import { VentaDTO } from '../../modelos/ventas.modelos';
 import { AnulacionesService } from '../../servicios/anulaciones.service';
@@ -52,8 +53,8 @@ const ESTADO_VENTA: Record<string, { texto: string; clase: string }> = {
             <div class="sp">
               <div class="h3">{{ comprobanteDe(actual) }}</div>
               <div class="xs mut">
-                Venta {{ actual.idVenta }} ·
-                {{ actual.idCliente ? 'Clienta ' + actual.idCliente : 'Cliente de paso' }}
+                Venta {{ numero(actual.idVenta) }} ·
+                {{ actual.idCliente ? nombreO(actual.nombreCliente) : 'Cliente de paso' }}
               </div>
             </div>
             <b class="num">{{ soles(actual.total) }}</b>
@@ -141,6 +142,8 @@ export class SolicitudAnulacion implements OnInit {
   readonly idVentaInicial = input<number | null>(null);
 
   protected readonly soles = soles;
+  protected readonly nombreO = nombreO;
+  protected readonly numero = numero;
   protected readonly comprobanteDe = comprobanteDe;
   protected readonly motivos = MOTIVOS_SUNAT;
   protected readonly textoForma = FORMAS_DEVOLUCION;

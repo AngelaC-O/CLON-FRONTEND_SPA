@@ -5,12 +5,13 @@ import { ListasService } from '../../../core/api/listas.service';
 import { etiquetaMedio } from '../../../core/api/medios';
 import { MedioPagoDTO } from '../../../core/api/modelos.generados';
 import { soles } from '../../../core/api/moneda';
+import { nombreO } from '../../../core/api/nombres';
 import { mensajeDelProblema } from '../../../core/api/problema';
 import { NotificacionesService } from '../../../core/notificaciones/notificaciones.service';
 import { PagoVentaDTO, SolicitudAnulacionDTO, VentaDTO } from '../../modelos/ventas.modelos';
 import { AnulacionesService } from '../../servicios/anulaciones.service';
 import { VentasService } from '../../servicios/ventas.service';
-import { fechaHora } from './anulacion.vista';
+import { fechaHora, ventaDe } from './anulacion.vista';
 
 type TipoPago = 'TARJETA' | 'BILLETERA' | 'EFECTIVO';
 
@@ -34,9 +35,10 @@ type TipoPago = 'TARJETA' | 'BILLETERA' | 'EFECTIVO';
         <div class="card col devolucion">
           <div class="row">
             <div class="sp">
-              <div class="b">{{ solicitud.comprobante || 'Venta ' + solicitud.idVenta }}</div>
+              <div class="b">{{ ventaDe(solicitud) }}</div>
               <div class="xs mut">
-                Venta {{ solicitud.idVenta }} · anulada {{ fechaHora(solicitud.fechaResolucion) }}
+                {{ nombreO(solicitud.nombreCliente) }} · anulada
+                {{ fechaHora(solicitud.fechaResolucion) }}
               </div>
             </div>
             <b class="num">{{ soles(solicitud.totalVenta) }}</b>
@@ -55,7 +57,7 @@ type TipoPago = 'TARJETA' | 'BILLETERA' | 'EFECTIVO';
               @for (pago of actual.pagos; track $index) {
                 <div class="row nw pago">
                   <span class="sp">
-                    {{ etiquetaMedio(medio(pago.idMedioPago), pago.idMedioPago) }} ·
+                    {{ etiquetaMedio(medio(pago.idMedioPago), pago.nombreMedioPago) }} ·
                     {{ soles(pago.monto) }}
                     @if (pago.referencia) {
                       <span class="xs mut">· {{ pago.referencia }}</span>
@@ -124,6 +126,8 @@ export class Devoluciones implements OnInit {
   private readonly notificaciones = inject(NotificacionesService);
 
   protected readonly soles = soles;
+  protected readonly nombreO = nombreO;
+  protected readonly ventaDe = ventaDe;
   protected readonly fechaHora = fechaHora;
   protected readonly etiquetaMedio = etiquetaMedio;
   protected readonly anuladas = signal<SolicitudAnulacionDTO[]>([]);

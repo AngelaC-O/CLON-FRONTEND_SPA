@@ -21,6 +21,8 @@ const aprobada = (
   comprobante: `B001-${idVenta}`,
   estado: 'APROBADA',
   totalVenta: 90,
+  idCliente: 407,
+  nombreCliente: 'Rosaura Quispe',
   formaDevolucion,
   fechaResolucion: '2026-11-09T11:30:00',
 });
@@ -32,6 +34,8 @@ const ANULADA: VentaDTO = {
     { idPago: 1, idMedioPago: 14, idTransaccion: 80, monto: 50, referencia: 'IZ-80' },
     { idPago: 2, idMedioPago: 12, idTransaccion: 81, monto: 30 },
     { idPago: 3, idMedioPago: 11, monto: 10 },
+    // Un medio que ya no está en GET /medios-pago se nombra con nombreMedioPago (It. 2.1).
+    { idPago: 4, idMedioPago: 19, monto: 5, nombreMedioPago: 'PLIN' },
   ],
 };
 
@@ -79,6 +83,16 @@ describe('Devoluciones (CUS24)', () => {
     expect(tarjetas).toHaveLength(1);
     expect(tarjetas[0].textContent).toContain('B001-620');
     expect(tarjetas[0].textContent).toContain('09/11/2026 11:30');
+  });
+
+  it('It. 2.1: nombra la clienta y el medio de cada pago; nunca sus ids', async () => {
+    const tarjeta = raiz.querySelector('.devolucion')!;
+    expect(tarjeta.textContent).toContain('Rosaura Quispe');
+    expect(tarjeta.textContent).not.toMatch(/Venta 620|Clienta 407/);
+    await verPagos();
+    const pagos = [...raiz.querySelectorAll('.pago')].map((p) => p.textContent ?? '');
+    expect(pagos[3]).toContain('Plin');
+    expect(pagos.join(' ')).not.toMatch(/Medio 19/);
   });
 
   it('según el medio: tarjeta por Izipay, Yape con número de operación, efectivo en caja', async () => {

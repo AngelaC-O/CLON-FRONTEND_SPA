@@ -19,7 +19,9 @@
 
   @if (venta(); as actual) {
     <div class="row">
-      <span class="b sp">Venta {{ actual.idVenta }} · {{ clienta(actual) }}</span>
+      <span class="b sp">
+        {{ nombreVenta(comprobanteDe(actual.comprobante), actual.idVenta) }} · {{ clienta(actual) }}
+      </span>
       <button class="btn ghost sm" type="button" (click)="volverALista()">
         Volver a «Por cobrar»
       </button>
@@ -197,14 +199,13 @@
                 >
                   Verificar aprobación
                 </button>
-                <button class="btn ghost sm" type="button" (click)="quitar(cobro)">Quitar</button>
               </div>
             </div>
           }
 
           @for (pago of rechazados(actual); track pago.idPago) {
             <div class="row sm">
-              <span class="sp">{{ etiqueta(pago.idMedioPago) }}</span>
+              <span class="sp">{{ etiquetaPago(pago) }}</span>
               <span class="chip bad">Rechazado por Izipay</span>
               <b class="num">{{ soles(pago.monto) }}</b>
             </div>
@@ -213,7 +214,7 @@
           @for (pago of registrados(actual); track pago.idPago) {
             <div class="row sm">
               <span class="sp">
-                {{ etiqueta(pago.idMedioPago) }}
+                {{ etiquetaPago(pago) }}
                 @if (pago.referencia) {
                   · {{ pago.referencia }}
                 }
@@ -312,8 +313,11 @@
             @for (atencion of atenciones(); track atencion.idAtencion) {
               <tr [class.resaltada]="atencion.idAtencion === idAtencionResaltada">
                 <td class="b num">
-                  Atención {{ atencion.idAtencion }}
-                  <div class="xs mut">Variante {{ atencion.idVariante }}</div>
+                  {{ nombreO(atencion.nombreServicio) }}
+                  <div class="xs mut">
+                    Atención {{ numero(atencion.idAtencion) }} ·
+                    {{ nombreO(atencion.nombreEspecialista) }}
+                  </div>
                 </td>
                 <td>
                   {{ clienta(atencion) }}
@@ -366,7 +370,7 @@
             <tbody>
               @for (abierta of ventasAbiertas(); track abierta.idVenta) {
                 <tr>
-                  <td class="b num">Venta {{ abierta.idVenta }}</td>
+                  <td class="b num">Venta {{ numero(abierta.idVenta) }}</td>
                   <td>{{ clienta(abierta) }}</td>
                   <td class="r num">{{ soles(abierta.total) }}</td>
                   <td class="r num">{{ soles(abierta.pendiente) }}</td>
