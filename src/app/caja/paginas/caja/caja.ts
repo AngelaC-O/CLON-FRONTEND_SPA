@@ -5,6 +5,7 @@ import { ListasService } from '../../../core/api/listas.service';
 import { etiquetaMedio } from '../../../core/api/medios';
 import { MedioPagoDTO } from '../../../core/api/modelos.generados';
 import { redondear, soles } from '../../../core/api/moneda';
+import { nombreO, numero } from '../../../core/api/nombres';
 import { mensajeDelProblema } from '../../../core/api/problema';
 import { NotificacionesService } from '../../../core/notificaciones/notificaciones.service';
 import { CajaAbiertaService } from '../../../core/sesion/caja-abierta.service';
@@ -51,7 +52,8 @@ export class Caja implements OnInit {
 
   protected readonly soles = soles;
   protected readonly horaApertura = computed(() => this.caja()?.fechaApertura?.slice(11, 16) ?? '');
-  protected readonly idSede = computed(() => this.sesion.sesion()?.idSede);
+  protected readonly nombreSede = computed(() => nombreO(this.sesion.sesion()?.nombreSede));
+  protected readonly numero = numero;
   protected readonly puedeAbrir = computed(() => this.sesion.tienePermiso(PERMISOS.cajaCrear));
   protected readonly puedeVer = computed(() => this.sesion.tienePermiso(PERMISOS.cajaVer));
   /** Cerrar pide CAJA:EDITAR, y lo esperado que se muestra antes pide CAJA:VER. */
@@ -83,10 +85,7 @@ export class Caja implements OnInit {
   }
 
   protected nombreMedio(idMedioPago?: number): string {
-    return etiquetaMedio(
-      this.medios().find((m) => m.idMedioPago === idMedioPago),
-      idMedioPago,
-    );
+    return etiquetaMedio(this.medios().find((m) => m.idMedioPago === idMedioPago));
   }
 
   protected esEfectivo(medio: EsperadoMedioDTO): boolean {

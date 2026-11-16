@@ -2,15 +2,10 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import {
-  ConciliacionDTO,
-  ItemConciliacion,
-  JustificacionDTO,
-  ResumenImportacionDTO,
-} from '../modelos/caja.modelos';
+import { ConciliacionDTO, JustificacionDTO, ResumenImportacionDTO } from '../modelos/caja.modelos';
 
-/** La conciliación con sus ítems leídos como los muestran los ejemplos del contrato. */
-export type Conciliacion = Omit<ConciliacionDTO, 'items'> & { items?: ItemConciliacion[] };
+/** El contrato 2.1 ya tipa los ítems como ItemConciliacion (Duda 22). */
+export type Conciliacion = ConciliacionDTO;
 
 /** CUS47 Conciliar Ventas del Mes. */
 @Injectable({ providedIn: 'root' })

@@ -145,7 +145,7 @@ describe('ConciliacionMes (CUS47)', () => {
   it('3 · «Justificar» exige el texto; «Excluir» marca el ítem', async () => {
     await montar();
     await conciliar();
-    boton('Justificar', fila('Transacción 82'))!.click();
+    boton('Justificar', fila('Transacción N° 82'))!.click();
     await estable();
     boton('Guardar justificación')!.click();
     await estable();
@@ -175,7 +175,7 @@ describe('ConciliacionMes (CUS47)', () => {
       ],
     });
     await estable();
-    expect(fila('Transacción 82').textContent).toContain('Justificada');
+    expect(fila('Transacción N° 82').textContent).toContain('Justificada');
     expect(boton('Cerrar conciliación')!.disabled).toBe(true);
 
     boton('Excluir', fila('B001-00000126'))!.click();
