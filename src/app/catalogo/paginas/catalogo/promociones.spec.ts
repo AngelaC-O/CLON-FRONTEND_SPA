@@ -46,7 +46,12 @@ describe('Promociones (CUS60)', () => {
         valor: 10,
         fechaInicio: '2026-11-01',
         fechaFin: '2026-11-30',
-        idsServicio: [1],
+        idsServicio: [1, 9],
+        // It. 2.1: la respuesta trae los nombres, también de servicios que no están en la lista.
+        servicios: [
+          { idServicio: 1, nombre: 'Corte' },
+          { idServicio: 9, nombre: 'Masaje relajante' },
+        ],
         estado: 'ACTIVA',
       },
     ]);
@@ -61,6 +66,9 @@ describe('Promociones (CUS60)', () => {
     expect(fila.textContent).toContain('10 %');
     expect(fila.textContent).toContain('01/11/2026 a 30/11/2026');
     expect(fila.textContent).toContain('Activa');
+    // Los servicios por su nombre, nunca «Servicio 9» (It. 2.1).
+    expect(fila.textContent).toContain('Corte, Masaje relajante');
+    expect(fila.textContent).not.toContain('Servicio 9');
   });
 
   it('valida el porcentaje y la vigencia antes de enviar (RF84)', async () => {

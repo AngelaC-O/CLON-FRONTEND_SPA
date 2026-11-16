@@ -25,7 +25,7 @@ const NOVIA: ServicioDTO = {
 const FACIAL: ServicioDTO = {
   idServicio: 22,
   idArea: 4,
-  nombre: 'Limpieza facial',
+  nombre: 'Hidratación facial',
   duracionRefMin: 45,
   tipoRecurso: 'CAMILLA',
   estado: 'INACTIVO',
