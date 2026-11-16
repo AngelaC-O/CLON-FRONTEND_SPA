@@ -1,5 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { nombreO } from '../../core/api/nombres';
 import { PERMISOS } from '../../core/sesion/permisos';
 import { SesionService } from '../../core/sesion/sesion.service';
 import { MENU } from '../menu';
@@ -16,7 +17,7 @@ import { PanelAvisos } from './panel-avisos';
     <div class="col" style="gap: 16px">
       <div class="row">
         <div class="sp">
-          <div class="xs mut eyebrow">{{ fecha }} · SEDE {{ sesion.sesion()?.idSede }}</div>
+          <div class="xs mut eyebrow">{{ fecha }} · {{ nombreSede() }}</div>
           <h1 class="h1">{{ saludo }}, {{ nombre() }}</h1>
         </div>
         @if (puedeSinCita()) {
@@ -48,6 +49,8 @@ import { PanelAvisos } from './panel-avisos';
 })
 export class Inicio {
   protected readonly sesion = inject(SesionService);
+  /** SesionDTO.nombreSede (Duda 7, It. 2.1). */
+  protected readonly nombreSede = computed(() => nombreO(this.sesion.sesion()?.nombreSede));
 
   protected readonly fecha = new Intl.DateTimeFormat('es-PE', {
     weekday: 'long',

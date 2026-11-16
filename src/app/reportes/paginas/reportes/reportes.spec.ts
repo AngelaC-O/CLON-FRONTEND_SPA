@@ -62,7 +62,7 @@ describe('Reportes (CUS48 y CUS49)', () => {
       providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     });
     http = TestBed.inject(HttpTestingController);
-    entrarComo({ idSede: 1, rol, permisos });
+    entrarComo({ idSede: 1, nombreSede: 'Pichanaki Centro', rol, permisos });
     fixture = TestBed.createComponent(Reportes);
     await estable();
     raiz = fixture.nativeElement;
@@ -92,7 +92,11 @@ describe('Reportes (CUS48 y CUS49)', () => {
       'Medio de pago',
       'Tipo de atención',
     ]);
-    expect(opciones('reporteSede')).toEqual(['Sede 1 (la de la sesión)', 'Todas (consolidado)']);
+    // La sede de la sesión por su nombre (It. 2.1); «Todas» sigue igual.
+    expect(opciones('reporteSede')).toEqual([
+      'Pichanaki Centro (la de la sesión)',
+      'Todas (consolidado)',
+    ]);
   });
 
   it('RN24: sin ser administradora no se ofrecen productos ni margen', async () => {
@@ -138,15 +142,13 @@ describe('Reportes (CUS48 y CUS49)', () => {
     sede.selectedIndex = 1;
     sede.dispatchEvent(new Event('change'));
     await generar();
-    http
-      .expectOne(`/api/v1/reportes/demanda?fechaInicio=${DESDE}&fechaFin=${HASTA}`)
-      .flush({
-        ...VENTAS,
-        tipoReporte: 'demanda',
-        titulo: 'Demanda',
-        idSede: undefined,
-        filas: [],
-      });
+    http.expectOne(`/api/v1/reportes/demanda?fechaInicio=${DESDE}&fechaFin=${HASTA}`).flush({
+      ...VENTAS,
+      tipoReporte: 'demanda',
+      titulo: 'Demanda',
+      idSede: undefined,
+      filas: [],
+    });
     await estable();
     expect(raiz.textContent).toContain('Todas las sedes');
     expect(raiz.textContent).toContain('Sin datos en este periodo');

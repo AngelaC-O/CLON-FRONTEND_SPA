@@ -3,6 +3,7 @@ import { CdkMenu, CdkMenuItem, CdkMenuTrigger } from '@angular/cdk/menu';
 import { createGlobalPositionStrategy } from '@angular/cdk/overlay';
 import { Component, computed, inject, Injector, OnInit } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { nombreO } from '../../core/api/nombres';
 import { CajaAbiertaService } from '../../core/sesion/caja-abierta.service';
 import { PERMISOS } from '../../core/sesion/permisos';
 import { SesionService } from '../../core/sesion/sesion.service';
@@ -31,6 +32,8 @@ export class Shell implements OnInit {
   /** El estado de la caja sale de GET /cajas/abierta, que pide CAJA:VER. */
   protected readonly cajaVisible = computed(() => this.sesion.tienePermiso(PERMISOS.cajaVer));
   protected readonly rol = computed(() => formatearRol(this.sesion.sesion()?.rol));
+  /** SesionDTO.nombreSede (It. 2.1): la cabecera nombra la sede, no su id. */
+  protected readonly nombreSede = computed(() => nombreO(this.sesion.sesion()?.nombreSede));
   protected readonly iniciales = computed(() =>
     this.sesion
       .nombreCompleto()

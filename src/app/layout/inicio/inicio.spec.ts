@@ -14,7 +14,13 @@ describe('Inicio', () => {
       providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     });
     http = TestBed.inject(HttpTestingController);
-    entrarComo({ idSede: 1, nombreUsuario: 'patricia.vargas', nombres: 'Patricia', permisos });
+    entrarComo({
+      idSede: 1,
+      nombreSede: 'Pichanaki Centro',
+      nombreUsuario: 'patricia.vargas',
+      nombres: 'Patricia',
+      permisos,
+    });
     const fixture = TestBed.createComponent(Inicio);
     fixture.detectChanges();
     http.expectOne('/api/v1/avisos').flush([]);
@@ -27,7 +33,9 @@ describe('Inicio', () => {
   it('saluda y muestra acciones, avisos y accesos según los permisos', async () => {
     const raiz = await montar(['VENTAS:CREAR', 'AGENDA:VER', 'AGENDA:CREAR']);
     expect(raiz.querySelector('h1')?.textContent).toMatch(/Buen.*, Patricia/);
-    expect(raiz.querySelector('.eyebrow')?.textContent).toContain('SEDE 1');
+    // La sede se nombra con SesionDTO.nombreSede, nunca con su id (It. 2.1).
+    expect(raiz.querySelector('.eyebrow')?.textContent).toContain('Pichanaki Centro');
+    expect(raiz.querySelector('.eyebrow')?.textContent).not.toContain('SEDE 1');
     expect(raiz.querySelector('a.btn.salon')?.textContent).toContain('Atención sin cita');
     expect(raiz.querySelector('a.btn.sec')?.textContent).toContain('Nueva cita');
     expect(raiz.querySelector('app-panel-avisos')).not.toBeNull();
