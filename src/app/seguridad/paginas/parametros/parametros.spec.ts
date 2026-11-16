@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { entrarComo } from '../../../../testing/sesion';
-import { Parametros } from './parametros';
+import { Parametros, validarParametro } from './parametros';
 
 describe('Parametros (CUS65)', () => {
   let fixture: ComponentFixture<Parametros>;
@@ -38,9 +38,9 @@ describe('Parametros (CUS65)', () => {
         fechaVigencia: '2026-11-08',
       },
       {
-        codigo: 'LIMPIEZA_MAX_MIN',
-        descripcion: 'Minutos máximos de limpieza del recurso (RN03)',
-        valorNumero: 10,
+        codigo: 'MARGEN_PRODUCTO',
+        descripcion: 'Margen por defecto de los productos',
+        valorNumero: 0.5,
         fechaVigencia: '2026-11-08',
       },
     ]);
@@ -65,29 +65,26 @@ describe('Parametros (CUS65)', () => {
 
   afterEach(() => http.verify());
 
-  it('LIMPIEZA_MAX_MIN va hasta 10 y no se envía más (RN03)', async () => {
+  it('sin LIMPIEZA_MAX_MIN: ningún valor numérico tiene tope (RN03, It. 2.1)', async () => {
     await montar(['SEGURIDAD:VER', 'SEGURIDAD:EDITAR']);
-    expect(valor('LIMPIEZA_MAX_MIN').getAttribute('max')).toBe('10');
-    escribir(valor('LIMPIEZA_MAX_MIN'), '11');
-    boton('tablaParametros', 1).click();
-    await estable();
-    http.expectNone('/api/v1/parametros/LIMPIEZA_MAX_MIN');
-    expect(raiz.querySelector('.alert.bad')?.textContent).toContain('0 a 10');
+    expect(valor('MARGEN_PRODUCTO').getAttribute('max')).toBeNull();
+    expect(raiz.textContent).not.toContain('LIMPIEZA');
+    expect(validarParametro('LIMPIEZA_MAX_MIN', '11', true)).toBeNull();
   });
 
   it('«Guardar parámetro» cambia el valor con su vigencia', async () => {
     await montar(['SEGURIDAD:VER', 'SEGURIDAD:EDITAR']);
-    escribir(valor('LIMPIEZA_MAX_MIN'), '8');
+    escribir(valor('MARGEN_PRODUCTO'), '0.4');
     escribir(
-      raiz.querySelector<HTMLInputElement>('input[aria-label="Vigencia de LIMPIEZA_MAX_MIN"]')!,
+      raiz.querySelector<HTMLInputElement>('input[aria-label="Vigencia de MARGEN_PRODUCTO"]')!,
       '2026-11-15',
     );
     boton('tablaParametros', 1).click();
     await estable();
-    const peticion = http.expectOne('/api/v1/parametros/LIMPIEZA_MAX_MIN');
+    const peticion = http.expectOne('/api/v1/parametros/MARGEN_PRODUCTO');
     expect(peticion.request.method).toBe('PATCH');
-    expect(peticion.request.body).toEqual({ valorNumero: 8, fechaVigencia: '2026-11-15' });
-    peticion.flush({ codigo: 'LIMPIEZA_MAX_MIN', valorNumero: 8, fechaVigencia: '2026-11-15' });
+    expect(peticion.request.body).toEqual({ valorNumero: 0.4, fechaVigencia: '2026-11-15' });
+    peticion.flush({ codigo: 'MARGEN_PRODUCTO', valorNumero: 0.4, fechaVigencia: '2026-11-15' });
     await estable();
   });
 

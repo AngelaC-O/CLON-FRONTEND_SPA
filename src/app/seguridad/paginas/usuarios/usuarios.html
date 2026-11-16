@@ -68,7 +68,12 @@
         <tbody>
           @for (usuario of usuarios(); track usuario.idUsuario) {
             <tr>
-              <td class="b num">Personal {{ usuario.idPersonal }}</td>
+              <td>
+                <div class="b">{{ nombreCompleto(usuario) }}</div>
+                @if (usuario.ultimoAcceso) {
+                  <div class="xs mut num">Último acceso {{ fechaHora(usuario.ultimoAcceso) }}</div>
+                }
+              </td>
               <td class="num sm">{{ usuario.nombreUsuario }}</td>
               <td>
                 @if (puedeEditar()) {
@@ -93,7 +98,7 @@
                     Asignar rol
                   </button>
                 } @else {
-                  {{ nombreRol(usuario.idRol) }}
+                  {{ nombreRol(usuario) }}
                 }
               </td>
               <td>
