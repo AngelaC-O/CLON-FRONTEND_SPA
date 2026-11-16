@@ -227,11 +227,37 @@ Comprobado:
 - `npm run build` sin errores ni advertencias.
 - `npm test -- --watch=false`: 41 archivos, 276 pruebas, todas aprobadas. Cada página tocada tiene una prueba que comprueba que se ve el nombre y no el id.
 
+Recorridos e2e (F13, rama `tineo-test/f13-e2e-it21`):
+
+- `e2e/preparar-bd.mjs` instala 00, 14, 13, 15, 17, 18 (`18_ajustes_v52.sql`) y 19 (`19_datos_prueba_horario.sql`). `exigirHorario` (en `e2e/apoyo.ts`, para los dos recorridos) deja correr cualquier día de 09:00 a 18:00, hora de Lima.
+- La especialista del día sale de `HORARIO_PERSONAL` (solo SELECT): si `especialista1` descansa entra `especialista3`, y si `especialista2` descansa, `especialista4`, con la misma clave final. RN50 y CUS54 siguen con `especialista2`. CUS13 busca a una especialista que trabaja hoy.
+- Sin limpieza: se quitó el paso de `LIMPIEZA_MAX_MIN = 11` (ahora se comprueba que el parámetro no existe) y la limpieza de CUS61; el fin es inicio + duración. Paso nuevo de RN03: una cita a la hora exacta del fin de otra, con el mismo sillón y la misma especialista, se agenda sin cruce.
+- En cada pantalla que visita el recorrido, `sinIds` comprueba que no haya un texto como «Clienta 12» (14 pantallas en el recorrido 1 y 34 en el 2, sin ninguna coincidencia).
+- **Corrida final (16/11/2026, 09:24 a 09:27): 51 de 52 pasos aprobados.** Falla `8 · RN52` por el back-end (Duda 6). Resultados en `docs/pruebas_it2.md` (con su sección «Iteración 2.1») y `docs/pruebas_it1.md`.
+
+Corridas de esa mañana (`npm run e2e:bd` y `npm run e2e`, cada una con base nueva; horas de Lima):
+
+| N° | Hora | Resultado | Qué se hizo |
+| --- | --- | --- | --- |
+| 1 | 09:01 | `e2e:bd` cayó con ORA-03114 en el script 17 | Se repitió una vez (corrida 2) |
+| 2 | 09:01 | 9 aprobados; CUS05 del recorrido 1 falló: `elegirVariante` contaba los campos antes de que se abriera el modal | Prueba: espera el campo de la variante |
+| 3 | 09:03 | `e2e:bd` cayó con ORA-03113 y ORA-03114 en el script 00 | Se repitió una vez (corrida 4) |
+| 4 | 09:04 | 43 aprobados; RN13 en el paso 6 · respondió 409 RN15 | Prueba: RN13 se comprueba en el paso 3 · (Duda 7) |
+| 5 | 09:07 | 44 aprobados; RN52 respondió 422 | Prueba: el aviso muestra el cuerpo de la respuesta |
+| 6 | 09:10 | `e2e:bd` cayó con ORA-03114 | Se repitió una vez (corrida 7) |
+| 7 | 09:11 | 44 aprobados; RN52: 422 `CK_TRANS_PAS_LINK` | Falla del back-end (Duda 6); RN52 pasa al final |
+| 8 | 09:14 | 36 aprobados; RN03 sin «+ Nueva cita»: `ng serve` no sirvió un chunk («Failed to fetch dynamically imported module: chunk-RF5VOPJF.js») | Falla pasajera del servidor de desarrollo; se volvió a correr |
+| 9 | 09:17 | `e2e:bd` cayó con ORA-03114 | Se repitió una vez (corrida 10) |
+| 10 | 09:18 | 45 aprobados; CUS23: aprobar respondió 409 | Prueba: el aviso muestra el cuerpo |
+| 11 | 09:21 | 45 aprobados; CUS23: 409 RN46, comprobante PENDIENTE en SUNAT | Comportamiento del contrato con el simulador (Duda 8): CUS23 espera el 409 RN46 |
+| 12 | 09:24 | **51 aprobados, 1 fallido (RN52)** | Corrida final |
+
 Sin comprobar:
 
-- `npm run e2e` no se corrió: los recorridos se ajustan en F13. Siguen usando la limpieza (`e2e/recorrido.e2e.ts`, paso «CUS61 y RN03» con `#minutosLimpieza`; `e2e/recorrido-it2.e2e.ts`, `LIMPIEZA_MAX_MIN` y «cita de 90 min + limpieza») y textos con ids, así que fallarán hasta F13.
-- No se revisaron las pantallas en el navegador a 1440, 834 y 390.
-- `./mvnw -q verify` no aplica: este repositorio es solo el front-end y el back-end no se modificó.
+- No se revisaron las pantallas en el navegador a 834 y 390 (el recorrido corre a 1440).
+- CUS24, RN12, RN33 y las notas de crédito de RN47 no se pueden ver en `dev` (Duda 8).
+- `./mvnw -q verify` no aplica: este repositorio es solo el front-end y el back-end no se modificó (`develop` en `d1514f2`).
+- Los recorridos piden `JAVA_HOME`: en este equipo no estaba definido y se usó el JDK 26 de `~/.jdks/openjdk-26.0.2.1`.
 
 ### Dudas
 
@@ -240,6 +266,9 @@ Sin comprobar:
 3. **El patrón `Variante` del grep no puede quedar en cero.** Coincide con identificadores (`idVariante`, `nombreVariante`, `SelectorVariante`, `VarianteDTO`) y con etiquetas que no muestran un id: «+ Variante», el placeholder «Variante» y «Variantes y precio fijo (RN40)» del catálogo, y «CÓDIGO DE LA VARIANTE» del selector. Ningún texto muestra «Variante 2».
 4. **Códigos que se escriben.** Siguen tres campos donde se escribe un código, sin mostrarlo como nombre: la variante sin `CATALOGO:VER` (decisión 5), la especialista que recomendó sin `AGENDA:VER` (Duda 16) y la clienta de la proforma («nombre o código»). ¿Se quitan también, como el código de la clienta en la cita?
 5. **Venta o compra sin documento en el kardex.** Si `MovimientoKardexDTO` trae la línea sin `comprobante` o sin `documentoCompra`, el origen dice «Venta —» o «Compra —».
+6. **Venta con tarjeta por enlace (RN52): 422 `CK_TRANS_PAS_LINK`.** En el recorrido 2 (`8 · RN52`), `POST /ventas/productos` con Tarjeta y canal LINK respondió: `{"detail":"El dato no cumple una regla de la base de datos.","instance":"/api/v1/ventas/productos","status":422,"title":"Unprocessable Content","regla":"CK_TRANS_PAS_LINK","constraint":"CK_TRANS_PAS_LINK"}`. La restricción (`03_agenda_ventas.sql`) pide `fecha_expiracion` en toda transacción LINK. En el back-end (solo leído), `ServicioPago.cobrar` registra la fecha solo cuando la pasarela responde PENDIENTE (`registrarEnlace`). El simulador del perfil `dev` (`PasarelaPagosFalsa.crearCobro`, `respuesta-falsa: APROBADA`) responde APROBADA también al enlace, y `aprobar(...)` deja la fecha vacía. Es una falla del back-end, no de la prueba, y queda fallando: ¿el cobro LINK aprobado debe guardar `fecha_expiracion`, o el simulador debe dejar el enlace PENDIENTE, como `crearEnlace` en el adelanto?
+7. **Orden de las reglas al vender un insumo.** En el paso 6 ·, el insumo ya sin stock y con un monto que no es el total responde 409 RN15 («No hay stock suficiente») y no 422 RN13. El contrato lista las dos respuestas sin orden. RN13 se comprobó en el paso 3 ·, con stock y el monto exacto: 422 RN13. ¿Debe RN13 (un insumo no se vende) responder antes que el stock?
+8. **Anulación sin SUNAT en `dev`.** `FacturacionElectronicaFalsa` deja todo comprobante PENDIENTE, y aprobar una anulación responde 409 RN46 («El comprobante B001-3 está PENDIENTE en SUNAT: la nota de crédito se emite cuando SUNAT lo acepta.»), como dice el contrato. Ninguna venta llega a ANULADA en el e2e: CUS24, RN12, RN33 y las notas BC01 de RN47 quedan sin verificar. El recorrido no cambia el estado SUNAT en la base porque el dueño solo lee. ¿Se agrega al simulador una respuesta ACEPTADO para las pruebas, o se prueban en `sandbox`?
 
 Dudas de esta nota que el contrato 2.1 cierra: 1 (`CitaAtencionDTO` con nombres), 2 (`UsuarioDTO` con nombres, `nombreRol` y `ultimoAcceso`), 4 (`cobrosPendientes` con medio, monto y canal), 7 (`SesionDTO.nombreSede`), 9 (ficha con nombres), 14 (`nombreUsuarioSolicita`), 21 (`comprobante` y `documentoCompra` en el kardex), 22 (`ItemConciliacion` en el contrato) y 25 (`CajaDTO` con los nombres de los usuarios). La Duda 8 (especialista libre tras terminar antes) queda resuelta por RN03: sin limpieza, la especialista y el recurso quedan libres al terminar el servicio.
 
@@ -264,3 +293,4 @@ Dudas de esta nota que el contrato 2.1 cierra: 1 (`CitaAtencionDTO` con nombres)
 6. **Detalle de la venta.** `DetalleVentaDTO.descripcion` con `nombreEspecialista` cuando la hay («Corte de Cabello Caballero · Estándar · Lucía Ramos»); ya no «Atención 1532» ni «Detalle 1».
 7. **Usuarios.** La primera columna muestra nombres y apellidos de la persona con su último acceso; el rol sale de `nombreRol`.
 8. **Plan de commits de la Iteración 2.1.** El contrato regenerado quita `finServicio` y `minutosLimpieza`, así que agenda y recursos no compilan con él si van separados: el primer commit lleva `core/api/modelos.generados.ts`, `core/api/nombres.ts`, `agenda` y `sedes`. El cambio de `etiquetaMedio` en `core/api/medios.ts` va con `ventas`, que es el que le pasa `nombreMedioPago`; `caja` va antes y compila con las dos versiones. `layout` y `reportes` comparten un commit porque los dos solo pasan a `SesionDTO.nombreSede` y así no se pasa de ocho. Cada módulo lleva sus pruebas en su commit y la documentación va al final.
+9. **Pasos del e2e que cambian por las dudas 6 a 8.** RN52 pasa al final (`8 · RN52`) y sigue exigiendo 202: así la falla del back-end se ve y no salta los pasos 6 · y 7 ·. RN44 usa la venta en efectivo de un cliente de paso, antes de pedir su anulación, en lugar de la de tarjeta. RN13 se comprueba en el paso 3 ·, con stock y el monto exacto; en el paso 6 · se exige solo que el insumo no se venda y se anota la respuesta. CUS23 espera el 409 RN46 del contrato y su mensaje en pantalla; CUS24 y RN33 anotan que no hay venta ANULADA. Ningún paso escribe en la base: el dueño solo lee.

@@ -113,3 +113,69 @@ export async function elegirClienta(zona: Locator, nombre: string): Promise<void
 
 export const aviso = (page: Page): Locator => page.locator('.toast');
 export const modal = (page: Page): Locator => page.getByRole('dialog');
+
+/** Ahora en Lima, sin depender de la zona horaria del equipo que corre la prueba. */
+export function ahoraLima(): Date {
+  return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Lima' }));
+}
+
+/** Día de la semana de HORARIO_PERSONAL: 1 = lunes … 7 = domingo. */
+export function diaSemana(): number {
+  return ahoraLima().getDay() || 7;
+}
+
+/**
+ * Los recorridos agendan y atienden hoy. La sede abre todos los días de 09:00 a 20:00 (horario de
+ * prueba del script 19): se corre de 09:00 a 18:00 (hora de Lima), con 2 horas de margen al cierre.
+ */
+export function exigirHorario(): void {
+  const lima = ahoraLima();
+  const minutos = lima.getHours() * 60 + lima.getMinutes();
+  if (minutos < 9 * 60 || minutos > 18 * 60) {
+    throw new Error('El recorrido agenda y atiende hoy: córrelo de 09:00 a 18:00 (hora de Lima).');
+  }
+}
+
+/** ¿El usuario tiene horario hoy? Lee HORARIO_PERSONAL como dueño, solo con SELECT. */
+export function trabajaHoy(usuario: string): boolean {
+  return (
+    valor(
+      `SELECT COUNT(*) FROM HORARIO_PERSONAL h JOIN USUARIO u ON u.id_personal = h.id_personal WHERE u.nombre_usuario = '${usuario}' AND h.dia_semana = ${diaSemana()}`,
+    ) !== '0'
+  );
+}
+
+/**
+ * La especialista que trabaja hoy entre la titular y su suplente de las mismas áreas (script 19:
+ * especialista3 cubre a especialista1 y especialista4 a especialista2).
+ */
+export function especialistaDelDia(titular: string, suplente: string): string {
+  if (trabajaHoy(titular)) {
+    return titular;
+  }
+  if (trabajaHoy(suplente)) {
+    return suplente;
+  }
+  throw new Error(`Hoy no trabajan ${titular} ni ${suplente} (HORARIO_PERSONAL).`);
+}
+
+/** Nombres y apellidos de la persona del usuario, como los muestran las pantallas. */
+export function nombreDe(usuario: string): string {
+  return valor(
+    `SELECT p.nombres || ' ' || p.apellidos FROM PERSONA p JOIN USUARIO u ON u.id_personal = p.id_persona WHERE u.nombre_usuario = '${usuario}'`,
+  );
+}
+
+/** Un id mostrado como si fuera un nombre (It. 2.1: nombres, nunca ids). */
+export const ID_COMO_NOMBRE =
+  /\b(Clienta|Variante|Recurso|Especialista|Usuario|Personal|Sede|Paquete|Producto|Servicio|Medio) \d+\b/;
+
+/** Comprueba que la pantalla no muestra ningún id como nombre y anota la pantalla revisada. */
+export async function sinIds(page: Page, pantalla: string, archivo: string): Promise<void> {
+  await page.waitForLoadState('networkidle');
+  const texto = await page.locator('body').innerText();
+  const encontrado = ID_COMO_NOMBRE.exec(texto);
+  expect(encontrado?.[0], `«${pantalla}» muestra un id como nombre`).toBeUndefined();
+  mkdirSync('test-results', { recursive: true });
+  appendFileSync(`test-results/pantallas-${archivo}`, `${pantalla}\n`);
+}
