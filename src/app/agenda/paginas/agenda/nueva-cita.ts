@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, inject, input, OnInit, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { especialistaLibre, nombreO, recursoLibre } from '../../../core/api/nombres';
 import { leerProblema, mensajeDelProblema } from '../../../core/api/problema';
 import { Modal } from '../../../layout/modal/modal';
 import { SelectorVariante } from '../../../layout/selector-variante/selector-variante';
@@ -104,7 +105,7 @@ export interface PedidoEspera {
                 <label class="lbl" for="citaIdPersonal">ESPECIALISTA</label>
                 <select class="inp" id="citaIdPersonal" formControlName="idPersonal">
                   @for (id of hora.idsPersonal; track id) {
-                    <option [ngValue]="id">{{ nombreEspecialista(id) }}</option>
+                    <option [ngValue]="id">{{ nombreEspecialista(hora, id) }}</option>
                   }
                 </select>
               </div>
@@ -112,7 +113,7 @@ export interface PedidoEspera {
                 <label class="lbl" for="citaIdRecurso">RECURSO</label>
                 <select class="inp" id="citaIdRecurso" formControlName="idRecurso">
                   @for (id of hora.idsRecurso; track id) {
-                    <option [ngValue]="id">{{ nombreRecurso(id) }}</option>
+                    <option [ngValue]="id">{{ nombreRecurso(hora, id) }}</option>
                   }
                 </select>
               </div>
@@ -173,7 +174,7 @@ export class NuevaCita implements OnInit {
     if (espera) {
       this.clientaInicial = {
         idCliente: espera.idCliente,
-        nombre: espera.nombreCliente || `Clienta ${espera.idCliente}`,
+        nombre: nombreO(espera.nombreCliente),
       };
       this.clienta.set(this.clientaInicial);
       this.formulario.patchValue({
@@ -219,13 +220,18 @@ export class NuevaCita implements OnInit {
     });
   }
 
-  protected nombreEspecialista(id: number): string {
+  /** El nombre llega en la hora libre (It. 2.1); si no, el de los filtros de la agenda, o «—». */
+  protected nombreEspecialista(hora: HoraLibre, id: number): string {
     const especialista = this.filtros()?.especialistas?.find((e) => e.idPersonal === id);
-    return especialista ? nombreDe(especialista) : `Especialista ${id}`;
+    return especialistaLibre(hora, id, especialista && nombreDe(especialista));
   }
 
-  protected nombreRecurso(id: number): string {
-    return this.filtros()?.recursos?.find((r) => r.idRecurso === id)?.nombre ?? `Recurso ${id}`;
+  protected nombreRecurso(hora: HoraLibre, id: number): string {
+    return recursoLibre(
+      hora,
+      id,
+      this.filtros()?.recursos?.find((r) => r.idRecurso === id)?.nombre,
+    );
   }
 
   protected elegirHora(hora: HoraLibre): void {

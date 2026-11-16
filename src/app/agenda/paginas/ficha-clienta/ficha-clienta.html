@@ -166,7 +166,10 @@
           @for (cita of datos.citasPendientes; track cita.idCita) {
             <div class="row nw">
               <span class="b num">{{ fechaCorta(cita.fechaHoraInicio, true) }}</span>
-              <span class="sp">Variante {{ cita.idVariante }} · {{ cita.duracionMin }} min</span>
+              <span class="sp">
+                {{ nombreO(cita.nombreServicio) }} · {{ nombreO(cita.nombreEspecialista) }} ·
+                {{ cita.duracionMin }} min
+              </span>
               <span class="chip" [class]="claseEstado(cita.estado)">
                 {{ etiquetaEstado(cita.estado) }}
               </span>
@@ -183,7 +186,8 @@
               <div class="row nw">
                 <span class="b num">{{ fechaCorta(atencion.horaInicio, true) }}</span>
                 <span class="sp">
-                  Variante {{ atencion.idVariante }} · Especialista {{ atencion.idPersonal }}
+                  {{ nombreO(atencion.nombreServicio) }} ·
+                  {{ nombreO(atencion.nombreEspecialista) }}
                 </span>
                 <span class="chip" [class]="claseEstado(atencion.estado)">
                   {{ etiquetaEstado(atencion.estado) }}
@@ -198,7 +202,7 @@
               ) {
                 <div class="xs">
                   <span class="chip info">Recomendado</span>
-                  {{ producto(recomendacion.idProducto) }}
+                  {{ producto(recomendacion) }}
                   @if (recomendacion.observacion) {
                     · {{ recomendacion.observacion }}
                   }
@@ -246,7 +250,7 @@
           @for (paquete of datos.paquetes; track paquete.idClientePaquete) {
             <div class="row nw">
               <div class="sp">
-                <div class="b">Paquete {{ paquete.idPaquete }}</div>
+                <div class="b">{{ nombreO(paquete.nombrePaquete) }}</div>
                 <div class="xs mut">
                   {{ paquete.sesionesUsadas }} de {{ paquete.sesionesTotales }} sesiones usadas ·
                   vence {{ fechaCorta(paquete.fechaVencimiento) }} · se descuenta una al finalizar

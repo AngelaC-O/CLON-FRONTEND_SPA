@@ -2,6 +2,7 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Modal } from '../../../layout/modal/modal';
 import { soles } from '../../../core/api/moneda';
+import { nombreO, numero } from '../../../core/api/nombres';
 import { NotificacionesService } from '../../../core/notificaciones/notificaciones.service';
 import { PERMISOS } from '../../../core/sesion/permisos';
 import { SesionService } from '../../../core/sesion/sesion.service';
@@ -67,6 +68,9 @@ export class Agenda implements OnInit {
   protected readonly nombreEspecialista = nombreEspecialista;
   protected readonly fechaCorta = fechaCorta;
   protected readonly soles = soles;
+  protected readonly nombreO = nombreO;
+  protected readonly numero = numero;
+  protected readonly nombreSede = computed(() => nombreO(this.sesion.sesion()?.nombreSede));
 
   protected readonly vista = signal<Vista>('especialista');
   protected readonly bloques = signal<FranjaAgendaDTO[]>([]);
@@ -139,31 +143,29 @@ export class Agenda implements OnInit {
     this.verAgenda();
   }
 
-  /** Nombre de la especialista: el de la franja o el de los filtros. */
+  /** Nombre de la especialista: el de los filtros o el de la franja; si no llega, «—». */
   protected especialista(id?: number): string {
     const deFiltro = this.opciones().especialistas?.find((e) => e.idPersonal === id);
-    if (deFiltro) {
-      return nombreEspecialista(deFiltro);
-    }
     const deFranja = this.bloques().find((b) => b.idPersonal === id && b.nombreEspecialista);
-    return deFranja?.nombreEspecialista ?? `Especialista ${id ?? ''}`;
+    return nombreO(deFiltro && nombreEspecialista(deFiltro), deFranja?.nombreEspecialista);
   }
 
   /** Servicio y, según la vista, el recurso o la especialista; en móvil, los dos. */
   protected detalle(bloque: FranjaAgendaDTO, completo = false): string {
-    const servicio = bloque.nombreServicio || `Variante ${bloque.idVariante}`;
+    const servicio = nombreO(bloque.nombreServicio);
     const especialista = bloque.nombreEspecialista || this.especialista(bloque.idPersonal);
-    const recurso = this.recurso(bloque.idRecurso);
+    const recurso = bloque.nombreRecurso || this.recurso(bloque.idRecurso);
     if (completo) {
       return [servicio, especialista, recurso].join(' · ');
     }
     return [servicio, this.vista() === 'especialista' ? recurso : especialista].join(' · ');
   }
 
+  /** Nombre del recurso: el de los filtros o el de la franja; si no llega, «—». */
   protected recurso(id?: number): string {
-    return (
-      this.opciones().recursos?.find((r) => r.idRecurso === id)?.nombre ?? `Recurso ${id ?? ''}`
-    );
+    const deFiltro = this.opciones().recursos?.find((r) => r.idRecurso === id);
+    const deFranja = this.bloques().find((b) => b.idRecurso === id && b.nombreRecurso);
+    return nombreO(deFiltro?.nombre, deFranja?.nombreRecurso);
   }
 
   protected verAgenda(): void {
@@ -198,21 +200,9 @@ export class Agenda implements OnInit {
     return (minutosDelDia(bloque.inicio) - this.horas()[0] * 60) * PX_POR_MINUTO;
   }
 
-  /** Hasta finServicio: la limpieza no ocupa a la especialista (RN03). */
+  /** Un solo bloque hasta el fin del servicio: sin limpieza, libera a la especialista y al recurso (RN03). */
   protected altura(bloque: FranjaAgendaDTO): number {
-    return (minutosDelDia(finServicio(bloque)) - minutosDelDia(bloque.inicio)) * PX_POR_MINUTO;
-  }
-
-  /** Minutos de limpieza: solo se pintan en la columna del recurso. */
-  protected limpieza(bloque: FranjaAgendaDTO): number {
-    if (this.vista() !== 'recurso') {
-      return 0;
-    }
-    return Math.max(0, minutosDelDia(bloque.fin) - minutosDelDia(finServicio(bloque)));
-  }
-
-  protected superiorLimpieza(bloque: FranjaAgendaDTO): number {
-    return this.superior(bloque) + this.altura(bloque);
+    return (minutosDelDia(bloque.fin) - minutosDelDia(bloque.inicio)) * PX_POR_MINUTO;
   }
 
   protected esCita(bloque: FranjaAgendaDTO): boolean {
@@ -249,7 +239,7 @@ export class Agenda implements OnInit {
 
   /** «Corte de Cabello Caballero · de 15:00 a 18:00». */
   protected detalleEspera(espera: ListaEsperaDTO): string {
-    const servicio = espera.nombreServicio || `Variante ${espera.idVariante}`;
+    const servicio = nombreO(espera.nombreServicio);
     const rango = espera.horaDesde
       ? `de ${espera.horaDesde} a ${espera.horaHasta ?? ''}`
       : 'cualquier hora';
@@ -299,7 +289,7 @@ export class Agenda implements OnInit {
     const deEspera = this.esperaAProgramar() !== null;
     this.cerrarNuevaCita();
     this.citaNueva.set(cita);
-    this.notificaciones.mostrar(`Cita ${cita.idCita} agendada.`);
+    this.notificaciones.mostrar(`Cita ${numero(cita.idCita)} agendada.`);
     if (cita.fechaHoraInicio.startsWith(this.fechaVista())) {
       this.verAgenda();
     } else if (deEspera) {
@@ -316,7 +306,7 @@ export class Agenda implements OnInit {
     if (this.citaNueva()?.idCita === cita.idCita) {
       this.citaNueva.set(null);
     }
-    this.notificaciones.mostrar(`Adelanto registrado en la cita ${cita.idCita}.`);
+    this.notificaciones.mostrar(`Adelanto registrado en la cita ${numero(cita.idCita)}.`);
   }
 
   protected esperaAnotada(espera: ListaEsperaDTO): void {
@@ -331,8 +321,4 @@ export class Agenda implements OnInit {
   private clave(): 'idPersonal' | 'idRecurso' {
     return this.vista() === 'especialista' ? 'idPersonal' : 'idRecurso';
   }
-}
-
-function finServicio(bloque: FranjaAgendaDTO): string | undefined {
-  return bloque.finServicio ?? bloque.fin;
 }

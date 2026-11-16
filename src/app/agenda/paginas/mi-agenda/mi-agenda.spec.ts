@@ -18,6 +18,9 @@ const cita = (
   idCliente: 407,
   idRecurso: 1,
   idVariante: 2,
+  nombreCliente: `Clienta de la cita ${idCita}`,
+  nombreServicio: 'Corte de Cabello Caballero · Estándar',
+  nombreRecurso: 'Sillón 1',
   duracionMin: 30,
   fechaHoraInicio: `${HOY}T${hora}:00`,
   fechaHoraFin: `${HOY}T${hora.slice(0, 3)}40:00`,
@@ -56,11 +59,33 @@ describe('MiAgenda', () => {
     await montar([cita(951, '11:00', 'PENDIENTE'), cita(950, '10:00', 'FINALIZADA')]);
     expect(raiz.querySelector('select')).toBeNull();
     expect(tarjetas().map((t) => t.querySelector('.b')?.textContent?.trim())).toEqual([
-      'Cita 950',
-      'Cita 951',
+      'Clienta de la cita 950',
+      'Clienta de la cita 951',
     ]);
     expect(tarjetas()[1].textContent).toContain('Iniciar atención');
     expect(tarjetas()[0].querySelector('button')).toBeNull();
+  });
+
+  it('It. 2.1: nombra clienta, servicio y recurso; nunca sus ids', async () => {
+    await montar([cita(950, '10:00', 'PENDIENTE')]);
+    const texto = tarjetas()[0].textContent!;
+    expect(texto).toContain('Corte de Cabello Caballero · Estándar');
+    expect(texto).toContain('Sillón 1');
+    expect(texto).toContain('Cita N° 950');
+    expect(texto).not.toMatch(/Clienta 407|Variante 2|Recurso 1/);
+  });
+
+  it('It. 2.1: si un nombre no llega muestra «—», no el id', async () => {
+    await montar([
+      cita(950, '10:00', 'PENDIENTE', {
+        nombreCliente: undefined,
+        nombreServicio: undefined,
+        nombreRecurso: undefined,
+      }),
+    ]);
+    const texto = tarjetas()[0].textContent!;
+    expect(tarjetas()[0].querySelector('.b')?.textContent?.trim()).toBe('—');
+    expect(texto).not.toMatch(/407|Variante|Recurso 1/);
   });
 
   it('sin citas lo dice', async () => {

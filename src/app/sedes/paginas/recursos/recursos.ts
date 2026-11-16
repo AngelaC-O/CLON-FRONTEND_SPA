@@ -9,9 +9,6 @@ import { Modal } from '../../../layout/modal/modal';
 import { RecursoDTO } from '../../modelos/sedes.modelos';
 import { RecursosService } from '../../servicios/recursos.service';
 
-/** LIMPIEZA_MAX_MIN del contrato: la limpieza va de 0 a 10 minutos (RN03). */
-export const LIMPIEZA_MAX_MIN = 10;
-
 /** IGU_Recursos: CUS61 Registrar Recurso. */
 @Component({
   selector: 'app-recursos',
@@ -25,11 +22,10 @@ export class Recursos implements OnInit {
 
   protected readonly tipos = TIPOS_RECURSO;
   protected readonly etiquetaTipo = etiquetaTipoRecurso;
-  protected readonly minutos = Array.from({ length: LIMPIEZA_MAX_MIN + 1 }, (_, i) => i);
-  protected readonly limpiezaMax = LIMPIEZA_MAX_MIN;
   protected readonly verServicios = computed(() => this.sesion.tienePermiso(PERMISOS.catalogoVer));
   protected readonly puedeCrear = computed(() => this.sesion.tienePermiso(PERMISOS.sedesCrear));
   protected readonly idSede = computed(() => this.sesion.sesion()?.idSede ?? null);
+  protected readonly nombreSede = computed(() => this.sesion.sesion()?.nombreSede || '—');
 
   protected readonly recursos = signal<RecursoDTO[]>([]);
   protected readonly cargando = signal(true);
@@ -41,10 +37,6 @@ export class Recursos implements OnInit {
     idSede: [null as number | null, [Validators.required, Validators.min(1)]],
     nombre: ['', [Validators.required, Validators.maxLength(60)]],
     tipo: ['SILLON' as RecursoDTO['tipo'], Validators.required],
-    minutosLimpieza: [
-      null as number | null,
-      [Validators.required, Validators.min(0), Validators.max(LIMPIEZA_MAX_MIN)],
-    ],
   });
 
   ngOnInit(): void {
@@ -70,9 +62,7 @@ export class Recursos implements OnInit {
 
   protected guardar(): void {
     if (this.formulario.invalid) {
-      this.errorFormulario.set(
-        `Completa sede, nombre y tipo, y elige la limpieza de 0 a ${LIMPIEZA_MAX_MIN} minutos (RN03).`,
-      );
+      this.errorFormulario.set('Completa sede, nombre y tipo.');
       return;
     }
     this.errorFormulario.set(null);
@@ -86,7 +76,7 @@ export class Recursos implements OnInit {
           this.recursos.update((recursos) => [...recursos, recurso]);
           this.notificaciones.mostrar('Recurso registrado.');
         } else {
-          this.notificaciones.mostrar(`Recurso registrado en la sede ${recurso.idSede}.`);
+          this.notificaciones.mostrar('Recurso registrado en otra sede.');
         }
       },
       error: () => this.enviando.set(false),

@@ -12,13 +12,13 @@
           <div class="xs mut">hasta {{ horaDe(cita.fechaHoraFin) }}</div>
         </div>
         <div class="sp">
-          <div class="b" style="font-size: 16px">Cita {{ cita.idCita }}</div>
+          <div class="b" style="font-size: 16px">{{ nombreO(cita.nombreCliente) }}</div>
           <div class="mut">
-            Clienta {{ cita.idCliente }} · Variante {{ cita.idVariante }} ·
-            {{ cita.duracionMin }} min
+            {{ nombreO(cita.nombreServicio) }} · {{ cita.duracionMin }} min · Cita
+            {{ numero(cita.idCita) }}
           </div>
           <div class="row xs" style="gap: 6px; margin-top: 6px">
-            <span class="chip">Recurso {{ cita.idRecurso }}</span>
+            <span class="chip">{{ nombreO(cita.nombreRecurso) }}</span>
             <span class="chip" [class]="claseEstado(cita.estado)">
               {{ etiquetaEstado(cita.estado) }}
             </span>
@@ -56,7 +56,9 @@
   <app-modal titulo="Iniciar atención" [angosto]="true" (cerrar)="citaPorIniciar.set(null)">
     <form [formGroup]="formInicio" (ngSubmit)="iniciar()">
       <div class="mb">
-        <div class="mut sm">Cita {{ cita.idCita }} · Variante {{ cita.idVariante }}</div>
+        <div class="mut sm">
+          {{ nombreO(cita.nombreCliente) }} · {{ nombreO(cita.nombreServicio) }}
+        </div>
         @if (errorInicio(); as mensaje) {
           <div class="alert bad" role="alert">{{ mensaje }}</div>
         }

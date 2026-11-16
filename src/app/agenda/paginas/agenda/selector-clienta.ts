@@ -10,7 +10,10 @@ export interface ClientaElegida {
   nombre: string;
 }
 
-/** «include» CUS01: elige la clienta de una cita. Sin CLIENTAS:VER, se escribe su código. */
+/**
+ * «include» CUS01: elige la clienta de una cita, siempre de la búsqueda (It. 2.1: no se escribe su
+ * código, que la pantalla solo podría mostrar como id). Sin CLIENTAS:VER no hay cómo elegirla.
+ */
 @Component({
   selector: 'app-selector-clienta',
   imports: [ReactiveFormsModule],
@@ -46,14 +49,10 @@ export interface ClientaElegida {
           </div>
         }
       } @else {
-        <label class="lbl" for="codigoClienta">CÓDIGO DE LA CLIENTA</label>
-        <input
-          class="inp"
-          id="codigoClienta"
-          type="number"
-          min="1"
-          (change)="escribir($any($event.target).valueAsNumber)"
-        />
+        <span class="lbl">CLIENTA</span>
+        <div class="alert info" role="status">
+          Para elegir la clienta hace falta buscarla (CUS01), con el permiso CLIENTAS:VER.
+        </div>
       }
     </div>
   `,
@@ -89,10 +88,6 @@ export class SelectorClienta implements OnInit {
     };
     this.elegida.set(elegida);
     this.cambio.emit(elegida);
-  }
-
-  protected escribir(codigo: number): void {
-    this.cambio.emit(codigo > 0 ? { idCliente: codigo, nombre: `Clienta ${codigo}` } : null);
   }
 
   protected cambiar(): void {

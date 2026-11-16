@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { nombreO, numero } from '../../../core/api/nombres';
 import { leerProblema, mensajeDelProblema } from '../../../core/api/problema';
 import { NotificacionesService } from '../../../core/notificaciones/notificaciones.service';
 import { PERMISOS } from '../../../core/sesion/permisos';
@@ -34,6 +35,8 @@ export class Atencion implements OnInit {
 
   protected readonly horaDe = horaDe;
   protected readonly soles = soles;
+  protected readonly nombreO = nombreO;
+  protected readonly numero = numero;
   protected readonly ahora = signal(Date.now());
   protected readonly actual = signal<AtencionDTO | null>(null);
   protected readonly cargando = signal(true);
@@ -91,7 +94,7 @@ export class Atencion implements OnInit {
 
   /** «Faltó stock de: Keratina, Tinte; almacén lo regularizará» (RN53, RN54). */
   protected faltantes(consumos: ConsumoPendienteDTO[]): string {
-    const productos = consumos.map((c) => c.producto || c.codigo || `producto ${c.idProducto}`);
+    const productos = consumos.map((c) => nombreO(c.producto, c.codigo));
     return `Faltó stock de: ${productos.join(', ')}; almacén lo regularizará.`;
   }
 
@@ -123,7 +126,7 @@ export class Atencion implements OnInit {
     this.servicio.recomendarProducto(idAtencion, cuerpo).subscribe({
       next: (registrada) => {
         this.recomendando.set(false);
-        const nombre = producto.nombre ?? `Producto ${producto.idProducto}`;
+        const nombre = nombreO(producto.nombre, registrada.nombreProducto);
         this.recomendaciones.update((lista) => [
           ...lista,
           { producto: nombre, observacion: registrada.observacion },
