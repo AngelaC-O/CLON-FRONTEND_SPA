@@ -1,4 +1,5 @@
 import { MedioPagoDTO } from './modelos.generados';
+import { SIN_NOMBRE } from './nombres';
 
 export type CanalCobro = 'QR' | 'LINK';
 
@@ -7,11 +8,11 @@ export function mediosActivos(medios: MedioPagoDTO[]): MedioPagoDTO[] {
   return medios.filter((medio) => medio.estado !== 'INACTIVO');
 }
 
-/** «YAPE» → «Yape». */
-export function etiquetaMedio(medio: MedioPagoDTO | undefined, idMedioPago?: number): string {
-  const nombre = medio?.nombre?.trim();
+/** «YAPE» → «Yape». Sin medio, el nombre que trae la respuesta (nombreMedioPago) o «—». */
+export function etiquetaMedio(medio: MedioPagoDTO | undefined, nombreRespuesta?: string): string {
+  const nombre = (medio?.nombre ?? nombreRespuesta)?.trim();
   if (!nombre) {
-    return `Medio ${idMedioPago ?? medio?.idMedioPago ?? ''}`.trim();
+    return SIN_NOMBRE;
   }
   return nombre.charAt(0).toUpperCase() + nombre.slice(1).toLowerCase();
 }

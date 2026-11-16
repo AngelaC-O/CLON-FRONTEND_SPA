@@ -46,7 +46,12 @@ describe('Paquetes (CUS59)', () => {
         numSesiones: 3,
         precio: 90,
         vigenciaDias: 90,
-        idsServicio: [1],
+        idsServicio: [1, 9],
+        // It. 2.1: la respuesta trae los nombres, también de servicios que no están en la lista.
+        servicios: [
+          { idServicio: 1, nombre: 'Corte' },
+          { idServicio: 9, nombre: 'Masaje relajante' },
+        ],
         estado: 'ACTIVO',
       },
     ]);
@@ -59,7 +64,8 @@ describe('Paquetes (CUS59)', () => {
     await montar(['CATALOGO:VER']);
     const tarjeta = raiz.querySelector('.paquete')!;
     expect(tarjeta.textContent).toContain('3 sesiones · S/ 90.00 · vigencia 90 días');
-    expect(tarjeta.textContent).toContain('Corte');
+    expect(tarjeta.textContent).toContain('Corte, Masaje relajante');
+    expect(tarjeta.textContent).not.toContain('Servicio 9');
     expect(raiz.querySelector('form')).toBeNull();
   });
 

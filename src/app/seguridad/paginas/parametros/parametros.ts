@@ -8,8 +8,6 @@ import { SesionService } from '../../../core/sesion/sesion.service';
 import { ParametroDTO, TipoDocumentoDTO } from '../../modelos/seguridad.modelos';
 import { ParametrosService } from '../../servicios/parametros.service';
 
-/** Topes de los parámetros que el back-end valida (RN03, RN51). */
-export const LIMPIEZA_MAX_TOPE = 10;
 /** Solo el DNI y el RUC se consultan en APISPERU (RN45). */
 const CONSULTABLES = ['DNI', 'RUC'];
 
@@ -67,7 +65,6 @@ function hoyIso(): string {
                     style="max-width: 160px"
                     [type]="esNumero(parametro) ? 'number' : 'text'"
                     [attr.min]="esNumero(parametro) ? 0 : null"
-                    [attr.max]="parametro.codigo === 'LIMPIEZA_MAX_MIN' ? topeLimpieza : null"
                     [attr.aria-label]="'Valor de ' + parametro.codigo"
                     formControlName="valor"
                   />
@@ -174,7 +171,6 @@ export class Parametros implements OnInit {
   private readonly sesion = inject(SesionService);
   private readonly notificaciones = inject(NotificacionesService);
 
-  protected readonly topeLimpieza = LIMPIEZA_MAX_TOPE;
   protected readonly puedeEditar = computed(() =>
     this.sesion.tienePermiso(PERMISOS.seguridadEditar),
   );
@@ -296,12 +292,6 @@ export function validarParametro(codigo: string, valor: string, numerico: boolea
   const numero = Number(valor);
   if (Number.isNaN(numero)) {
     return `El valor de ${codigo} es un número.`;
-  }
-  if (
-    codigo === 'LIMPIEZA_MAX_MIN' &&
-    (!Number.isInteger(numero) || numero < 0 || numero > LIMPIEZA_MAX_TOPE)
-  ) {
-    return `LIMPIEZA_MAX_MIN es un entero de 0 a ${LIMPIEZA_MAX_TOPE} minutos (RN03).`;
   }
   if (codigo === 'AGENDA_PASO_MIN' && (!Number.isInteger(numero) || numero <= 0)) {
     return 'AGENDA_PASO_MIN es un entero mayor que 0 (RN51).';

@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { nombreCompleto, nombreO } from '../../../core/api/nombres';
 import { leerProblema, mensajeDelProblema } from '../../../core/api/problema';
 import { NotificacionesService } from '../../../core/notificaciones/notificaciones.service';
 import { PERMISOS } from '../../../core/sesion/permisos';
@@ -138,13 +139,21 @@ export class Usuarios implements OnInit {
     });
   }
 
-  protected nombreRol(idRol?: number): string {
-    return this.roles().find((r) => r.idRol === idRol)?.nombre ?? String(idRol ?? '');
+  /** UsuarioDTO trae nombres, apellidos, nombreRol y ultimoAcceso (Duda 2, It. 2.1). */
+  protected readonly nombreCompleto = nombreCompleto;
+
+  protected nombreRol(usuario: UsuarioDTO): string {
+    return nombreO(usuario.nombreRol, this.roles().find((r) => r.idRol === usuario.idRol)?.nombre);
   }
 
   protected nombrePersonal(persona: PersonalSinUsuarioDTO): string {
-    const nombre = [persona.nombres, persona.apellidos].filter(Boolean).join(' ');
-    return nombre || `Personal ${persona.idPersonal}`;
+    return nombreCompleto(persona);
+  }
+
+  /** 16/11/2026 08:55 de una fecha-hora del back-end. */
+  protected fechaHora(valor: string): string {
+    const [anio, mes, dia] = valor.slice(0, 10).split('-');
+    return `${dia}/${mes}/${anio} ${valor.slice(11, 16)}`.trim();
   }
 
   protected abrirRegistro(): void {
@@ -225,7 +234,7 @@ export class Usuarios implements OnInit {
       return;
     }
     const elegidos = this.permisos().filter((p) => permisos[clave(p)]);
-    const nombre = this.nombreRol(idRol);
+    const nombre = this.roles().find((r) => r.idRol === idRol)?.nombre ?? '';
     if (
       nombre === ROL_ADMINISTRADORA &&
       PERMISOS_RN48.some((c) => !elegidos.some((p) => clave(p) === c))

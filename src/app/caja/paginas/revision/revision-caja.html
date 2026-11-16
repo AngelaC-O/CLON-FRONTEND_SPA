@@ -16,10 +16,10 @@
       <div class="card col cierre">
         <div class="row">
           <div class="sp">
-            <div class="b">Caja {{ caja.idCaja }}</div>
+            <div class="b">Caja {{ numero(caja.idCaja) }}</div>
             <div class="xs mut num">
-              {{ fechaHora(caja.fechaApertura) }} a {{ hora(caja.fechaCierre) }} · cerró el usuario
-              {{ caja.idUsuarioCierre }}
+              {{ fechaHora(caja.fechaApertura) }} a {{ hora(caja.fechaCierre) }} · cerró
+              {{ nombreO(caja.nombreUsuarioCierre) }}
             </div>
           </div>
           @if (puedeEditar()) {
@@ -79,16 +79,27 @@
         <tbody>
           @for (caja of delDia(); track caja.idCaja) {
             <tr>
-              <td class="b num">{{ caja.idCaja }}</td>
-              <td class="num">{{ hora(caja.fechaApertura) }}</td>
-              <td class="num">{{ hora(caja.fechaCierre) }}</td>
+              <td class="b num">{{ numero(caja.idCaja) }}</td>
+              <td class="num">
+                {{ hora(caja.fechaApertura) }}
+                <div class="xs mut">{{ nombreO(caja.nombreUsuarioApertura) }}</div>
+              </td>
+              <td class="num">
+                {{ hora(caja.fechaCierre) }}
+                @if (caja.fechaCierre) {
+                  <div class="xs mut">{{ nombreO(caja.nombreUsuarioCierre) }}</div>
+                }
+              </td>
               <td class="r num">{{ soles(caja.montoInicial) }}</td>
               <td>
                 <span class="chip" [class.ok]="caja.estado === 'ABIERTA'">
                   {{ caja.estado === 'ABIERTA' ? 'Abierta' : 'Cerrada' }}
                 </span>
                 @if (caja.motivoReapertura) {
-                  <div class="xs mut">Reabierta: {{ caja.motivoReapertura }}</div>
+                  <div class="xs mut">
+                    Reabierta por {{ nombreO(caja.nombreUsuarioReapertura) }}:
+                    {{ caja.motivoReapertura }}
+                  </div>
                 }
               </td>
               @if (puedeEditar()) {
@@ -119,7 +130,7 @@
     <form [formGroup]="reapertura" (ngSubmit)="reabrir()">
       <div class="mb">
         <div class="mut sm">
-          Caja {{ caja.idCaja }} · cerrada a las {{ hora(caja.fechaCierre) }}
+          Caja {{ numero(caja.idCaja) }} · cerrada a las {{ hora(caja.fechaCierre) }}
         </div>
         @if (errorReapertura(); as mensaje) {
           <div class="alert bad" role="alert">{{ mensaje }}</div>

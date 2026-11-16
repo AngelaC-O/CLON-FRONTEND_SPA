@@ -51,7 +51,7 @@ describe('Caja', () => {
       providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     });
     http = TestBed.inject(HttpTestingController);
-    entrarComo({ idSede: 1, permisos });
+    entrarComo({ idSede: 1, nombreSede: 'Pichanaki Centro', permisos });
     fixture = TestBed.createComponent(Caja);
     await estable();
     raiz = fixture.nativeElement;
@@ -77,7 +77,10 @@ describe('Caja', () => {
     await montar(TODOS, CAJA);
     http.expectOne('/api/v1/cajas/214/esperado').flush(ESPERADO);
     await estable();
-    expect(raiz.textContent).toContain('Caja 214');
+    expect(raiz.textContent).toContain('Caja N° 214');
+    // La sede por su nombre (SesionDTO.nombreSede, It. 2.1), nunca «Sede 1».
+    expect(raiz.querySelector('.h1 + .mut')?.textContent).toContain('Pichanaki Centro');
+    expect(raiz.textContent).not.toContain('Sede 1');
     expect(raiz.querySelector('#cajaCodigo')).toBeNull();
     expect(raiz.querySelector('.gf1')?.textContent).toContain('Efectivo');
   });
@@ -145,7 +148,7 @@ describe('Caja', () => {
     });
     await estable();
     expect(raiz.querySelector('app-modal')).toBeNull();
-    expect(raiz.textContent).toContain('Cierre de la caja 214');
+    expect(raiz.textContent).toContain('Cierre de la caja N° 214');
     expect(boton('Abrir caja')).toBeDefined();
   });
 

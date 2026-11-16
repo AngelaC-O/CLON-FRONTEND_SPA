@@ -6,6 +6,7 @@ import { ListasService } from '../../../core/api/listas.service';
 import { etiquetaMedio } from '../../../core/api/medios';
 import { MedioPagoDTO } from '../../../core/api/modelos.generados';
 import { soles } from '../../../core/api/moneda';
+import { nombreO, numero } from '../../../core/api/nombres';
 import { mensajeDelProblema } from '../../../core/api/problema';
 import { NotificacionesService } from '../../../core/notificaciones/notificaciones.service';
 import { CajaAbiertaService } from '../../../core/sesion/caja-abierta.service';
@@ -33,6 +34,8 @@ export class RevisionCaja implements OnInit {
   private readonly notificaciones = inject(NotificacionesService);
 
   protected readonly soles = soles;
+  protected readonly nombreO = nombreO;
+  protected readonly numero = numero;
   protected readonly puedeEditar = computed(() =>
     this.sesion.tienePermiso(PERMISOS.conciliacionEditar),
   );
@@ -54,10 +57,7 @@ export class RevisionCaja implements OnInit {
   }
 
   protected medio(idMedioPago?: number): string {
-    return etiquetaMedio(
-      this.medios().find((m) => m.idMedioPago === idMedioPago),
-      idMedioPago,
-    );
+    return etiquetaMedio(this.medios().find((m) => m.idMedioPago === idMedioPago));
   }
 
   /** 09/11/2026 20:05 de una fecha-hora del back-end. */
@@ -87,7 +87,7 @@ export class RevisionCaja implements OnInit {
       next: () => {
         this.enviando.set(false);
         this.conDiferencia.update((lista) => (lista ?? []).filter((c) => c.idCaja !== caja.idCaja));
-        this.notificaciones.mostrar(`Cierre de la caja ${caja.idCaja} aprobado.`);
+        this.notificaciones.mostrar(`Cierre de la caja ${numero(caja.idCaja)} aprobado.`);
       },
       // El 422 (ya aprobada o sin diferencias) lo avisa el interceptor: se vuelve a leer.
       error: () => {

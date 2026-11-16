@@ -1,18 +1,19 @@
-# Cautiva Spa · BackOffice web · Front-end (CS-BO-01, Iteración 2)
+# Cautiva Spa · BackOffice web · Front-end (CS-BO-01, Iteración 2.1)
 
-El back-end es otro repositorio; aquí solo llega su contrato, `docs/openapi.yaml`. La Iteración 1 está cerrada (`v0.1.0-it1`).
+El back-end es otro repositorio; aquí solo llega su contrato, `docs/openapi.yaml`. La Iteración 1 está cerrada (`v0.1.0-it1`). La Iteración 2.1 ajusta la 2 sin CUS nuevos: quita el tiempo de limpieza y pone nombres en todas las pantallas.
 
 ## Fuentes de verdad
 
 | Fuente | Qué decide |
 | --- | --- |
 | `docs/openapi.yaml` | Endpoints, DTO y el permiso de cada operación (`x-permiso`). **Prohibido inventar** endpoints, campos o códigos. |
-| `docs/Iteracion_2_Cautiva_Spa.drawio` | Manda para los 27 CUS nuevos y los 12 modificados: las fronteras `IGU_`, con sus «Leer(...)» (campos) y «Clic en ...» (botones). |
+| `docs/Iteracion_2_1_Cautiva_Spa.drawio` | Manda para sus 21 páginas «modificado It. 2.1» y para la página «02 Nombres en las respuestas» (qué DTO trae cada nombre). |
+| `docs/Iteracion_2_Cautiva_Spa.drawio` | Manda para los 27 CUS nuevos y los 12 modificados que la Iteración 2.1 no vuelve a modificar: las fronteras `IGU_`, con sus «Leer(...)» (campos) y «Clic en ...» (botones). |
 | `docs/Iteracion_1_Cautiva_Spa.drawio` | Los CUS de la Iteración 1 que la Iteración 2 no modifica. |
 | `docs/U2.md` | Dominio, reglas de negocio y módulos. |
 | `docs/prototipo/` y [Figma](https://www.figma.com/design/NBnRtTNwLTJ9z1rGdXBxbq) | Diseño: escritorio 1440, tablet 834 con menú de íconos, móvil 390 con barra inferior y menú «Más». |
 
-Si dos fuentes no coinciden, no se elige en silencio: se anota en `docs/NOTAS_IT2.md` (Dudas, Diferencias encontradas y Decisiones tomadas). `docs/NOTAS_IT1.md` queda como historia.
+Si dos fuentes no coinciden, no se elige en silencio: se anota en `docs/NOTAS_IT2.md` (Dudas, Diferencias encontradas y Decisiones tomadas); lo de la Iteración 2.1 va en su sección «Iteración 2.1», con esas mismas tres partes. `docs/NOTAS_IT1.md` queda como historia.
 
 ## Alcance
 
@@ -38,6 +39,11 @@ Los CUS de la Iteración 2:
 | `pagos` | `IGU_MediosPago` | CUS62 |
 
 Los 20 CUS de la Iteración 1 siguen en pie y sus recorridos deben seguir funcionando (`e2e/recorrido.e2e.ts`). El prototipo muestra los 67 CUS: lo que no está en esta tabla ni en la Iteración 1 no se construye.
+
+## Reglas de la Iteración 2.1
+
+- **RN03 ajustada:** la especialista y el recurso quedan libres al terminar el servicio. No hay tiempo de limpieza: ni selector en `IGU_Recursos`, ni bloque «Limpieza» ni `finServicio` en `IGU_Agenda`, ni `LIMPIEZA_MAX_MIN` en `IGU_Parametros`.
+- **Nombres, nunca ids:** ninguna pantalla muestra un id en lugar de un nombre (clienta, especialista, usuario, servicio y variante, recurso, producto, paquete, medio de pago, sede). Los nombres llegan en la respuesta (página «02 Nombres en las respuestas»). Si un nombre no llega, se muestra «—» y se anota como duda; nunca el id ni un respaldo como «Clienta 407». Los números de documentos (cita, atención, venta, caja) pueden verse como «N° 123»; la venta, mejor con su comprobante (B001-123).
 
 ## Estructura
 

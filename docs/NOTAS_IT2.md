@@ -207,3 +207,60 @@ Dudas de NOTAS_IT1 que el contrato cierra: 1 (`x-permiso`), 2 (listas, salvo pro
 39. **Un recorrido después del otro.** El recorrido 2 no depende de lo que deja el 1, pero corre después de él (proyecto con dependencia). El 1 necesita las claves temporales de `admin` y `especialista1`, que el 2 también cambia. El 2 usa los usuarios que el 1 no toca (`recepcion`, `almacen`, `especialista2`) y abre su propia caja.
 40. **Horario por paso.** El recorrido 2 exige el horario de atención (lunes a sábado, de 09:00 a 17:00) desde el paso 3 ·, no al empezar. Así los pasos de configuración e inventario pueden correr a cualquier hora con `--grep`.
 41. **Datos de la base en la prueba.** Como en la Iteración 1, lo que ninguna pantalla muestra (ids, estados, kardex, saldo a favor, auditoría) se lee de la base como dueño del esquema, solo con SELECT.
+
+## Iteración 2.1
+
+Ajustes sin CUS nuevos (rama `tineo-feature/f12-nombres-sin-limpieza`), con el contrato 2.1 (`docs/openapi.yaml`) y `docs/Iteracion_2_1_Cautiva_Spa.drawio`, que manda para sus 21 páginas «modificado It. 2.1» y para la página «02 Nombres en las respuestas».
+
+### Estado
+
+Hecho:
+
+- `npm run modelos` regenera `core/api/modelos.generados.ts` con el contrato 2.1; `permisos.generados.ts` no cambia (103 operaciones, 33 permisos).
+- Sin limpieza (RN03 ajustada): `IGU_Recursos` ya no tiene selector ni columna de limpieza; `IGU_Agenda` pinta un solo bloque hasta `fin`, sin el bloque «Limpieza» ni `finServicio`; `IGU_Parametros` ya no valida `LIMPIEZA_MAX_MIN`.
+- Nombres, nunca ids, en agenda, Mi agenda, atención, ficha, nueva cita, reprogramar, cancelar, cobros, proforma, venta rápida, venta de productos, anulaciones (solicitud, bandeja y devoluciones), caja, revisión de caja, conciliación, usuarios, cabecera, inicio, reportes, kardex, paquetes y promociones. Si un nombre no llega se muestra «—».
+- Cobro digital al retomar (Duda 4): los cobros en espera salen de `VentaDTO.cobrosPendientes` (medio, monto, canal y enlace), también los iniciados en otro equipo. Se quitó «Quitar».
+- El grep del encargo sobre `src/app` (sin `.spec.ts`) da cero para `'Clienta ' +`, `` `Clienta ${ ``, `'Usuario '`, `Usuario {{`, `Sede {{`, `Personal {{`, `Recurso {{`, `Especialista {{`, `` `Especialista ${ ``, `` `Recurso ${ ``, `` `Producto ${ ``, `` `Paquete ${ ``, `` `Servicio ${ ``, `` `Medio ${ ``, `` `Detalle ${ `` y `(línea`. Para `Variante` ver la Duda 3 de esta sección.
+
+Comprobado:
+
+- `npm run build` sin errores ni advertencias.
+- `npm test -- --watch=false`: 41 archivos, 276 pruebas, todas aprobadas. Cada página tocada tiene una prueba que comprueba que se ve el nombre y no el id.
+
+Sin comprobar:
+
+- `npm run e2e` no se corrió: los recorridos se ajustan en F13. Siguen usando la limpieza (`e2e/recorrido.e2e.ts`, paso «CUS61 y RN03» con `#minutosLimpieza`; `e2e/recorrido-it2.e2e.ts`, `LIMPIEZA_MAX_MIN` y «cita de 90 min + limpieza») y textos con ids, así que fallarán hasta F13.
+- No se revisaron las pantallas en el navegador a 1440, 834 y 390.
+- `./mvnw -q verify` no aplica: este repositorio es solo el front-end y el back-end no se modificó.
+
+### Dudas
+
+1. **Nombre de otra sede.** `SesionDTO.nombreSede` nombra solo la sede de la sesión. En reportes, un resultado de otra sede y, en `IGU_Recursos`, un recurso registrado en otra sede no tienen nombre (no hay `GET /sedes`, Duda 29): reportes muestra «—» y el aviso dice «Recurso registrado en otra sede.». ¿`RecursoDTO` y el resultado del reporte traen `nombreSede`?
+2. **Estados de `CobroPendienteDTO`.** El contrato no enumera `estado`. Se supone que es el de la transacción: PENDIENTE espera, APROBADA se reenvía con `idTransaccion` (RN42) y RECHAZADA no se muestra. Si un cobro ya no está en la lista y no hay pago RECHAZADO, se da por sumado, como en la decisión 8.
+3. **El patrón `Variante` del grep no puede quedar en cero.** Coincide con identificadores (`idVariante`, `nombreVariante`, `SelectorVariante`, `VarianteDTO`) y con etiquetas que no muestran un id: «+ Variante», el placeholder «Variante» y «Variantes y precio fijo (RN40)» del catálogo, y «CÓDIGO DE LA VARIANTE» del selector. Ningún texto muestra «Variante 2».
+4. **Códigos que se escriben.** Siguen tres campos donde se escribe un código, sin mostrarlo como nombre: la variante sin `CATALOGO:VER` (decisión 5), la especialista que recomendó sin `AGENDA:VER` (Duda 16) y la clienta de la proforma («nombre o código»). ¿Se quitan también, como el código de la clienta en la cita?
+5. **Venta o compra sin documento en el kardex.** Si `MovimientoKardexDTO` trae la línea sin `comprobante` o sin `documentoCompra`, el origen dice «Venta —» o «Compra —».
+
+Dudas de esta nota que el contrato 2.1 cierra: 1 (`CitaAtencionDTO` con nombres), 2 (`UsuarioDTO` con nombres, `nombreRol` y `ultimoAcceso`), 4 (`cobrosPendientes` con medio, monto y canal), 7 (`SesionDTO.nombreSede`), 9 (ficha con nombres), 14 (`nombreUsuarioSolicita`), 21 (`comprobante` y `documentoCompra` en el kardex), 22 (`ItemConciliacion` en el contrato) y 25 (`CajaDTO` con los nombres de los usuarios). La Duda 8 (especialista libre tras terminar antes) queda resuelta por RN03: sin limpieza, la especialista y el recurso quedan libres al terminar el servicio.
+
+### Diferencias encontradas
+
+| N° | Dónde | Diferencia | Qué se hizo |
+| --- | --- | --- | --- |
+| 1 | Contrato 2.1 frente a la Iteración 2 (RN03) | `RecursoDTO` deja `minutosLimpieza`, `FranjaAgendaDTO` deja `finServicio` y `LIMPIEZA_MAX_MIN` se retira. | Reemplaza las diferencias 1 y 7 de esta nota: sin selector, sin bloque «Limpieza» y sin la validación del parámetro. |
+| 2 | `HoraLibre` (diferencia 11) | Trae `especialistas` y `recursos` con nombre, y conserva `idsPersonal` e `idsRecurso`. | Nueva cita, reprogramar y venta rápida recorren los ids y los nombran con la hora libre; en la agenda, si falta, con `GET /citas/filtros`. Cierra la diferencia 11. |
+| 3 | `ConciliacionDTO` (Duda 22) | `items` ya apunta a `ItemConciliacion`. | Se borró la interfaz propia de `caja.modelos.ts`: se reexporta la generada y `Conciliacion` es `ConciliacionDTO`. |
+| 4 | Encargo frente al código | La lista del 15/11/2026 no nombraba: «SEDE 1» de Inicio, la sede del resultado de reportes, el rol de la fila de usuarios (caía al id), «Caja 12» de revisión y caja, «Venta 620» y «Transacción 82» de la conciliación, y «Cita 950» de las notificaciones de la agenda. | La sede, por su nombre; el rol, con `nombreRol`; los números de documento, como «N° 123». |
+| 5 | Encargo frente a la Iteración 2 (CUS01) | «CÓDIGO DE LA CLIENTA» dejaba agendar sin buscar y mostraba «Clienta 407». | La clienta se elige siempre de la búsqueda. Sin `CLIENTAS:VER` el selector lo dice y la cita no se puede agendar. |
+| 6 | Página «02 Nombres» frente a `AtencionFicha` | La ficha trae también `nombreRecurso`. | El historial muestra servicio y especialista, como el prototipo; el recurso no se agregó. |
+
+### Decisiones tomadas
+
+1. **Ayudas de nombres en `core/api/nombres.ts`.** `nombreO(...)` da el primer nombre con texto o «—» (`SIN_NOMBRE`); `nombreCompleto` une nombres y apellidos; `numero(id)` da «N° 123»; `nombreVenta(comprobante, idVenta)` da «B001-123» o «Venta N° 123»; `comprobanteDe` arma la serie y el número; `especialistaLibre` y `recursoLibre` nombran desde una `HoraLibre`.
+2. **Orden de los nombres.** Primero el de la respuesta (página «02 Nombres»); si no llega, el de una lista que la página ya leyó (filtros de la agenda, medios de pago, servicios, paquetes, roles, productos comprados); si tampoco, «—». Nunca se pide una lista nueva solo para nombrar.
+3. **Documentos con número.** Cita, atención, venta, caja, nota de crédito y transacción se muestran como «N° 123»; la venta, con su comprobante cuando lo tiene. Las etiquetas de accesibilidad («Cobrar la atención 1532») siguen con el número.
+4. **`etiquetaMedio(medio, nombreMedioPago)`.** El segundo parámetro ya no es el id: es el nombre que trae el pago (`PagoVentaDTO.nombreMedioPago`). Sin medio ni nombre, «—».
+5. **Cobros en espera sin memoria propia.** `enEspera` se calcula de `venta().cobrosPendientes`: no se recuerda nada en la página y la venta del servidor manda. «Verificar aprobación» relee `GET /ventas/{idVenta}`: aprobado y aún pendiente se reenvía con `idTransaccion`, medio y monto del cobro pendiente (RN42); pendiente, se espera; rechazado, se avisa. El cierre sigue bloqueado mientras haya cobros en espera. Reemplaza la parte de «quitarlo» de la decisión 8.
+6. **Detalle de la venta.** `DetalleVentaDTO.descripcion` con `nombreEspecialista` cuando la hay («Corte de Cabello Caballero · Estándar · Lucía Ramos»); ya no «Atención 1532» ni «Detalle 1».
+7. **Usuarios.** La primera columna muestra nombres y apellidos de la persona con su último acceso; el rol sale de `nombreRol`.
+8. **Plan de commits de la Iteración 2.1.** El contrato regenerado quita `finServicio` y `minutosLimpieza`, así que agenda y recursos no compilan con él si van separados: el primer commit lleva `core/api/modelos.generados.ts`, `core/api/nombres.ts`, `agenda` y `sedes`. El cambio de `etiquetaMedio` en `core/api/medios.ts` va con `ventas`, que es el que le pasa `nombreMedioPago`; `caja` va antes y compila con las dos versiones. `layout` y `reportes` comparten un commit porque los dos solo pasan a `SesionDTO.nombreSede` y así no se pasa de ocho. Cada módulo lleva sus pruebas en su commit y la documentación va al final.

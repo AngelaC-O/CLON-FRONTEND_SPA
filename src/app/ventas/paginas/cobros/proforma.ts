@@ -3,6 +3,7 @@ import { Component, computed, inject, OnInit, output, signal } from '@angular/co
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ListasService } from '../../../core/api/listas.service';
 import { soles } from '../../../core/api/moneda';
+import { nombreO } from '../../../core/api/nombres';
 import { mensajeDelProblema } from '../../../core/api/problema';
 import { PERMISOS } from '../../../core/sesion/permisos';
 import { SesionService } from '../../../core/sesion/sesion.service';
@@ -28,7 +29,7 @@ const DIAS_VIGENCIA = 7;
           <div class="mut sm">
             Cautiva Spa E.I.R.L. · documento interno, no reemplaza al comprobante (RN09)
           </div>
-          <div class="b">{{ proforma.nombreCliente || 'Clienta ' + proforma.idCliente }}</div>
+          <div class="b">{{ nombreO(proforma.nombreCliente) }}</div>
           @for (item of proforma.items; track $index) {
             <div class="row sm">
               <span class="sp">{{ descripcion(item) }} × {{ item.cantidad }}</span>
@@ -199,6 +200,7 @@ export class Proforma implements OnInit {
   readonly cerrar = output<void>();
 
   protected readonly soles = soles;
+  protected readonly nombreO = nombreO;
   protected readonly conCatalogo = computed(() => this.sesion.tienePermiso(PERMISOS.catalogoVer));
   protected readonly paquetes = signal<PaqueteDTO[]>([]);
   protected readonly promociones = signal<PromocionDTO[]>([]);
@@ -234,12 +236,12 @@ export class Proforma implements OnInit {
     this.items = this.items.filter((_, i) => i !== indice);
   }
 
+  /** La descripción que trae el ítem de la proforma (It. 2.1); si no, la del paquete, o «—». */
   protected descripcion(item: Item): string {
-    if (item.tipoItem === 'PAQUETE') {
-      const paquete = this.paquetes().find((p) => p.idPaquete === item.idPaquete);
-      return paquete?.nombre ?? `Paquete ${item.idPaquete}`;
-    }
-    return `Variante ${item.idVariante}`;
+    const paquete = item.idPaquete
+      ? this.paquetes().find((p) => p.idPaquete === item.idPaquete)?.nombre
+      : undefined;
+    return nombreO(item.descripcion, paquete);
   }
 
   protected emitir(): void {

@@ -8,11 +8,17 @@ import { numeroDocumentoValido, tiposActivos } from '../../../core/api/documento
 import { ListasService } from '../../../core/api/listas.service';
 import { TipoDocumentoDTO } from '../../../core/api/modelos.generados';
 import { soles } from '../../../core/api/moneda';
+import { nombreO } from '../../../core/api/nombres';
 import { mensajeDelProblema } from '../../../core/api/problema';
 import { NotificacionesService } from '../../../core/notificaciones/notificaciones.service';
 import { PERMISOS } from '../../../core/sesion/permisos';
 import { SesionService } from '../../../core/sesion/sesion.service';
-import { ClienteDTO, FichaClienteDTO, PaqueteFicha } from '../../modelos/agenda.modelos';
+import {
+  ClienteDTO,
+  FichaClienteDTO,
+  PaqueteFicha,
+  RecomendacionDTO,
+} from '../../modelos/agenda.modelos';
 import { claseEstado, etiquetaEstado, fechaCorta } from '../../modelos/agenda.vista';
 import { ClientesService } from '../../servicios/clientes.service';
 
@@ -45,6 +51,7 @@ export class FichaClienta implements OnInit {
   private readonly ruta = inject(ActivatedRoute);
 
   protected readonly soles = soles;
+  protected readonly nombreO = nombreO;
   protected readonly fechaCorta = fechaCorta;
   protected readonly etiquetaEstado = etiquetaEstado;
   protected readonly claseEstado = claseEstado;
@@ -145,10 +152,12 @@ export class FichaClienta implements OnInit {
     return actual && !activos.includes(actual) ? [...activos, actual] : activos;
   }
 
-  /** La recomendación trae el id del producto; el nombre, si la clienta lo compró. */
-  protected producto(idProducto: number): string {
-    const comprado = this.ficha()?.productosComprados?.find((p) => p.idProducto === idProducto);
-    return comprado?.producto ?? `Producto ${idProducto}`;
+  /** La recomendación trae el nombre del producto (It. 2.1); si no, el de lo que compró, o «—». */
+  protected producto(recomendacion: RecomendacionDTO): string {
+    const comprado = this.ficha()?.productosComprados?.find(
+      (p) => p.idProducto === recomendacion.idProducto,
+    );
+    return nombreO(recomendacion.nombreProducto, comprado?.producto);
   }
 
   protected estadoPaquete(paquete: PaqueteFicha): { texto: string; clase: string } {

@@ -19,12 +19,12 @@ const BLOQUES: FranjaAgendaDTO[] = [
     idRecurso: 1,
     idVariante: 2,
     inicio: `${HOY}T10:00:00`,
-    finServicio: `${HOY}T10:30:00`,
-    fin: `${HOY}T10:40:00`,
+    fin: `${HOY}T10:30:00`,
     estado: 'PENDIENTE',
     nombreCliente: 'Marisol Quispe',
     nombreEspecialista: 'Lucía Ramos',
     nombreServicio: 'Corte de Cabello Caballero',
+    nombreRecurso: 'Sillón 1',
   },
   {
     franja: 'LIBRE',
@@ -157,7 +157,7 @@ describe('Agenda', () => {
       providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     });
     http = TestBed.inject(HttpTestingController);
-    entrarComo({ idSede: 1, permisos });
+    entrarComo({ idSede: 1, nombreSede: 'Pichanaki Centro', permisos });
     fixture = TestBed.createComponent(Agenda);
     await estable();
     raiz = fixture.nativeElement;
@@ -177,21 +177,64 @@ describe('Agenda', () => {
     expect(bloque.textContent).toContain('10:00 · Marisol Quispe');
     expect(bloque.textContent).toContain('Corte de Cabello Caballero · Sillón 1');
     expect(bloque.style.top).toBe('60px');
-    // La especialista queda libre al terminar el servicio: sin la limpieza (RN03).
+    // La especialista y el recurso quedan libres al terminar el servicio (RN03, It. 2.1).
     expect(bloque.style.height).toBe('30px');
-    expect(raiz.querySelector('.bloque.limpieza')).toBeNull();
     await clic('Por recurso');
     expect(titulos()).toEqual(['Sillón 1', 'Sillón 2']);
     expect(raiz.querySelector('.bloque')?.textContent).toContain('Lucía Ramos');
   });
 
-  it('CUS08: el bloque de limpieza se pinta solo en el recurso', async () => {
+  it('CUS08: un solo bloque hasta el fin, también por recurso, sin «Limpieza» (RN03, It. 2.1)', async () => {
     await montar(permisos);
     await clic('Por recurso');
-    const limpieza = raiz.querySelector<HTMLElement>('.bloque.limpieza')!;
-    expect(limpieza.textContent?.trim()).toBe('Limpieza');
-    expect(limpieza.style.top).toBe('90px');
-    expect(limpieza.style.height).toBe('10px');
+    const bloques = raiz.querySelectorAll<HTMLElement>('.rejilla .bloque');
+    expect(bloques).toHaveLength(1);
+    expect(bloques[0].style.height).toBe('30px');
+    expect(raiz.textContent).not.toContain('Limpieza');
+  });
+
+  it('It. 2.1: nombra la sede, el servicio y el recurso que trae la respuesta, nunca el id', async () => {
+    await montar(permisos);
+    expect(raiz.querySelector('.h1 + .mut')?.textContent).toContain('Pichanaki Centro');
+    // Sin filtros (sin GET /citas/filtros), el recurso sale de la franja.
+    const sinFiltros = BLOQUES.map((b) => ({ ...b, idRecurso: b.idRecurso ? 9 : undefined }));
+    fixture.componentInstance['bloques'].set(sinFiltros);
+    await estable();
+    const texto = raiz.querySelector('.rejilla')!.textContent!;
+    expect(texto).toContain('Corte de Cabello Caballero · Sillón 1');
+    expect(texto).not.toMatch(/Sede 1|Variante 2|Recurso 9|Clienta 407/);
+    await abrirCita();
+    const modal = raiz.querySelector('app-modal')!.textContent!;
+    expect(modal).toContain('Sillón 1');
+    expect(modal).toContain('N° 950');
+  });
+
+  it('It. 2.1: sin nombre en la respuesta muestra «—», no el id', async () => {
+    await montar(permisos);
+    fixture.componentInstance['bloques'].set([
+      {
+        ...BLOQUES[0],
+        idPersonal: 8,
+        idRecurso: 9,
+        nombreServicio: undefined,
+        nombreRecurso: undefined,
+        nombreEspecialista: undefined,
+      },
+    ]);
+    await estable();
+    const texto = raiz.querySelector('.rejilla')!.textContent!;
+    expect(texto).toContain('— · —');
+    expect(texto).not.toMatch(/Especialista 8|Recurso 9|Variante 2/);
+  });
+
+  it('It. 2.1: la clienta se elige de la búsqueda; sin CLIENTAS:VER no se escribe su código', async () => {
+    await montar(['AGENDA:VER', 'AGENDA:CREAR', 'CATALOGO:VER']);
+    await clic('+ Nueva cita');
+    http.expectOne('/api/v1/servicios?estado=ACTIVO').flush(SERVICIOS);
+    await estable();
+    const selector = raiz.querySelector('app-selector-clienta')!;
+    expect(selector.querySelector('#codigoClienta')).toBeNull();
+    expect(selector.textContent).toContain('CLIENTAS:VER');
   });
 
   it('CUS08: filtra con las especialistas y recursos de GET /citas/filtros', async () => {
@@ -239,15 +282,23 @@ describe('Agenda', () => {
     await montar(permisos);
     await prepararCita();
     await verHoras([
-      { inicio: `${HOY}T15:00:00`, duracionMin: 30, idsPersonal: [4, 5], idsRecurso: [1] },
+      {
+        inicio: `${HOY}T15:00:00`,
+        duracionMin: 30,
+        idsPersonal: [4, 5, 6],
+        idsRecurso: [1, 3],
+        especialistas: [{ idPersonal: 6, nombre: 'Carla Rojas' }],
+        recursos: [{ idRecurso: 3, nombre: 'Sillón 3' }],
+      },
       { inicio: `${HOY}T15:15:00`, duracionMin: 30, idsPersonal: [4], idsRecurso: [1] },
     ]);
     expect(boton('15:15')).toBeDefined();
     await clic('15:00');
-    const especialistas = [...raiz.querySelectorAll('#citaIdPersonal option')].map((o) =>
-      o.textContent?.trim(),
-    );
-    expect(especialistas).toEqual(['Lucía Ramos', 'Ana Torres']);
+    const opciones = (id: string) =>
+      [...raiz.querySelectorAll(`#${id} option`)].map((o) => o.textContent?.trim());
+    // Los nombres llegan en HoraLibre (It. 2.1); los que faltan, de GET /citas/filtros.
+    expect(opciones('citaIdPersonal')).toEqual(['Lucía Ramos', 'Ana Torres', 'Carla Rojas']);
+    expect(opciones('citaIdRecurso')).toEqual(['Sillón 1', 'Sillón 3']);
     await clic('Agendar');
     const peticion = http.expectOne('/api/v1/citas');
     expect(peticion.request.body).toEqual({

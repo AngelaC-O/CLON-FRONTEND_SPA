@@ -16,6 +16,7 @@ import { ListasService } from '../../../core/api/listas.service';
 import { CanalCobro, canalPropuesto, etiquetaMedio, mediosActivos } from '../../../core/api/medios';
 import { Especialista, MedioPagoDTO, TipoDocumentoDTO } from '../../../core/api/modelos.generados';
 import { redondear, soles } from '../../../core/api/moneda';
+import { nombreCompleto } from '../../../core/api/nombres';
 import { leerProblema, mensajeDelProblema } from '../../../core/api/problema';
 import { NotificacionesService } from '../../../core/notificaciones/notificaciones.service';
 import { PERMISOS } from '../../../core/sesion/permisos';
@@ -132,10 +133,7 @@ export class VentaProductos implements OnInit {
   }
 
   protected nombreEspecialista(especialista: Especialista): string {
-    return (
-      [especialista.nombres, especialista.apellidos].filter(Boolean).join(' ') ||
-      `Especialista ${especialista.idPersonal}`
-    );
+    return nombreCompleto(especialista);
   }
 
   protected producto(idProducto: number | null | undefined): ProductoStockDTO | undefined {

@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, input, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { soles } from '../../../core/api/moneda';
+import { nombreO } from '../../../core/api/nombres';
 import { mensajeDelProblema } from '../../../core/api/problema';
 import { NotificacionesService } from '../../../core/notificaciones/notificaciones.service';
 import { PERMISOS } from '../../../core/sesion/permisos';
@@ -44,7 +45,7 @@ function fecha(valor?: string): string {
             <tr>
               <td>
                 <div class="b">{{ promocion.nombre }}</div>
-                <div class="xs mut">{{ nombresServicios(promocion.idsServicio) }}</div>
+                <div class="xs mut">{{ nombresServicios(promocion) }}</div>
               </td>
               <td class="r num">{{ descuento(promocion) }}</td>
               <td class="num">
@@ -165,9 +166,13 @@ export class Promociones implements OnInit {
       : soles(promocion.valor);
   }
 
-  protected nombresServicios(ids?: number[]): string {
-    return (ids ?? [])
-      .map((id) => this.servicios().find((s) => s.idServicio === id)?.nombre ?? `Servicio ${id}`)
+  /** Los servicios que trae la respuesta (It. 2.1); si no, los de la lista, o «—». */
+  protected nombresServicios(promocion: PromocionDTO): string {
+    if (promocion.servicios?.length) {
+      return promocion.servicios.map((s) => nombreO(s.nombre)).join(', ');
+    }
+    return (promocion.idsServicio ?? [])
+      .map((id) => nombreO(this.servicios().find((s) => s.idServicio === id)?.nombre))
       .join(', ');
   }
 

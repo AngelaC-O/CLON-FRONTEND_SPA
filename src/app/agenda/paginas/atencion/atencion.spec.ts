@@ -13,6 +13,10 @@ const ATENCION: AtencionDTO = {
   idPersonal: 4,
   idRecurso: 1,
   idVariante: 2,
+  nombreCliente: 'Rosaura Quispe',
+  nombreEspecialista: 'Lucía Ramos',
+  nombreRecurso: 'Sillón 1',
+  nombreServicio: 'Corte de Cabello Caballero · Estándar',
   tiempoDeclaradoMin: 45,
   estado: 'EN_CURSO',
   horaInicio: '2026-11-03T10:00:00',
@@ -72,7 +76,18 @@ describe('Atencion', () => {
       .flush([{ idCita: 950, estado: 'EN_ATENCION', estadoAtencion: 'EN_CURSO' }]);
     http.expectOne('/api/v1/atenciones/en-curso?idCita=950').flush(ATENCION);
     await estable();
-    expect(raiz.textContent).toContain('Cita 950');
+    expect(raiz.textContent).toContain('Cita N° 950');
+  });
+
+  it('It. 2.1: el resumen nombra servicio, recurso, especialista y clienta; nunca sus ids', async () => {
+    await montar(950);
+    http.expectOne('/api/v1/atenciones/en-curso?idCita=950').flush(ATENCION);
+    await estable();
+    const texto = raiz.textContent!;
+    expect(texto).toContain('Corte de Cabello Caballero · Estándar');
+    expect(texto).toContain('Sillón 1 · Lucía Ramos');
+    expect(texto).toContain('Rosaura Quispe');
+    expect(texto).not.toMatch(/Variante 2|Recurso 1|Especialista 4/);
   });
 
   it('muestra el 404 de una cita sin atención en curso', async () => {

@@ -1,3 +1,4 @@
+import { nombreCompleto, numero } from '../../core/api/nombres';
 import { Especialista, FranjaAgendaDTO } from './agenda.modelos';
 
 /** Fecha local de hoy como la pide el contrato (2026-11-09). */
@@ -52,12 +53,12 @@ export function tituloBloque(bloque: FranjaAgendaDTO): string {
   if (bloque.nombreCliente) {
     return bloque.nombreCliente;
   }
-  return bloque.origen === 'CITA' ? `Cita ${bloque.idOrigen}` : 'Atención sin cita';
+  return bloque.origen === 'CITA' ? `Cita ${numero(bloque.idOrigen)}` : 'Atención sin cita';
 }
 
+/** Nombres y apellidos de la especialista, o «—» (nunca su id, It. 2.1). */
 export function nombreEspecialista(especialista: Especialista | undefined): string {
-  const nombre = [especialista?.nombres, especialista?.apellidos].filter(Boolean).join(' ');
-  return nombre || `Especialista ${especialista?.idPersonal ?? ''}`.trim();
+  return nombreCompleto(especialista);
 }
 
 /** La fecha y hora ya pasaron: el back-end responde 422 por RN49. */

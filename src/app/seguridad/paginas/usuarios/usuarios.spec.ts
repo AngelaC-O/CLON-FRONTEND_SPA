@@ -40,6 +40,10 @@ const USUARIOS: UsuarioDTO[] = [
     idRol: 2,
     estado: 'ACTIVO',
     clave: '',
+    nombres: 'Rosa',
+    apellidos: 'Quispe',
+    nombreRol: 'RECEPCIONISTA',
+    ultimoAcceso: '2026-11-16T08:55:00',
   },
 ];
 
@@ -99,6 +103,15 @@ describe('Usuarios', () => {
     expect(filas).toHaveLength(2);
     expect(filas[1]).toContain('recepcion2');
     expect(filas[1]).toContain('RECEPCIONISTA');
+  });
+
+  it('It. 2.1: la tabla nombra a la persona y su último acceso, no «Personal 3» (Duda 2)', async () => {
+    await montar(['SEGURIDAD:VER']);
+    const filas = [...raiz.querySelectorAll('tbody tr')].map((f) => f.textContent ?? '');
+    expect(filas[1]).toContain('Rosa Quispe');
+    expect(filas[1]).toContain('Último acceso 16/11/2026 08:55');
+    expect(filas[0]).toContain('—');
+    expect(filas.join(' ')).not.toMatch(/Personal \d/);
   });
 
   it('sin permisos de escritura no ofrece crear, asignar ni guardar', async () => {

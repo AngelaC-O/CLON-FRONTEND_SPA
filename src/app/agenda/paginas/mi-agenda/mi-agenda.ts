@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { nombreO, numero } from '../../../core/api/nombres';
 import { leerProblema, mensajeDelProblema } from '../../../core/api/problema';
 import { Modal } from '../../../layout/modal/modal';
 import { CitaAtencionDTO } from '../../modelos/agenda.modelos';
@@ -23,6 +24,8 @@ export class MiAgenda implements OnInit {
   private readonly router = inject(Router);
 
   protected readonly horaDe = horaDe;
+  protected readonly nombreO = nombreO;
+  protected readonly numero = numero;
   protected readonly etiquetaEstado = etiquetaEstado;
   protected readonly claseEstado = claseEstado;
 
