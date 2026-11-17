@@ -39,7 +39,7 @@
         <label class="lbl" for="reporteSede">SEDE</label>
         <select class="inp" id="reporteSede" formControlName="idSede">
           @if (idSedeSesion) {
-            <option [ngValue]="idSedeSesion">Sede {{ idSedeSesion }} (la de la sesión)</option>
+            <option [ngValue]="idSedeSesion">{{ nombreSede }} (la de la sesión)</option>
           }
           <option [ngValue]="null">Todas (consolidado)</option>
         </select>
@@ -66,7 +66,7 @@
           <h2 class="h2" id="tituloReporte">{{ actual.titulo }}</h2>
           <div class="xs mut num">
             {{ actual.fechaInicio }} a {{ actual.fechaFin }} ·
-            {{ actual.idSede ? 'Sede ' + actual.idSede : 'Todas las sedes' }}
+            {{ actual.idSede ? nombreSedeDe(actual.idSede) : 'Todas las sedes' }}
           </div>
         </div>
         @if (puedeExportar()) {

@@ -57,14 +57,6 @@
   background: var(--ok-l);
   color: var(--ok);
 }
-.bloque.limpieza {
-  min-height: 0;
-  padding: 0 var(--e-8);
-  border-style: dashed;
-  border-color: var(--line);
-  background: var(--relleno-tabla);
-  color: var(--mut);
-}
 .bloque .abrir {
   all: unset;
   display: block;

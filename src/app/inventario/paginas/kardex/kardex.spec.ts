@@ -34,6 +34,7 @@ const MOVIMIENTOS: MovimientoKardexDTO[] = [
     saldo: 8,
     fechaHora: '2026-11-10T10:00:00',
     idDetalleVenta: 900,
+    comprobante: 'B001-00000123',
     usuario: 'recepcion1',
   },
 ];
@@ -116,7 +117,9 @@ describe('Kardex (CUS35)', () => {
     expect(filas[1]).toContain('Ajuste');
     expect(filas[1]).toContain('+2');
     expect(filas[1]).toContain('Manual');
-    expect(filas[2]).toContain('Venta (línea 900)');
+    // La venta se nombra por su comprobante, no por su línea (Duda 21, It. 2.1).
+    expect(filas[2]).toContain('Venta B001-00000123');
+    expect(filas[2]).not.toContain('900');
     expect(raiz.querySelector('#resumenProducto')?.textContent).toContain('En stock mínimo');
   });
 

@@ -4,14 +4,10 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ClientaElegida, SelectorClienta } from '../../../agenda/paginas/agenda/selector-clienta';
 import { Router } from '@angular/router';
 import { ListasService } from '../../../core/api/listas.service';
-import {
-  CanalCobro,
-  canalPropuesto,
-  etiquetaMedio,
-  mediosActivos,
-} from '../../../core/api/medios';
+import { CanalCobro, canalPropuesto, etiquetaMedio, mediosActivos } from '../../../core/api/medios';
 import { MedioPagoDTO, TipoDocumentoDTO } from '../../../core/api/modelos.generados';
 import { soles } from '../../../core/api/moneda';
+import { especialistaLibre, recursoLibre } from '../../../core/api/nombres';
 import { mensajeDelProblema } from '../../../core/api/problema';
 import { NotificacionesService } from '../../../core/notificaciones/notificaciones.service';
 import {
@@ -52,6 +48,9 @@ export class SinCita implements OnInit {
   private readonly notificaciones = inject(NotificacionesService);
 
   protected readonly soles = soles;
+  /** Los nombres llegan en HoraLibre.especialistas y recursos (diferencia 11, It. 2.1). */
+  protected readonly especialistaLibre = especialistaLibre;
+  protected readonly recursoLibre = recursoLibre;
   protected readonly etiquetaMedio = etiquetaMedio;
   /** GET /medios-pago (CUS62), en lugar de la copia fija (Duda 11 de NOTAS_IT1). */
   protected readonly medios = signal<MedioPagoDTO[]>([]);

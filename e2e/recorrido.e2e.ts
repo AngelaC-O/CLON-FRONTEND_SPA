@@ -10,9 +10,13 @@ import {
   CLAVE_TEMPORAL,
   claves,
   elegirClienta,
+  especialistaDelDia,
+  exigirHorario,
   iniciarSesion,
   modal,
+  nombreDe,
   obtenido,
+  sinIds,
   sql,
   valor,
 } from './apoyo';
@@ -30,6 +34,10 @@ const CLIENTA_CE = 'Yolanda';
 const PRECIO = 60;
 const ADELANTO_EFECTIVO = 10;
 const ADELANTO_ENLACE = 20;
+const PANTALLAS = 'it1.txt';
+
+/** It. 2.1: ninguna pantalla que visita el recorrido muestra un id como nombre. */
+const revisar = (page: Page, pantalla: string) => sinIds(page, pantalla, PANTALLAS);
 
 test.describe.configure({ mode: 'serial' });
 
@@ -42,6 +50,9 @@ let idUsuarioRecepcion: string;
 let idVariante: string;
 let idRecurso: string;
 let idEspecialista: string;
+/** especialista1 o, si hoy descansa, especialista3 (mismas áreas, script 19). */
+let usuarioEspecialista: string;
+let nombreEspecialista: string;
 let idCitaEfectivo: number;
 let idCitaEnlace: number;
 let idAtencion: string;
@@ -78,6 +89,8 @@ async function elegirVariante(
   variante: string | null,
   idVariante: string,
 ): Promise<void> {
+  // count() no espera: primero el campo de la variante, que siempre está (select o código).
+  await expect(page.locator(`#${prefijo}IdVariante`)).toBeVisible();
   const servicios = page.locator(`#${prefijo}Servicio`);
   if ((await servicios.count()) === 0) {
     await page.locator(`#${prefijo}IdVariante`).fill(idVariante);
@@ -100,18 +113,17 @@ async function verHoras(page: Page, variante: string): Promise<string[]> {
 
 async function elegirHoraYRecurso(page: Page, hora: string): Promise<void> {
   await modal(page).getByRole('button', { name: hora, exact: true }).click();
-  // It. 2: el recurso se muestra con su nombre (GET /citas/filtros).
+  // It. 2.1: especialista y recurso con su nombre (HoraLibre); la especialista es la que trabaja hoy.
+  await page.locator('#citaIdPersonal').selectOption({ label: nombreEspecialista });
   await page.locator('#citaIdRecurso').selectOption({ label: 'Sillón E2E' });
 }
 
 test.beforeAll(async ({ browser }) => {
-  const ahora = new Date();
-  const lima = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Lima' }));
-  const minutos = lima.getHours() * 60 + lima.getMinutes();
-  if (lima.getDay() === 0 || minutos < 9 * 60 || minutos > 17 * 60 + 30) {
-    throw new Error('El recorrido atiende hoy: córrelo de lunes a sábado, de 09:00 a 17:30.');
-  }
+  exigirHorario();
   rmSync('test-results/obtenido.txt', { force: true });
+  rmSync(`test-results/pantallas-${PANTALLAS}`, { force: true });
+  usuarioEspecialista = especialistaDelDia('especialista1', 'especialista3');
+  nombreEspecialista = nombreDe(usuarioEspecialista);
   contextos = [];
   admin = await nuevaPagina(browser);
   recepcion = await nuevaPagina(browser);
@@ -150,6 +162,7 @@ test('CUS52: registra el usuario de la Recepcionista Dos', async () => {
   await admin.locator('#idRol').selectOption({ label: 'ENCARGADA_ALMACEN' });
   await admin.getByRole('button', { name: 'Registrar usuario' }).click();
   await expect(admin.locator('tbody')).toContainText('recepcion2');
+  await revisar(admin, 'Usuarios');
   idUsuarioRecepcion = valor("SELECT id_usuario FROM USUARIO WHERE nombre_usuario = 'recepcion2'");
   expect(
     valor(`SELECT debe_cambiar_clave FROM USUARIO WHERE id_usuario = ${idUsuarioRecepcion}`),
@@ -211,6 +224,7 @@ test('CUS57: registra un área y un servicio con dos variantes', async () => {
   await modal(admin).getByRole('button', { name: 'Guardar servicio' }).click();
   await expect(admin.locator('.gf2')).toContainText('Corte E2E');
   await expect(admin.locator('.gf2')).toContainText('Niña');
+  await revisar(admin, 'Catálogo');
   const variantes = sql(
     "SELECT v.id_variante, v.nombre, v.precio FROM VARIANTE_SERVICIO v JOIN SERVICIO s ON s.id_servicio = v.id_servicio WHERE s.nombre = 'Corte E2E' ORDER BY v.precio DESC",
   );
@@ -219,7 +233,7 @@ test('CUS57: registra un área y un servicio con dos variantes', async () => {
   obtenido('CUS57', `área Barbería E2E; variantes ${variantes.map((v) => v.join(' ')).join(', ')}`);
 });
 
-test('CUS61 y RN03: registra un recurso con su limpieza, de 0 a 10 min', async () => {
+test('CUS61: registra un recurso con su tipo, sin tiempo de limpieza (RN03 v5.2)', async () => {
   await admin.goto('/sedes/recursos');
   // It. 2: la tabla lista los recursos de la sede (GET /recursos).
   const antes = Number(valor('SELECT COUNT(*) FROM RECURSO WHERE id_sede = 1'));
@@ -227,22 +241,18 @@ test('CUS61 y RN03: registra un recurso con su limpieza, de 0 a 10 min', async (
   await admin.getByRole('button', { name: '+ Recurso' }).click();
   await admin.locator('#nombre').fill('Sillón E2E');
   await admin.locator('#tipo').selectOption({ label: 'Sillón' });
-  // La pantalla solo ofrece de 0 a 10; el back-end también rechaza 11.
-  await expect(admin.locator('#minutosLimpieza option')).toHaveCount(12);
-  const fuera = await api(admin, 'post', '/recursos', {
-    idSede: 1,
-    nombre: 'Sillón E2E',
-    tipo: 'SILLON',
-    minutosLimpieza: 11,
-  });
-  expect(fuera.status).toBe(422);
-  expect(valor("SELECT COUNT(*) FROM RECURSO WHERE nombre = 'Sillón E2E'")).toBe('0');
-
-  await admin.locator('#minutosLimpieza').selectOption({ label: '10 min' });
+  // It. 2.1: el recurso no tiene tiempo de limpieza (RECURSO.minutos_limpieza se retiró).
+  await expect(admin.locator('#minutosLimpieza')).toHaveCount(0);
   await modal(admin).getByRole('button', { name: 'Guardar recurso' }).click();
   await expect(admin.locator('tbody')).toContainText('Sillón E2E');
+  await expect(admin.locator('thead')).not.toContainText('Limpieza');
+  await revisar(admin, 'Recursos');
   idRecurso = valor("SELECT id_recurso FROM RECURSO WHERE nombre = 'Sillón E2E'");
-  obtenido('CUS61', `recurso ${idRecurso} con 10 min; 11 min responde ${fuera.status} (RN03)`);
+  const columnas = valor(
+    "SELECT COUNT(*) FROM USER_TAB_COLUMNS WHERE table_name = 'RECURSO' AND column_name = 'MINUTOS_LIMPIEZA'",
+  );
+  expect(columnas).toBe('0');
+  obtenido('CUS61', `recurso ${idRecurso} SILLON registrado; sin selector ni columna de limpieza`);
 });
 
 test('CUS44 y RN30: la recepcionista abre la caja, y solo una por sede', async () => {
@@ -253,6 +263,7 @@ test('CUS44 y RN30: la recepcionista abre la caja, y solo una por sede', async (
   await recepcion.getByRole('button', { name: 'Abrir caja' }).click();
   await expect(recepcion.getByText(/Abierta desde/)).toBeVisible();
   await expect(recepcion.locator('.gf1')).toContainText('S/ 100.00');
+  await revisar(recepcion, 'Caja');
   const segunda = await api(recepcion, 'post', '/cajas', { montoInicial: 50 });
   expect(segunda.status).toBe(409);
   obtenido(
@@ -320,22 +331,27 @@ test('CUS02, RN01 y RN45: registra otra con carnet de extranjería a mano', asyn
   await recepcion.locator('#telefono').fill('987654322');
   await modal(recepcion).getByRole('button', { name: 'Registrar', exact: true }).click();
   await expect(recepcion.locator('tbody')).toContainText(CLIENTA_CE);
+  await revisar(recepcion, 'Clientas');
   expect(valor(`SELECT origen_datos FROM PERSONA WHERE nombres = '${CLIENTA_CE}'`)).toBe('MANUAL');
   obtenido('CUS02', `CE a mano: ficha MANUAL; teléfono repetido responde ${estadoRepetido} (RN01)`);
 });
 
 test('CUS08: consulta la agenda del día', async () => {
-  idEspecialista = valor("SELECT id_personal FROM USUARIO WHERE nombre_usuario = 'especialista1'");
+  idEspecialista = valor(
+    `SELECT id_personal FROM USUARIO WHERE nombre_usuario = '${usuarioEspecialista}'`,
+  );
   await recepcion.goto('/agenda');
   await expect(recepcion.locator('.cabeza').first()).toBeVisible();
   // It. 2: columnas con nombres, no códigos (diferencia 24).
-  const nombreEspecialista = valor(
-    `SELECT nombres || ' ' || apellidos FROM PERSONA WHERE id_persona = ${idEspecialista}`,
-  );
   await expect(recepcion.locator('.rejilla')).toContainText(nombreEspecialista);
+  await revisar(recepcion, 'Agenda por especialista');
   await recepcion.getByRole('button', { name: 'Por recurso' }).click();
   await expect(recepcion.locator('.rejilla')).toContainText('Sillón E2E');
-  obtenido('CUS08', `columnas por especialista y por recurso, con el recurso ${idRecurso}`);
+  await revisar(recepcion, 'Agenda por recurso');
+  obtenido(
+    'CUS08',
+    `columnas por especialista (${nombreEspecialista}, ${usuarioEspecialista}, que trabaja hoy) y por recurso (Sillón E2E)`,
+  );
 });
 
 test('CUS05, RN01, RN02 y RN03: programa una cita; otra a la misma hora responde 409', async () => {
@@ -369,7 +385,7 @@ test('CUS05, RN01, RN02 y RN03: programa una cita; otra a la misma hora responde
   const cita = await creada;
   expect(cita.status()).toBe(201);
   idCitaEfectivo = ((await cita.json()) as { idCita: number }).idCita;
-  await expect(recepcion.getByText(`Cita ${idCitaEfectivo} agendada.`).first()).toBeVisible();
+  await expect(recepcion.getByText(`Cita N° ${idCitaEfectivo} agendada.`).first()).toBeVisible();
 
   const cruce = otra.waitForResponse(
     (r) => r.url().endsWith('/citas') && r.request().method() === 'POST',
@@ -385,10 +401,11 @@ test('CUS05, RN01, RN02 y RN03: programa una cita; otra a la misma hora responde
   const minutos = valor(
     `SELECT ROUND((CAST(fecha_hora_fin AS DATE) - CAST(fecha_hora_inicio AS DATE)) * 1440) FROM CITA WHERE id_cita = ${idCitaEfectivo}`,
   );
-  expect(minutos).toBe('40');
+  // RN03 v5.2: el fin es inicio + duración, sin limpieza.
+  expect(minutos).toBe('30');
   obtenido(
     'CUS05',
-    `cita ${idCitaEfectivo} a las ${hora}; 30 min + 10 de limpieza = ${minutos} (RN03)`,
+    `cita ${idCitaEfectivo} a las ${hora} con ${usuarioEspecialista}; fin = inicio + 30 min = ${minutos} min (RN03)`,
   );
   obtenido('RN02', `misma hora: HTTP 409 regla ${problema.regla}: ${problema.detail}`);
   obtenido('RN01', `cita sin clienta: HTTP ${sinClienta.status}`);
@@ -471,24 +488,31 @@ test('CUS07, RN04 y RN42: el adelanto por enlace solo cuenta cuando Izipay lo ap
 });
 
 test('CUS11: la especialista inicia y finaliza la atención', async () => {
-  await iniciarSesion(especialista, 'especialista1', CLAVE_TEMPORAL);
+  await iniciarSesion(especialista, usuarioEspecialista, CLAVE_TEMPORAL);
   await cambiarClaveTemporal(especialista, CLAVE_TEMPORAL, CLAVE_ESPECIALISTA);
   // It. 2: Mi agenda es la de la especialista de la sesión (GET /atenciones/mi-agenda).
   await especialista.goto('/agenda/mi-agenda');
   await expect(especialista.locator('#miEspecialista')).toHaveCount(0);
-  const tarjeta = especialista.locator('.card', { hasText: `Cita ${idCitaEfectivo}` });
+  await revisar(especialista, 'Mi agenda');
+  const tarjeta = especialista.locator('.card', {
+    hasText: new RegExp(`Cita N° ${idCitaEfectivo}\\b`),
+  });
   await tarjeta.getByRole('button', { name: 'Iniciar atención' }).click();
   await especialista.locator('#tiempoDeclaradoMin').fill('20');
   await modal(especialista).getByRole('button', { name: 'Iniciar atención' }).click();
   await expect(especialista).toHaveURL(/\/agenda\/atencion/);
   await expect(especialista.locator('.reloj')).toContainText('EN ATENCIÓN');
+  await revisar(especialista, 'Atención en curso');
   await especialista.locator('#observaciones').fill('Sin novedad');
   await especialista.getByRole('button', { name: 'Finalizar', exact: true }).click();
   await expect(especialista.getByText('Atención finalizada', { exact: true })).toBeVisible();
-  const texto = await especialista.getByText(/Atención \d+ · cita/).textContent();
-  idAtencion = /Atención (\d+)/.exec(texto ?? '')![1];
+  const texto = await especialista.getByText(/Atención N° \d+ · cita/).textContent();
+  idAtencion = /Atención N° (\d+)/.exec(texto ?? '')![1];
   expect(valor(`SELECT estado FROM ATENCION WHERE id_atencion = ${idAtencion}`)).toBe('FINALIZADA');
-  obtenido('CUS11', `atención ${idAtencion} FINALIZADA; la especialista ve su código`);
+  obtenido(
+    'CUS11',
+    `${usuarioEspecialista}: atención ${idAtencion} FINALIZADA; la especialista ve su número`,
+  );
 });
 
 test('CUS18, RN11 y RN42: cobra con efectivo y Yape, sin cerrar antes de completar', async () => {
@@ -498,6 +522,7 @@ test('CUS18, RN11 y RN42: cobra con efectivo y Yape, sin cerrar antes de complet
   const total = PRECIO - ADELANTO_EFECTIVO;
   await expect(recepcion.locator('.kpi')).toContainText(`S/ ${total}.00`);
   await expect(recepcion.getByText('Adelanto aplicado')).toBeVisible();
+  await revisar(recepcion, 'Cobro de la atención');
   const cerrar = recepcion.getByRole('button', { name: 'Cerrar venta y emitir comprobante' });
   await expect(cerrar).toBeDisabled();
   const idVenta = valor('SELECT MAX(id_venta) FROM VENTA');
@@ -554,6 +579,7 @@ test('CUS19, RN10, RN46 y RN47: emite la boleta, que queda pendiente de SUNAT', 
   await expect(comprobante).toContainText(/Boleta B001-\d+/);
   await expect(comprobante).toContainText('SUNAT: PENDIENTE');
   await expect(comprobante).toContainText('RN46');
+  await revisar(recepcion, 'Comprobante emitido');
   const idVenta = valor('SELECT MAX(id_venta) FROM VENTA');
   const fila = sql(
     `SELECT v.estado, c.serie, c.numero, c.estado_sunat FROM VENTA v JOIN COMPROBANTE c ON c.id_venta = v.id_venta WHERE v.id_venta = ${idVenta}`,
@@ -620,6 +646,7 @@ test('CUS21: emite una proforma, que se imprime y no se guarda', async () => {
   const documento = recepcion.locator('.imprimible');
   await expect(documento).toContainText(`S/ ${PRECIO * 2}.00`);
   await expect(documento).toContainText('RN09');
+  await revisar(recepcion, 'Proforma');
   await modal(recepcion).getByRole('button', { name: 'Imprimir' }).click();
   const impresiones = await recepcion.evaluate(
     () => (window as unknown as { impresiones: number }).impresiones,
@@ -636,8 +663,7 @@ test('CUS21: emite una proforma, que se imprime y no se guarda', async () => {
 test('CUS13, RN11 y RN47: cobra una atención sin cita de un cliente de paso', async () => {
   await recepcion.goto('/ventas/sin-cita');
   const atenciones = valor('SELECT COUNT(*) FROM ATENCION');
-  // Con la otra especialista: especialista1 sigue ocupada hasta el fin de la franja de su cita,
-  // aunque la haya terminado antes (ver docs/NOTAS_IT1.md, Duda 14).
+  // Un servicio de otra área: la venta rápida propone la primera especialista libre que trabaja hoy.
   const [variante, precio] = sql(
     "SELECT v.id_variante, v.precio FROM VARIANTE_SERVICIO v JOIN SERVICIO s ON s.id_servicio = v.id_servicio WHERE s.nombre = 'Perfilado de Cejas'",
   )[0];
@@ -647,6 +673,8 @@ test('CUS13, RN11 y RN47: cobra una atención sin cita de un cliente de paso', a
   await recepcion.locator('#rapidaIdVariante').blur();
   await libres;
   await expect(recepcion.locator('#rapidaDuracion')).toHaveValue('20');
+  const atiende = (await recepcion.locator('#rapidaPersonal option:checked').textContent())?.trim();
+  await revisar(recepcion, 'Atención sin cita');
 
   await recepcion.locator('#rapidaMonto').fill(String(Number(precio) - 1));
   const errada = recepcion.waitForResponse((r) => r.url().endsWith('/rapidas'));
@@ -673,6 +701,7 @@ test('CUS13, RN11 y RN47: cobra una atención sin cita de un cliente de paso', a
     `atención de ${paso[0]}, ${paso[paso.length - 1]}; monto errado HTTP 422 sin atención huérfana`,
   );
   obtenido('RN47', `boletas correlativas: B001 ${numeros.join(', ')}`);
+  obtenido('CUS13', `la atiende ${atiende}, libre y con horario hoy`);
 });
 
 test('CUS45 y RN30: cierra la caja con una diferencia y su observación', async () => {
@@ -705,7 +734,8 @@ test('CUS45 y RN30: cierra la caja con una diferencia y su observación', async 
     await observaciones.nth(i).fill('Faltan cinco soles');
   }
   await confirmar.click();
-  await expect(recepcion.getByText(`Cierre de la caja ${idCaja}`)).toBeVisible();
+  await expect(recepcion.getByText(`Cierre de la caja N° ${idCaja}`)).toBeVisible();
+  await revisar(recepcion, 'Cierre de caja');
   const arqueo = sql(
     `SELECT m.nombre, a.monto_esperado, a.monto_contado, a.diferencia, a.observacion FROM CAJA_ARQUEO a JOIN MEDIO_PAGO m ON m.id_medio_pago = a.id_medio_pago WHERE a.id_caja = ${idCaja} ORDER BY a.id_medio_pago`,
   );
@@ -731,7 +761,7 @@ test('RN29: cada cambio dejó usuario y fecha', async () => {
     'SELECT u.nombre_usuario, COUNT(*), SUM(CASE WHEN a.fecha_hora IS NULL THEN 1 ELSE 0 END) FROM AUDITORIA a JOIN USUARIO u ON u.id_usuario = a.id_usuario GROUP BY u.nombre_usuario ORDER BY 1',
   );
   const usuarios = filas.map((fila) => fila[0]);
-  for (const usuario of ['admin', 'recepcion2', 'especialista1']) {
+  for (const usuario of ['admin', 'recepcion2', usuarioEspecialista]) {
     expect(usuarios).toContain(usuario);
   }
   expect(filas.every((fila) => fila[2] === '0')).toBe(true);

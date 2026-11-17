@@ -3,6 +3,7 @@ import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
+import { nombreO } from '../../../core/api/nombres';
 import { mensajeDelProblema } from '../../../core/api/problema';
 import { PERMISOS } from '../../../core/sesion/permisos';
 import { SesionService } from '../../../core/sesion/sesion.service';
@@ -47,6 +48,12 @@ export class Reportes {
   protected readonly celda = celda;
   protected readonly agrupaciones = AGRUPACIONES_VENTAS;
   protected readonly idSedeSesion = this.sesion.sesion()?.idSede ?? null;
+  protected readonly nombreSede = nombreO(this.sesion.sesion()?.nombreSede);
+
+  /** Solo se conoce el nombre de la sede de la sesión: no hay GET /sedes (Duda 29). */
+  protected nombreSedeDe(idSede: number): string {
+    return idSede === this.idSedeSesion ? this.nombreSede : nombreO();
+  }
   protected readonly esAdministradora = computed(
     () => (this.sesion.sesion()?.rol ?? '').toUpperCase() === ROL_ADMINISTRADORA,
   );

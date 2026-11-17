@@ -2,7 +2,7 @@
   <div class="row">
     <div class="sp">
       <h1 class="h1">Caja diaria</h1>
-      <div class="mut">{{ fechaLarga() }} · Sede {{ idSede() }}</div>
+      <div class="mut">{{ fechaLarga() }} · {{ nombreSede() }}</div>
     </div>
     @if (caja()) {
       <span class="chip ok alto">
@@ -21,7 +21,7 @@
   @if (cerrada(); as caja) {
     <div class="card col">
       <div class="row">
-        <h2 class="h2 sp">Cierre de la caja {{ caja.idCaja }}</h2>
+        <h2 class="h2 sp">Cierre de la caja {{ numero(caja.idCaja) }}</h2>
         <span class="chip ok">Cerrada</span>
       </div>
       <div class="tw">
@@ -78,7 +78,7 @@
     }
     <div class="card row">
       <div class="sp">
-        <div class="b">Caja {{ caja.idCaja }}</div>
+        <div class="b">Caja {{ numero(caja.idCaja) }}</div>
         <div class="xs mut">Monto inicial: {{ soles(caja.montoInicial) }}</div>
       </div>
       @if (puedeCerrar()) {

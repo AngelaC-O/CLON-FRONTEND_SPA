@@ -56,7 +56,7 @@
                   <label class="lbl" for="rapidaPersonal">ESPECIALISTA</label>
                   <select class="inp" id="rapidaPersonal" formControlName="idPersonal">
                     @for (id of hora.idsPersonal; track id) {
-                      <option [ngValue]="id">Especialista {{ id }}</option>
+                      <option [ngValue]="id">{{ especialistaLibre(hora, id) }}</option>
                     }
                   </select>
                 </div>
@@ -64,7 +64,7 @@
                   <label class="lbl" for="rapidaRecurso">RECURSO</label>
                   <select class="inp" id="rapidaRecurso" formControlName="idRecurso">
                     @for (id of hora.idsRecurso; track id) {
-                      <option [ngValue]="id">Recurso {{ id }}</option>
+                      <option [ngValue]="id">{{ recursoLibre(hora, id) }}</option>
                     }
                   </select>
                 </div>

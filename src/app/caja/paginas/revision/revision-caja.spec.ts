@@ -13,6 +13,7 @@ const CON_DIFERENCIA: CajaDTO = {
   fechaApertura: '2026-11-09T08:55:00',
   fechaCierre: '2026-11-09T20:05:00',
   idUsuarioCierre: 2,
+  nombreUsuarioCierre: 'Rosa Quispe',
   arqueos: [
     {
       idMedioPago: 1,
@@ -31,6 +32,10 @@ const DEL_DIA: CajaDTO[] = [
     fechaApertura: '2026-11-10T08:50:00',
     fechaCierre: '2026-11-10T20:00:00',
     montoInicial: 100,
+    idUsuarioApertura: 3,
+    nombreUsuarioApertura: 'Carmen Soto',
+    idUsuarioCierre: 3,
+    nombreUsuarioCierre: 'Carmen Soto',
   },
 ];
 
@@ -74,6 +79,17 @@ describe('RevisionCaja (CUS46)', () => {
     expect(filas[0].textContent).toContain('Efectivo');
     expect(filas[0].textContent).toContain('S/ -10.00');
     expect(filas[0].textContent).toContain('Faltó vuelto');
+  });
+
+  it('It. 2.1: nombra a quien abrió y cerró la caja, no su id (Duda 25)', async () => {
+    await montar(['CONCILIACION:VER']);
+    const cierre = raiz.querySelector('.cierre')!.textContent!;
+    expect(cierre).toContain('Caja N° 12');
+    expect(cierre).toContain('Rosa Quispe');
+    expect(cierre).not.toMatch(/usuario\s+2/);
+    const delDia = [...raiz.querySelectorAll('tbody tr')].at(-1)!.textContent!;
+    expect(delDia).toContain('Carmen Soto');
+    expect(delDia).toContain('N° 14');
   });
 
   it('«Aprobar cierre» lo quita de la lista', async () => {

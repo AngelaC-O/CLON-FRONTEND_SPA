@@ -86,13 +86,17 @@ docker('cp', DIR_BD, `${CONTENEDOR}:/tmp/database`);
 // Los scripts escriben su log junto a ellos.
 docker('exec', '-u', 'root', CONTENEDOR, 'chown', '-R', 'oracle', '/tmp/database');
 
-console.log('Instalando 00, 14, 13, 15 y 17...');
+console.log('Instalando 00, 14, 13, 15, 17, 18 y 19...');
 sqlplus(ESQUEMA, claves.dueno, '@00_instalar_v5.sql');
 sqlplus('system', claves.system, '@14_cuenta_aplicacion.sql');
 sqlplus(ESQUEMA, claves.dueno, '@13_permisos.sql');
 sqlplus(ESQUEMA, claves.dueno, '@15_datos_iteracion1.sql');
 // Iteración 2: migración v5 -> v5.1 y sus datos (orden del README del back-end: 15 -> 17).
 sqlplus(ESQUEMA, claves.dueno, '@17_datos_iteracion2.sql');
+// Iteración 2.1: migración v5.1 -> v5.2 (sin limpieza) y el horario de prueba, que agrega
+// especialista3 y especialista4 y deja a cada persona un día de descanso (solo local y e2e).
+sqlplus(ESQUEMA, claves.dueno, '@18_ajustes_v52.sql');
+sqlplus(ESQUEMA, claves.dueno, '@19_datos_prueba_horario.sql');
 sqlplus(
   'system',
   claves.system,

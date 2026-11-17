@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, input, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { soles } from '../../../core/api/moneda';
+import { nombreO } from '../../../core/api/nombres';
 import { mensajeDelProblema } from '../../../core/api/problema';
 import { Modal } from '../../../layout/modal/modal';
 import { CitaDTO, FranjaAgendaDTO } from '../../modelos/agenda.modelos';
@@ -37,8 +38,7 @@ import { CitasService } from '../../servicios/citas.service';
         <form [formGroup]="formulario" (ngSubmit)="cancelar()">
           <div class="mb">
             <div class="mut sm">
-              {{ tituloBloque(franja()) }} ·
-              {{ franja().nombreServicio || 'Variante ' + franja().idVariante }} ·
+              {{ tituloBloque(franja()) }} · {{ nombreO(franja().nombreServicio) }} ·
               {{ fechaCorta(franja().inicio, true) }}
             </div>
             @if (error(); as mensaje) {
@@ -84,6 +84,7 @@ export class CancelarCita {
   readonly cancelacion = output<CitaDTO>();
 
   protected readonly soles = soles;
+  protected readonly nombreO = nombreO;
   protected readonly fechaCorta = fechaCorta;
   protected readonly tituloBloque = tituloBloque;
   protected readonly motivoNoSePresento = MOTIVO_NO_SE_PRESENTO;

@@ -10,7 +10,13 @@ describe('Shell', () => {
   let http: HttpTestingController;
 
   const montar = async (permisos: string[], extra: Partial<SesionDTO> = {}) => {
-    entrarComo({ idSede: 1, nombreUsuario: 'carmen.soto', permisos, ...extra });
+    entrarComo({
+      idSede: 1,
+      nombreSede: 'Pichanaki Centro',
+      nombreUsuario: 'carmen.soto',
+      permisos,
+      ...extra,
+    });
     const fixture = TestBed.createComponent(Shell);
     fixture.detectChanges();
     return { fixture, raiz: fixture.nativeElement as HTMLElement };
@@ -72,7 +78,9 @@ describe('Shell', () => {
     });
     http.expectOne('/api/v1/cajas/abierta').flush({ idCaja: 214, estado: 'ABIERTA' });
     fixture.detectChanges();
-    expect(raiz.querySelector('.top')?.textContent).toContain('Sede 1');
+    // La sede se nombra con SesionDTO.nombreSede, nunca con su id (It. 2.1).
+    expect(raiz.querySelector('.top')?.textContent).toContain('Pichanaki Centro');
+    expect(raiz.querySelector('.top')?.textContent).not.toContain('Sede 1');
     expect(raiz.querySelector('.usuario')?.textContent).toContain('Carmen Soto');
     expect(raiz.querySelector('.usuario')?.textContent).toContain('Recepcionista');
     expect(raiz.querySelector('.usuario .avatar')?.textContent).toBe('CS');

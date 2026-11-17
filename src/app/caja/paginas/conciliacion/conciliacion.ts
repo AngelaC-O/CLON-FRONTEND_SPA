@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { numero } from '../../../core/api/nombres';
 import { mensajeDelProblema } from '../../../core/api/problema';
 import { NotificacionesService } from '../../../core/notificaciones/notificaciones.service';
 import { PERMISOS } from '../../../core/sesion/permisos';
@@ -203,9 +204,9 @@ export class ConciliacionMes {
 
   protected referencia(item: ItemConciliacion): string {
     return [
-      item.idVenta !== undefined ? `Venta ${item.idVenta}` : '',
+      item.idVenta !== undefined ? `Venta ${numero(item.idVenta)}` : '',
       item.referenciaSunat ?? '',
-      item.idTransaccion !== undefined ? `Transacción ${item.idTransaccion}` : '',
+      item.idTransaccion !== undefined ? `Transacción ${numero(item.idTransaccion)}` : '',
     ]
       .filter(Boolean)
       .join(' · ');

@@ -8,7 +8,7 @@
     <div class="card col" style="text-align: center; padding: 40px">
       <div class="h2">Atención finalizada</div>
       <p class="mut" style="margin: 0">
-        Atención {{ atencion.idAtencion }} · cita {{ atencion.idCita }} · fin
+        Atención {{ numero(atencion.idAtencion) }} · cita {{ numero(atencion.idCita) }} · fin
         {{ horaDe(atencion.horaFin) }}. Queda lista para cobro.
       </p>
       @if (atencion.consumosPendientes?.length) {
@@ -45,7 +45,9 @@
             EN ATENCIÓN · INICIO {{ horaDe(atencion.horaInicio) }}
           </div>
           <div class="num" style="font: 400 68px/1.1 var(--fuente-titulo)">{{ reloj() }}</div>
-          <div style="opacity: 0.85">Cita {{ atencion.idCita }}</div>
+          <div style="opacity: 0.85">
+            {{ nombreO(atencion.nombreCliente) }} · Cita {{ numero(atencion.idCita) }}
+          </div>
         </div>
 
         <div class="card col">
@@ -144,9 +146,9 @@
         @if (error(); as mensaje) {
           <div class="alert bad" role="alert">{{ mensaje }}</div>
         }
-        <div class="b">Variante {{ atencion.idVariante }}</div>
+        <div class="b">{{ nombreO(atencion.nombreServicio) }}</div>
         <div class="xs mut">
-          Recurso {{ atencion.idRecurso }} · Especialista {{ atencion.idPersonal }}
+          {{ nombreO(atencion.nombreRecurso) }} · {{ nombreO(atencion.nombreEspecialista) }}
         </div>
         <div class="xs mut">Duración declarada: {{ atencion.tiempoDeclaradoMin }} min</div>
         <button

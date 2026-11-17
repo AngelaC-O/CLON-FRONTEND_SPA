@@ -16,6 +16,9 @@ const PENDIENTE: SolicitudAnulacionDTO = {
   codigoMotivo: '06',
   formaDevolucion: 'MEDIO_ORIGINAL',
   idUsuarioSolicita: 2,
+  idCliente: 407,
+  nombreCliente: 'Rosaura Quispe',
+  nombreUsuarioSolicita: 'Rosa Quispe',
   fechaSolicitud: '2026-11-09T11:00:00',
 };
 const LISTA = '/api/v1/solicitudes-anulacion?estado=PENDIENTE';
@@ -57,7 +60,10 @@ describe('BandejaAnulaciones (CUS23)', () => {
     expect(fila.textContent).toContain('S/ 90.00');
     expect(fila.textContent).toContain('La clienta desistió');
     expect(fila.textContent).toContain('06 · Devolución total');
-    expect(fila.textContent).toContain('Usuario 2');
+    // Quién solicitó y la clienta, por su nombre (Duda 14, It. 2.1).
+    expect(fila.textContent).toContain('Rosa Quispe');
+    expect(fila.textContent).toContain('Rosaura Quispe');
+    expect(fila.textContent).not.toMatch(/Usuario 2|Clienta 407|Venta 620/);
     expect(fila.textContent).toContain('09/11/2026 11:00');
   });
 

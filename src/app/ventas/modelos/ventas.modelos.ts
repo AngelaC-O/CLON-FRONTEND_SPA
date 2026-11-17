@@ -2,6 +2,7 @@ export type {
   AtencionCobrable,
   CategoriaProductoDTO,
   CierreVentaDTO,
+  CobroPendienteDTO,
   ComprobanteDTO,
   CrearVentaDTO,
   DescuentosDTO,

@@ -2,7 +2,7 @@
   <div class="row">
     <div class="sp">
       <h1 class="h1">Agenda</h1>
-      <div class="mut">{{ fechaLarga() }} · Sede {{ sesion.sesion()?.idSede }}</div>
+      <div class="mut">{{ fechaLarga() }} · {{ nombreSede() }}</div>
     </div>
     @if (puedeCobrarAdelanto()) {
       <button class="btn sec" type="button" (click)="citaAdelanto.set(null)">Adelanto</button>
@@ -19,7 +19,8 @@
     @if (puedeCobrarAdelanto()) {
       <div class="alert info" role="status">
         <span class="sp">
-          Cita {{ cita.idCita }} agendada. Sin adelanto, la reserva no queda asegurada (RN04).
+          Cita {{ numero(cita.idCita) }} agendada. Sin adelanto, la reserva no queda asegurada
+          (RN04).
         </span>
         <button class="btn sm" type="button" (click)="citaAdelanto.set(cita.idCita ?? null)">
           Registrar adelanto
@@ -79,9 +80,6 @@
     <span class="chip warn">Pendiente</span>
     <span class="chip dk">En atención</span>
     <span class="chip ok">Finalizada</span>
-    @if (vista() === 'recurso') {
-      <span class="chip">Limpieza</span>
-    }
   </div>
 
   @if (columnas().length === 0) {
@@ -130,16 +128,6 @@
                     </button>
                   }
                 </div>
-                @if (limpieza(bloque); as minutos) {
-                  <div
-                    class="bloque limpieza"
-                    [style.top.px]="superiorLimpieza(bloque)"
-                    [style.height.px]="minutos"
-                    [attr.aria-label]="'Limpieza de ' + minutos + ' minutos'"
-                  >
-                    Limpieza
-                  </div>
-                }
               }
             </div>
           </div>
@@ -211,7 +199,7 @@
     @for (espera of esperas(); track espera.idEspera) {
       <div class="row espera">
         <div class="sp">
-          <div class="b">{{ espera.nombreCliente || 'Clienta ' + espera.idCliente }}</div>
+          <div class="b">{{ nombreO(espera.nombreCliente) }}</div>
           <div class="xs mut">{{ detalleEspera(espera) }}</div>
         </div>
         @if (puedeCrear()) {
@@ -273,9 +261,7 @@
       <app-modal [titulo]="tituloBloque(cita)" [angosto]="true" (cerrar)="cerrarCita()">
         <div class="mb">
           <div class="row">
-            <span class="sp mut sm">{{
-              cita.nombreServicio || 'Variante ' + cita.idVariante
-            }}</span>
+            <span class="sp mut sm">{{ nombreO(cita.nombreServicio) }}</span>
             <span class="chip" [class]="claseEstado(cita.estado)">
               {{ etiquetaEstado(cita.estado) }}
             </span>
@@ -283,9 +269,7 @@
           <div class="g2 sm">
             <div>
               <div class="mut xs">HORARIO</div>
-              <b class="num"
-                >{{ fechaCorta(cita.inicio, true) }} – {{ horaDe(cita.finServicio ?? cita.fin) }}</b
-              >
+              <b class="num">{{ fechaCorta(cita.inicio, true) }} – {{ horaDe(cita.fin) }}</b>
             </div>
             <div>
               <div class="mut xs">ESPECIALISTA</div>
@@ -293,11 +277,11 @@
             </div>
             <div>
               <div class="mut xs">RECURSO</div>
-              <b>{{ recurso(cita.idRecurso) }}</b>
+              <b>{{ cita.nombreRecurso || recurso(cita.idRecurso) }}</b>
             </div>
             <div>
               <div class="mut xs">CITA</div>
-              <b class="num">{{ cita.idOrigen }}</b>
+              <b class="num">{{ numero(cita.idOrigen) }}</b>
             </div>
           </div>
           @if (sePuedeCambiar(cita)) {
@@ -325,8 +309,8 @@
   <app-modal titulo="Descartar espera" [angosto]="true" (cerrar)="esperaPorDescartar.set(null)">
     <div class="mb">
       <p style="margin: 0">
-        ¿Descartar la espera de {{ espera.nombreCliente || 'la clienta ' + espera.idCliente }}? Deja
-        de estar en la lista y no se le programará la cita.
+        ¿Descartar la espera de {{ espera.nombreCliente || 'la clienta' }}? Deja de estar en la
+        lista y no se le programará la cita.
       </p>
     </div>
     <div class="mf">

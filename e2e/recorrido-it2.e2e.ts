@@ -8,8 +8,12 @@ import {
   claves,
   elegirClienta,
   entrar,
+  especialistaDelDia,
+  exigirHorario,
   modal,
+  nombreDe,
   obtenido as anotar,
+  sinIds,
   sql,
   valor,
 } from './apoyo';
@@ -18,8 +22,9 @@ import { PUERTO_API } from './entorno.mjs';
 /**
  * Recorrido de la Iteración 2. Corre después del de la Iteración 1 (proyecto «it2» de
  * playwright.config.ts) y no depende de lo que este haya dejado: usa los usuarios que el recorrido
- * 1 no toca (recepcion, almacen, especialista2) y entra a admin y especialista1 con su clave final
- * o, en una base recién instalada, con la temporal. Los pasos van en el orden del encargo; el
+ * 1 no toca (recepcion, almacen, especialista2) y entra a admin y a la especialista del día
+ * (especialista1 o, si descansa, especialista3) con su clave final o, en una base recién instalada,
+ * con la temporal. Los pasos van en el orden del encargo; el
  * paso 2.5 (la administradora pone el insumo en el servicio) va después del 2 porque el insumo lo
  * registra la encargada. Lo que ninguna pantalla muestra se lee de la base.
  */
@@ -42,8 +47,11 @@ const CLIENTA_B = 'Rocío';
 const ADELANTO_REPROGRAMADA = 10;
 const ADELANTO_CANCELADA = 20;
 const ARCHIVO = 'obtenido-it2.txt';
+const PANTALLAS = 'it2.txt';
 
 const obtenido = (caso: string, texto: string) => anotar(caso, texto, ARCHIVO);
+/** It. 2.1: ninguna pantalla que visita el recorrido muestra un id como nombre. */
+const revisar = (page: Page, pantalla: string) => sinIds(page, pantalla, PANTALLAS);
 
 test.describe.configure({ mode: 'serial' });
 
@@ -63,6 +71,9 @@ let idCitaNueva: number;
 let idCitaCancelada: number;
 let idAtencion: string;
 let idCaja: string;
+/** especialista1 o, si hoy descansa, especialista3 (mismas áreas, script 19). */
+let usuarioEspecialista: string;
+let nombreEspecialista: string;
 const ventas: { saldo?: number; rechazada?: number; yape?: number; tarjeta?: number } = {};
 
 async function nuevaPagina(browser: Browser): Promise<Page> {
@@ -84,17 +95,6 @@ function fechaIso(dias = 0): string {
   const mes = String(lima.getMonth() + 1).padStart(2, '0');
   const dia = String(lima.getDate()).padStart(2, '0');
   return `${lima.getFullYear()}-${mes}-${dia}`;
-}
-
-/** El recorrido agenda y atiende hoy: de lunes a sábado, de 09:00 a 17:00 (deja margen). */
-function exigirHorario(): void {
-  const lima = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Lima' }));
-  const minutos = lima.getHours() * 60 + lima.getMinutes();
-  if (lima.getDay() === 0 || minutos < 9 * 60 || minutos > 17 * 60) {
-    throw new Error(
-      'Desde el paso 3 el recorrido atiende hoy: córrelo de lunes a sábado, de 09:00 a 17:00.',
-    );
-  }
 }
 
 function minutos(hora: string): number {
@@ -138,6 +138,13 @@ async function registrarAdelanto(page: Page, idCita: number, monto: number): Pro
   await expect(modal(page)).toBeHidden();
 }
 
+/** Serie y número del comprobante de una venta: la bandeja y las devoluciones la nombran así. */
+function comprobanteDe(idVenta: number): string {
+  return valor(
+    `SELECT serie || '-' || numero FROM COMPROBANTE WHERE id_venta = ${idVenta} AND tipo IN ('BOLETA', 'FACTURA')`,
+  );
+}
+
 /** El bloque de la rejilla de una cita, por la hora y la clienta. */
 function bloque(page: Page, hora: string, clienta: string): Locator {
   return page.locator('.bloque', { hasText: `${hora} · ${clienta}` }).locator('.abrir');
@@ -148,7 +155,7 @@ async function venderProducto(
   page: Page,
   medio: 'Efectivo' | 'Yape' | 'Tarjeta',
   clienta?: string,
-): Promise<{ status: number; idVenta: number }> {
+): Promise<{ status: number; idVenta: number; cuerpo: string }> {
   await page.goto('/ventas/productos');
   await page.locator('#productoNombre').fill(PRODUCTO_VENTA);
   await page.getByRole('button', { name: 'Buscar', exact: true }).click();
@@ -167,9 +174,11 @@ async function venderProducto(
   );
   await page.getByRole('button', { name: 'Vender', exact: true }).click();
   const respuesta = await venta;
+  const cuerpo = await respuesta.text();
   return {
     status: respuesta.status(),
-    idVenta: ((await respuesta.json()) as { idVenta: number }).idVenta,
+    idVenta: (JSON.parse(cuerpo || '{}') as { idVenta: number }).idVenta,
+    cuerpo,
   };
 }
 
@@ -179,7 +188,8 @@ async function solicitarAnulacion(
   forma: 'saldo' | 'original',
 ): Promise<number> {
   await page.goto(`/ventas/anulaciones?idVenta=${idVenta}`);
-  await expect(page.locator('#ventaAnular')).toContainText(`Venta ${idVenta}`);
+  await expect(page.locator('#ventaAnular')).toContainText(`Venta N° ${idVenta}`);
+  await expect(page.locator('#ventaAnular')).toContainText(comprobanteDe(idVenta));
   await page.locator('#anularMotivo').fill('La clienta desistió');
   await page.locator('#anularCodigo').selectOption('06');
   await page
@@ -199,6 +209,7 @@ async function solicitarAnulacion(
 
 test.beforeAll(async ({ browser }) => {
   rmSync(`test-results/${ARCHIVO}`, { force: true });
+  rmSync(`test-results/pantallas-${PANTALLAS}`, { force: true });
   contextos = [];
   admin = await nuevaPagina(browser);
   almacen = await nuevaPagina(browser);
@@ -213,7 +224,7 @@ test.afterAll(async () => {
 
 // ── 1 · La administradora configura ────────────────────────────────────────────────────────────
 
-test('1 · CUS65, RN51 y RN03: cambia AGENDA_PASO_MIN y respeta los topes', async () => {
+test('1 · CUS65, RN51 y RN03: cambia AGENDA_PASO_MIN; LIMPIEZA_MAX_MIN ya no existe', async () => {
   await entrar(admin, 'admin', CLAVE_ADMIN);
   await admin.goto('/catalogo');
   await admin.getByRole('tab', { name: 'Parámetros' }).click();
@@ -224,21 +235,15 @@ test('1 · CUS65, RN51 y RN03: cambia AGENDA_PASO_MIN y respeta los topes', asyn
   expect((await guardado).status()).toBe(200);
   expect(valor("SELECT valor_numero FROM PARAMETRO WHERE codigo = 'AGENDA_PASO_MIN'")).toBe('30');
 
-  // La pantalla no deja pasar de 10 minutos de limpieza; el back-end tampoco (RN03).
-  const limpieza = admin.locator('#tablaParametros tbody tr', { hasText: 'LIMPIEZA_MAX_MIN' });
-  await limpieza.getByLabel('Valor de LIMPIEZA_MAX_MIN').fill('11');
-  await limpieza.getByRole('button', { name: 'Guardar parámetro' }).click();
-  await expect(admin.locator('app-parametros .alert.bad')).toContainText('0 a 10');
-  const once = await api(admin, 'patch', '/parametros/LIMPIEZA_MAX_MIN', { valorNumero: 11 });
+  // RN03 v5.2: sin tiempo de limpieza, el script 18 borró LIMPIEZA_MAX_MIN.
+  await expect(admin.locator('#tablaParametros')).not.toContainText('LIMPIEZA_MAX_MIN');
+  await revisar(admin, 'Parámetros');
+  const limpieza = valor("SELECT COUNT(*) FROM PARAMETRO WHERE codigo = 'LIMPIEZA_MAX_MIN'");
+  expect(limpieza).toBe('0');
   const cero = await api(admin, 'patch', '/parametros/AGENDA_PASO_MIN', { valorNumero: 0 });
-  expect(once.status).toBe(422);
   expect(cero.status).toBe(422);
-  expect(valor("SELECT valor_numero FROM PARAMETRO WHERE codigo = 'LIMPIEZA_MAX_MIN'")).toBe('10');
   obtenido('CUS65', 'AGENDA_PASO_MIN = 30 guardado con su vigencia');
-  obtenido(
-    'RN03',
-    `LIMPIEZA_MAX_MIN 11: la pantalla avisa y la API responde ${once.status} ${String(once.json['regla'])}`,
-  );
+  obtenido('RN03', `LIMPIEZA_MAX_MIN no está en la tabla ni en PARAMETRO (${limpieza} filas)`);
   obtenido('RN51', `AGENDA_PASO_MIN 0: HTTP ${cero.status} ${String(cero.json['regla'])}`);
 });
 
@@ -251,6 +256,7 @@ test('1 · CUS62 y RN42: desactiva un medio de pago; el efectivo no va por Izipa
   expect((await guardado).status()).toBe(200);
   expect(valor("SELECT estado FROM MEDIO_PAGO WHERE nombre = 'PLIN'")).toBe('INACTIVO');
   await expect(admin.getByLabel('Efectivo por la pasarela')).toBeDisabled();
+  await revisar(admin, 'Medios de pago');
   const efectivo = await api(admin, 'patch', '/medios-pago/1', {
     estado: 'ACTIVO',
     usaPasarela: true,
@@ -262,6 +268,7 @@ test('1 · CUS62 y RN42: desactiva un medio de pago; el efectivo no va por Izipa
 test('1 · CUS63 y RN47: las series de la sede y una sola ACTIVA por tipo', async () => {
   await admin.getByRole('tab', { name: 'Series' }).click();
   await expect(admin.locator('#tablaSeries tbody')).toContainText('B001');
+  await revisar(admin, 'Series');
   await admin.locator('#serieTipo').selectOption('FACTURA');
   await admin.locator('#serieCodigo').fill('B002');
   await admin.getByRole('button', { name: 'Guardar serie' }).click();
@@ -303,6 +310,9 @@ test('1 · CUS59 y CUS60: registra un paquete y una promoción del servicio', as
   await admin.getByRole('button', { name: 'Guardar paquete' }).click();
   expect((await paquete).status()).toBe(201);
   await expect(admin.locator('.paquete').first()).toContainText('Tres tratamientos E2E');
+  // It. 2.1: el paquete nombra sus servicios (PaqueteDTO.servicios).
+  await expect(admin.locator('.paquete').first()).toContainText(nombreServicio);
+  await revisar(admin, 'Paquetes');
   const servicios = valor(
     "SELECT COUNT(*) FROM PAQUETE_SERVICIO ps JOIN PAQUETE p ON p.id_paquete = ps.id_paquete WHERE p.nombre = 'Tres tratamientos E2E'",
   );
@@ -323,6 +333,8 @@ test('1 · CUS59 y CUS60: registra un paquete y una promoción del servicio', as
   await admin.getByRole('button', { name: 'Guardar promoción' }).click();
   expect((await promocion).status()).toBe(201);
   await expect(admin.locator('#tablaPromociones')).toContainText('Promo E2E');
+  await expect(admin.locator('#tablaPromociones')).toContainText(nombreServicio);
+  await revisar(admin, 'Promociones');
   obtenido('CUS59', `paquete «Tres tratamientos E2E» de 3 sesiones con ${servicios} servicio`);
   obtenido('CUS60', 'promoción «Promo E2E» de 10 % ACTIVA por 30 días');
 });
@@ -344,6 +356,11 @@ test('1 · CUS54: restablece la clave de especialista2', async () => {
   await expect(admin.locator('tbody tr', { hasText: 'especialista2' })).toContainText(
     'Debe cambiar su clave',
   );
+  // It. 2.1: la fila nombra a la persona, no «Personal 7».
+  await expect(admin.locator('tbody tr', { hasText: 'especialista2' })).toContainText(
+    nombreDe('especialista2'),
+  );
+  await revisar(admin, 'Usuarios');
   obtenido('CUS54', `especialista2 ${fila[1]}, debe cambiar la clave; la respuesta no la trae`);
 });
 
@@ -360,6 +377,7 @@ test('2 · CUS66: la encargada registra una categoría', async () => {
   await almacen.getByRole('button', { name: 'Guardar categoría' }).click();
   expect((await categoria).status()).toBe(201);
   await expect(almacen.locator('app-categorias-producto')).toContainText(CATEGORIA);
+  await revisar(almacen, 'Categorías');
   obtenido('CUS66', `categoría «${CATEGORIA}» registrada`);
 });
 
@@ -405,6 +423,7 @@ test('2 · CUS32, RN13, RN14, RN24 y RN54: registra un insumo en su unidad míni
   const productos = (await lista.json()) as { margen?: number }[];
   expect(productos.every((p) => p.margen === undefined || p.margen === null)).toBe(true);
   await expect(almacen.locator('#tablaProductos thead')).not.toContainText('Margen');
+  await revisar(almacen, 'Productos');
   obtenido('CUS32', `insumo ${idInsumo} ${tipo} en ${unidad}, stock 0, mínimo ${STOCK_MINIMO}`);
   obtenido('RN14', `precio = costo ${costo} + 50 % = ${precio}`);
   obtenido('RN13', `tipo de uso ${tipo}`);
@@ -463,6 +482,7 @@ test('2 · CUS33, RN15 y RN16: registra una salida de insumo y avisa el stock m�
     'stock mínimo',
   );
   await expect(almacen.locator('#alertaMinimo')).toContainText(INSUMO);
+  await revisar(almacen, 'Salida de insumos');
 
   const sinStock = await api(almacen, 'post', `/productos/${idInsumo}/salidas`, {
     cantidad: 999,
@@ -484,6 +504,7 @@ test('2 · CUS35: consulta el kardex del insumo', async () => {
   await expect(filas.nth(1)).toContainText(`-${SALIDA}`);
   await expect(filas.nth(1)).toContainText(String(STOCK_AJUSTE - SALIDA));
   await expect(almacen.locator('#resumenProducto')).toContainText('En stock mínimo');
+  await revisar(almacen, 'Kardex');
   obtenido(
     'CUS35',
     `kardex: AJUSTE +${STOCK_AJUSTE}, SALIDA -${SALIDA}, saldo ${STOCK_AJUSTE - SALIDA}`,
@@ -498,6 +519,7 @@ test('2.5 · CUS58 y RN25: la administradora pone el insumo en el servicio y cam
   await admin.goto('/catalogo');
   await admin.getByRole('button', { name: `Editar servicio ${nombre}` }).click();
   const editor = admin.locator('app-editar-servicio');
+  await revisar(admin, 'Editar servicio');
   await editor.getByRole('button', { name: '+ Insumo' }).click();
   await editor.getByLabel('Producto del insumo 1 de Estándar').fill(idInsumo);
   await editor.getByLabel('Cantidad del insumo 1 de Estándar').fill(String(ESTIMADO));
@@ -536,12 +558,33 @@ test('2.5 · CUS58 y RN25: la administradora pone el insumo en el servicio y cam
 
 test('3 · CUS44, CUS02, CUS03 y CUS04: abre la caja, registra dos clientas y actualiza una ficha', async () => {
   exigirHorario();
+  usuarioEspecialista = especialistaDelDia('especialista1', 'especialista3');
+  nombreEspecialista = nombreDe(usuarioEspecialista);
   await entrar(recepcion, 'recepcion', CLAVE_RECEPCION);
   await recepcion.goto('/caja');
   await recepcion.locator('#cajaMontoInicial').fill('100');
   await recepcion.getByRole('button', { name: 'Abrir caja' }).click();
   await expect(recepcion.getByText(/Abierta desde/)).toBeVisible();
   idCaja = valor("SELECT id_caja FROM CAJA WHERE estado = 'ABIERTA' AND id_sede = 1");
+  await revisar(recepcion, 'Caja');
+
+  // RN13 con la caja abierta, el insumo con stock (20 - 5) y el monto exacto, para que no respondan
+  // antes RN30, RN15 o RN11. En el paso 6 el insumo ya no tiene stock (RN53).
+  const precioInsumo = Number(
+    valor(`SELECT precio_venta FROM PRODUCTO WHERE id_producto = ${idInsumo}`),
+  );
+  const insumoConStock = await api(recepcion, 'post', '/ventas/productos', {
+    tipo: 'BOLETA',
+    idMedioPago: 1,
+    monto: precioInsumo,
+    lineas: [{ idProducto: Number(idInsumo), cantidad: 1 }],
+  });
+  expect(insumoConStock.status).toBe(422);
+  expect(insumoConStock.json['regla']).toBe('RN13');
+  obtenido(
+    'RN13',
+    `vender el insumo con stock ${STOCK_AJUSTE - SALIDA} y monto S/ ${precioInsumo}: HTTP 422 RN13`,
+  );
 
   await recepcion.goto('/agenda/clientas');
   for (const [nombre, telefono, documento] of [
@@ -559,6 +602,7 @@ test('3 · CUS44, CUS02, CUS03 y CUS04: abre la caja, registra dos clientas y ac
     await expect(recepcion.locator('tbody')).toContainText(nombre);
   }
 
+  await revisar(recepcion, 'Clientas');
   await recepcion.getByRole('link', { name: `Ver ficha de ${CLIENTA_A}` }).click();
   await expect(recepcion.locator('h1')).toContainText(`${CLIENTA_A} E2E`);
   await expect(recepcion.locator('#saldoFavor')).toHaveText('S/ 0.00');
@@ -575,6 +619,7 @@ test('3 · CUS44, CUS02, CUS03 y CUS04: abre la caja, registra dos clientas y ac
   expect(correo).toBe('wendy.e2e@ejemplo.com');
   await recepcion.getByRole('tab', { name: 'Historial' }).click();
   await expect(recepcion.getByText('Sin citas pendientes.')).toBeVisible();
+  await revisar(recepcion, 'Ficha de la clienta');
   obtenido('CUS03', `ficha de ${CLIENTA_A}: saldo S/ 0.00, sin citas pendientes`);
   obtenido('CUS04', `correo y observaciones guardados (${correo})`);
 });
@@ -595,7 +640,7 @@ test('3 · RN49: agendar en el pasado avisa y el back-end responde 422', async (
     idCliente: Number(idCliente),
     idVariante: Number(idVariante),
     idPersonal: Number(
-      valor("SELECT id_personal FROM USUARIO WHERE nombre_usuario = 'especialista1'"),
+      valor(`SELECT id_personal FROM USUARIO WHERE nombre_usuario = '${usuarioEspecialista}'`),
     ),
     idRecurso: 1,
     fechaHoraInicio: `${fechaIso(-1)}T10:00:00`,
@@ -629,10 +674,9 @@ test('3 · CUS06, CUS05 y RN51: anota a una clienta en espera y la programa desd
   // RN51: las horas se ofrecen cada AGENDA_PASO_MIN (30) minutos.
   expect(minutos(horas[1]) - minutos(horas[0])).toBe(30);
   await modal(recepcion).getByRole('button', { name: horas[0], exact: true }).click();
-  const nombreEsp1 = valor(
-    "SELECT p.nombres || ' ' || p.apellidos FROM PERSONA p JOIN USUARIO u ON u.id_personal = p.id_persona WHERE u.nombre_usuario = 'especialista1'",
-  );
-  await recepcion.locator('#citaIdPersonal').selectOption({ label: nombreEsp1 });
+  // La especialista que trabaja hoy, por su nombre (HoraLibre.especialistas, It. 2.1).
+  await recepcion.locator('#citaIdPersonal').selectOption({ label: nombreEspecialista });
+  await revisar(recepcion, 'Nueva cita desde la espera');
   idCitaEspera = await agendar(recepcion);
   const [estado, cita] = sql(
     `SELECT e.estado, e.id_cita FROM LISTA_ESPERA e JOIN PERSONA p ON p.id_persona = e.id_cliente WHERE p.nombres = '${CLIENTA_B}'`,
@@ -644,12 +688,41 @@ test('3 · CUS06, CUS05 y RN51: anota a una clienta en espera y la programa desd
     `SELECT ROUND((CAST(fecha_hora_fin AS DATE) - CAST(fecha_hora_inicio AS DATE)) * 1440) FROM CITA WHERE id_cita = ${idCitaEspera}`,
   );
   obtenido('CUS06', `${CLIENTA_B} anotada; el panel del día la lista`);
+  // RN03 v5.2: el fin es inicio + duración, sin limpieza.
+  expect(duracion).toBe('90');
   obtenido(
     'CUS05',
-    `cita ${idCitaEspera} a las ${horas[0]} desde la espera: espera ASIGNADA con esa cita`,
+    `cita ${idCitaEspera} a las ${horas[0]} con ${usuarioEspecialista} desde la espera: espera ASIGNADA con esa cita`,
   );
   obtenido('RN51', `horas libres ${horas.slice(0, 3).join(', ')}: cada 30 min`);
-  obtenido('RN03', `cita de 90 min + limpieza del sillón = ${duracion} min`);
+  obtenido('RN03', `cita de 90 min: fin = inicio + 90 = ${duracion} min, sin limpieza`);
+});
+
+test('3 · RN03: a la hora exacta del fin de otra cita, mismo sillón y especialista, se agenda sin cruce', async () => {
+  const [inicio, fin, idPersonal, idRecurso] = sql(
+    `SELECT TO_CHAR(fecha_hora_inicio, 'HH24:MI'), TO_CHAR(fecha_hora_fin, 'HH24:MI'), id_personal, id_recurso FROM CITA WHERE id_cita = ${idCitaEspera}`,
+  )[0];
+  const recurso = valor(`SELECT nombre FROM RECURSO WHERE id_recurso = ${idRecurso}`);
+  await recepcion.goto('/agenda');
+  await recepcion.getByRole('button', { name: '+ Nueva cita' }).click();
+  await elegirClienta(modal(recepcion), CLIENTA_A);
+  await elegirPorTexto(recepcion, '#citaServicio', SERVICIO);
+  const horas = await horasLibres(recepcion);
+  // La especialista y el sillón quedan libres en cuanto termina el servicio: la hora del fin se ofrece.
+  expect(horas).toContain(fin);
+  await modal(recepcion).getByRole('button', { name: fin, exact: true }).click();
+  await recepcion.locator('#citaIdPersonal').selectOption({ label: nombreEspecialista });
+  await recepcion.locator('#citaIdRecurso').selectOption({ label: recurso });
+  const idCita = await agendar(recepcion);
+  const [inicioNueva, personalNueva, recursoNueva] = sql(
+    `SELECT TO_CHAR(fecha_hora_inicio, 'HH24:MI'), id_personal, id_recurso FROM CITA WHERE id_cita = ${idCita}`,
+  )[0];
+  expect([inicioNueva, personalNueva, recursoNueva]).toEqual([fin, idPersonal, idRecurso]);
+  await revisar(recepcion, 'Agenda');
+  obtenido(
+    'RN03',
+    `cita ${idCitaEspera} de ${inicio} a ${fin}; cita ${idCita} a las ${fin} con ${usuarioEspecialista} en ${recurso}: 201, sin cruce`,
+  );
 });
 
 test('3 · CUS09 y RN05: reprograma una cita con adelanto, que lo conserva', async () => {
@@ -659,8 +732,10 @@ test('3 · CUS09 y RN05: reprograma una cita con adelanto, que lo conserva', asy
   await registrarAdelanto(recepcion, idCita, ADELANTO_REPROGRAMADA);
 
   await bloque(recepcion, hora, CLIENTA_A).click();
+  await revisar(recepcion, 'Detalle de la cita');
   await modal(recepcion).getByRole('button', { name: 'Reprogramar' }).click();
   const horas = await horasLibres(recepcion);
+  await revisar(recepcion, 'Reprogramar cita');
   const nueva = horas[horas.length - 1];
   await modal(recepcion).getByRole('button', { name: nueva, exact: true }).click();
   const reprogramacion = recepcion.waitForResponse((r) => r.url().endsWith('/reprogramacion'));
@@ -691,6 +766,7 @@ test('3 · CUS10 y RN05: cancela otra con adelanto por «No se presentó» y que
   await modal(recepcion).getByRole('button', { name: 'Cancelar cita' }).click();
   await modal(recepcion).getByRole('button', { name: 'No se presentó' }).click();
   await expect(recepcion.locator('#motivoCancelacion')).toHaveValue('No se presentó');
+  await revisar(recepcion, 'Cancelar cita');
   const cancelacion = recepcion.waitForResponse((r) => r.url().endsWith('/cancelacion'));
   await modal(recepcion).getByRole('button', { name: 'Cancelar cita', exact: true }).click();
   expect((await cancelacion).status()).toBe(200);
@@ -713,10 +789,13 @@ test('3 · CUS10 y RN05: cancela otra con adelanto por «No se presentó» y que
 
 // ── 4 · Las especialistas ──────────────────────────────────────────────────────────────────────
 
-test('4 · CUS11 y CUS12: especialista1 atiende y recomienda un producto', async () => {
-  await entrar(especialista, 'especialista1', CLAVE_ESPECIALISTA);
+test('4 · CUS11 y CUS12: la especialista del día atiende y recomienda un producto', async () => {
+  await entrar(especialista, usuarioEspecialista, CLAVE_ESPECIALISTA);
   await especialista.goto('/agenda/mi-agenda');
-  const tarjeta = especialista.locator('.card', { hasText: `Cita ${idCitaEspera}` });
+  await revisar(especialista, 'Mi agenda');
+  const tarjeta = especialista.locator('.card', {
+    hasText: new RegExp(`Cita N° ${idCitaEspera}\\b`),
+  });
   await tarjeta.getByRole('button', { name: 'Iniciar atención' }).click();
   await especialista.locator('#tiempoDeclaradoMin').fill('90');
   await modal(especialista).getByRole('button', { name: 'Iniciar atención' }).click();
@@ -731,12 +810,16 @@ test('4 · CUS11 y CUS12: especialista1 atiende y recomienda un producto', async
   await especialista.getByRole('button', { name: 'Recomendar', exact: true }).click();
   expect((await recomendacion).status()).toBe(201);
   await expect(especialista.locator('.chip.ok')).toContainText(PRODUCTO_VENTA);
+  await revisar(especialista, 'Atención en curso');
   expect(
     valor(
       `SELECT COUNT(*) FROM RECOMENDACION_PRODUCTO WHERE id_atencion = ${idAtencion} AND id_producto = ${idProductoVenta}`,
     ),
   ).toBe('1');
-  obtenido('CUS12', `atención ${idAtencion}: recomendó ${PRODUCTO_VENTA} con su observación`);
+  obtenido(
+    'CUS12',
+    `${usuarioEspecialista}, atención ${idAtencion}: recomendó ${PRODUCTO_VENTA} con su observación`,
+  );
 });
 
 test('4 · RN50: especialista2 no puede tocar la atención de otra', async () => {
@@ -781,6 +864,7 @@ test('4 · CUS11, RN36 y RN53: finaliza; descuenta lo que hay y deja un consumo 
 
   await almacen.goto(`/inventario/kardex?idProducto=${idInsumo}`);
   await expect(almacen.locator('tbody')).toContainText(`Atención N° ${idAtencion}`);
+  await revisar(almacen, 'Kardex tras la atención');
   obtenido('CUS35', `el kardex muestra la SALIDA automática de la atención ${idAtencion}`);
 });
 
@@ -789,9 +873,11 @@ test('4 · CUS11, RN36 y RN53: finaliza; descuenta lo que hay y deja un consumo 
 test('5 · CUS33 y RN15: ve el aviso, no puede regularizar sin stock y descarta con motivo', async () => {
   await almacen.goto('/inicio');
   await expect(almacen.locator('app-panel-avisos')).toContainText(/consumo pendiente/);
+  await revisar(almacen, 'Inicio');
   await almacen.goto('/inventario');
   await almacen.getByRole('tab', { name: /Consumos pendientes/ }).click();
   const fila = almacen.locator('app-consumos-pendientes tbody tr', { hasText: INSUMO });
+  await revisar(almacen, 'Consumos pendientes');
   const regularizar = almacen.waitForResponse((r) => r.url().endsWith('/regularizacion'));
   await fila.getByRole('button', { name: 'Regularizar' }).click();
   const sinStock = await regularizar;
@@ -818,15 +904,16 @@ test('5 · CUS33 y RN15: ve el aviso, no puede regularizar sin stock y descarta 
 
 test('6 · CUS25, CUS26, RN13 y RN17: vende el producto recomendado', async () => {
   const primera = await venderProducto(recepcion, 'Efectivo', CLIENTA_A);
-  expect(primera.status).toBe(201);
+  expect(primera.status, primera.cuerpo).toBe(201);
   ventas.saldo = primera.idVenta;
   await expect(recepcion.locator('app-comprobante-emitido')).toContainText(/Boleta B001-\d+/);
+  await revisar(recepcion, 'Venta de productos');
   for (const [clave, medio] of [
     ['rechazada', 'Efectivo'],
     ['yape', 'Yape'],
   ] as const) {
     const venta = await venderProducto(recepcion, medio);
-    expect(venta.status).toBe(201);
+    expect(venta.status, venta.cuerpo).toBe(201);
     ventas[clave] = venta.idVenta;
   }
   const stock = valor(
@@ -845,60 +932,36 @@ test('6 · CUS25, CUS26, RN13 y RN17: vende el producto recomendado', async () =
     cantidad: 50,
     motivo: 'Sin permiso',
   });
-  expect(insumo.status).toBe(422);
+  // Sin stock y con otro monto responde 409 RN15 (ver NOTAS_IT2, It. 2.1): lo que se exige es que
+  // no se venda; RN13 se comprueba en el paso 3.
+  expect(insumo.status).not.toBe(201);
   expect(ajuste.status).toBe(403);
   obtenido(
     'CUS26',
     `ventas ${ventas.saldo}, ${ventas.rechazada} y ${ventas.yape} CERRADAS; stock de ${PRODUCTO_VENTA} 5 → ${stock}`,
   );
   obtenido('CUS25', `búsqueda «${PRODUCTO_VENTA}» con su precio y stock`);
-  obtenido('RN13', `vender el insumo: HTTP ${insumo.status} ${String(insumo.json['regla'])}`);
+  obtenido(
+    'RN13',
+    `vender el insumo sin stock y monto S/ 1: HTTP ${insumo.status} ${String(insumo.json['regla'])}`,
+  );
   obtenido('RN17', `la recepcionista ajusta stock: HTTP ${ajuste.status}`);
 });
 
-test('6 · RN52: con tarjeta por enlace la venta queda abierta y se cierra al aprobarse', async () => {
-  const venta = await venderProducto(recepcion, 'Tarjeta');
-  expect(venta.status).toBe(202);
-  ventas.tarjeta = venta.idVenta;
-  await expect(recepcion).toHaveURL(new RegExp(`/ventas/cobros\\?idVenta=${venta.idVenta}`));
-  expect(valor(`SELECT estado FROM VENTA WHERE id_venta = ${venta.idVenta}`)).toBe('ABIERTA');
-
-  const codigo = valor(
-    "SELECT codigo_operacion FROM TRANSACCION_PASARELA WHERE estado = 'PENDIENTE' AND canal = 'LINK' AND id_cita IS NULL ORDER BY id_transaccion DESC FETCH FIRST 1 ROW ONLY",
-  );
-  const cuerpo = JSON.stringify({ codigoOperacion: codigo, estado: 'APROBADA' });
-  const firma = createHmac('sha256', claves.hmac).update(cuerpo).digest('hex');
-  const izipay = await request.newContext({ baseURL: `http://localhost:${PUERTO_API}` });
-  const aviso = await izipay.post('/api/v1/pagos/notificaciones', {
-    data: cuerpo,
-    headers: { 'Content-Type': 'application/json', 'X-Firma-Hmac': firma },
-  });
-  expect(aviso.status()).toBe(200);
-  await izipay.dispose();
-
-  await recepcion.getByRole('button', { name: 'Verificar aprobación' }).click();
-  await expect(recepcion.getByText('Pagos completos')).toBeVisible();
-  await recepcion.getByRole('button', { name: 'Cerrar venta y emitir comprobante' }).click();
-  await expect(recepcion.locator('app-comprobante-emitido')).toContainText(/Boleta B001-\d+/);
-  expect(valor(`SELECT estado FROM VENTA WHERE id_venta = ${venta.idVenta}`)).toBe('CERRADA');
-  obtenido(
-    'RN52',
-    `venta ${venta.idVenta}: 202 ABIERTA; tras el webhook APROBADA, CERRADA en Cobros`,
-  );
-});
-
 test('6 · CUS22, RN12, RN32 y RN44: solicita anulaciones sin usuario ni clave', async () => {
-  const conSaldo = await solicitarAnulacion(recepcion, ventas.saldo!, 'saldo');
-  await solicitarAnulacion(recepcion, ventas.rechazada!, 'original');
-  await solicitarAnulacion(recepcion, ventas.yape!, 'original');
-  expect(valor(`SELECT estado FROM VENTA WHERE id_venta = ${ventas.saldo}`)).toBe('CERRADA');
-
-  // De paso no tiene saldo a favor (RN44) y la recepcionista no aprueba (RN32).
-  const deVenta = await api(recepcion, 'post', `/ventas/${ventas.tarjeta}/solicitudes-anulacion`, {
+  // De paso no tiene saldo a favor (RN44): con una venta de paso que aún no tiene solicitud.
+  const deVenta = await api(recepcion, 'post', `/ventas/${ventas.rechazada}/solicitudes-anulacion`, {
     motivo: 'Prueba',
     codigoMotivo: '01',
     formaDevolucion: 'SALDO_FAVOR',
   });
+  const conSaldo = await solicitarAnulacion(recepcion, ventas.saldo!, 'saldo');
+  await solicitarAnulacion(recepcion, ventas.rechazada!, 'original');
+  await solicitarAnulacion(recepcion, ventas.yape!, 'original');
+  expect(valor(`SELECT estado FROM VENTA WHERE id_venta = ${ventas.saldo}`)).toBe('CERRADA');
+  await revisar(recepcion, 'Solicitud de anulación');
+
+  // La recepcionista no aprueba (RN32).
   const aprobar = await api(recepcion, 'post', `/solicitudes-anulacion/${conSaldo}/aprobacion`);
   expect(deVenta.status).toBe(422);
   expect(aprobar.status).toBe(403);
@@ -912,74 +975,74 @@ test('6 · CUS22, RN12, RN32 y RN44: solicita anulaciones sin usuario ni clave',
 
 // ── 7 · La administradora ──────────────────────────────────────────────────────────────────────
 
-test('7 · CUS23, RN12, RN33 y RN47: aprueba con nota de crédito y rechaza otra con motivo', async () => {
+test('7 · CUS23, RN12, RN46 y RN47: aprobar espera a SUNAT (409 RN46 en dev) y rechaza otra con motivo', async () => {
   await admin.goto('/inicio');
   await expect(admin.locator('app-panel-avisos')).toContainText(/anulaci/i);
+  await revisar(admin, 'Inicio');
   await admin.goto('/ventas/anulaciones');
+  // It. 2.1: la venta se nombra por su comprobante y quien solicitó, por su nombre.
   const fila = (idVenta: number) =>
-    admin.locator('app-bandeja-anulaciones tbody tr', { hasText: `Venta ${idVenta}` });
+    admin.locator('app-bandeja-anulaciones tbody tr', { hasText: comprobanteDe(idVenta) });
+  await expect(fila(ventas.saldo!)).toContainText(nombreDe('recepcion'));
+  await revisar(admin, 'Bandeja de anulaciones');
 
-  for (const idVenta of [ventas.saldo!, ventas.yape!]) {
-    await fila(idVenta).getByRole('button', { name: 'Aprobar anulación' }).click();
-    const aprobacion = admin.waitForResponse((r) => r.url().endsWith('/aprobacion'));
-    await modal(admin).getByRole('button', { name: 'Aprobar anulación' }).click();
-    expect((await aprobacion).status()).toBe(200);
-    await expect(admin.locator('#notaCredito')).toContainText('Nota de crédito');
-  }
+  // En el perfil dev la facturación simulada deja todo comprobante PENDIENTE (FacturacionElectronicaFalsa),
+  // y el contrato responde 409 RN46 al aprobar: la nota de crédito se emite cuando SUNAT lo acepta.
+  // Ver docs/pruebas_it2.md, límite 4, y NOTAS_IT2 (It. 2.1).
+  const estadoSunat = valor(
+    `SELECT c.estado_sunat FROM COMPROBANTE c WHERE c.id_venta = ${ventas.saldo} AND c.tipo IN ('BOLETA', 'FACTURA')`,
+  );
+  await fila(ventas.saldo!).getByRole('button', { name: 'Aprobar anulación' }).click();
+  const aprobacion = admin.waitForResponse((r) => r.url().endsWith('/aprobacion'));
+  await modal(admin).getByRole('button', { name: 'Aprobar anulación' }).click();
+  const aprobada = await aprobacion;
+  const cuerpo = (await aprobada.json()) as { regla?: string; detail?: string };
+  expect(estadoSunat).toBe('PENDIENTE');
+  expect(aprobada.status(), JSON.stringify(cuerpo)).toBe(409);
+  expect(cuerpo.regla).toBe('RN46');
+  await expect(admin.getByText(cuerpo.detail!)).toBeVisible();
+  await admin.keyboard.press('Escape');
+
   await fila(ventas.rechazada!).getByRole('button', { name: 'Rechazar' }).click();
   await admin.locator('#motivoRechazo').fill('La venta es correcta');
   const rechazo = admin.waitForResponse((r) => r.url().endsWith('/rechazo'));
   await modal(admin).getByRole('button', { name: 'Rechazar', exact: true }).click();
-  expect((await rechazo).status()).toBe(200);
+  const rechazada = await rechazo;
+  expect(rechazada.status(), await rechazada.text()).toBe(200);
 
-  const anulada = sql(
-    `SELECT v.estado, c.serie || '-' || c.numero, s.forma_devolucion FROM VENTA v JOIN SOLICITUD_ANULACION s ON s.id_venta = v.id_venta JOIN COMPROBANTE c ON c.id_comprobante = s.id_nota_credito WHERE v.id_venta = ${ventas.saldo}`,
+  const [estadoVenta, estadoSolicitud] = sql(
+    `SELECT v.estado, s.estado FROM VENTA v JOIN SOLICITUD_ANULACION s ON s.id_venta = v.id_venta WHERE v.id_venta = ${ventas.saldo}`,
   )[0];
-  expect(anulada[0]).toBe('ANULADA');
-  expect(anulada[1]).toMatch(/^BC01-/);
+  expect([estadoVenta, estadoSolicitud]).toEqual(['CERRADA', 'PENDIENTE']);
   expect(valor(`SELECT estado FROM VENTA WHERE id_venta = ${ventas.rechazada}`)).toBe('CERRADA');
   expect(valor(`SELECT estado FROM SOLICITUD_ANULACION WHERE id_venta = ${ventas.rechazada}`)).toBe(
     'RECHAZADA',
   );
-  const notas = sql(
-    "SELECT TO_NUMBER(numero) FROM COMPROBANTE WHERE serie = 'BC01' ORDER BY TO_NUMBER(numero)",
-  ).map((f) => Number(f[0]));
-  expect(notas.every((n, i) => i === 0 || n === notas[i - 1] + 1)).toBe(true);
-  const validas = valor(`SELECT COUNT(*) FROM V_VENTA_VALIDA WHERE id_venta = ${ventas.saldo}`);
-  expect(validas).toBe('0');
+  const notas = valor("SELECT COUNT(*) FROM COMPROBANTE WHERE serie = 'BC01'");
+  expect(notas).toBe('0');
   obtenido(
     'CUS23',
-    `venta ${ventas.saldo} ANULADA con ${anulada[1]}; venta ${ventas.rechazada} RECHAZADA con motivo`,
+    `aprobar la venta ${ventas.saldo} (comprobante ${estadoSunat}): HTTP 409 ${cuerpo.regla} «${cuerpo.detail}»; sigue ${estadoVenta} y la solicitud ${estadoSolicitud}; venta ${ventas.rechazada} RECHAZADA con motivo`,
   );
-  obtenido('RN12', `la venta anulada sigue en la base (${anulada[0]}) con su nota de crédito`);
-  obtenido('RN47', `notas de crédito BC01 correlativas: ${notas.join(', ')}`);
-  obtenido('RN33', `la venta anulada no está en V_VENTA_VALIDA (${validas})`);
+  obtenido('RN46', `aprobar con el comprobante PENDIENTE: HTTP 409 RN46; ninguna nota de crédito`);
+  obtenido('RN12', `sin anular en dev (RN46): la venta ${ventas.saldo} sigue ${estadoVenta}`);
+  obtenido('RN47', `sin notas de crédito en dev (RN46): BC01 con ${notas} comprobantes`);
 });
 
-test('7 · CUS24 y RN44: devuelve a mano el pago Yape de la venta anulada', async () => {
+test('7 · CUS24 y RN44: sin venta anulada en dev (RN46) no hay devolución que registrar', async () => {
   const saldo = valor(
     `SELECT NVL(SUM(CASE WHEN m.tipo = 'ABONO' THEN m.monto ELSE -m.monto END), 0) FROM SALDO_FAVOR_MOV m JOIN PERSONA p ON p.id_persona = m.id_cliente WHERE p.nombres = '${CLIENTA_A}' AND p.apellidos = 'E2E'`,
   );
   await admin.getByRole('tab', { name: 'Devoluciones' }).click();
-  const tarjeta = admin.locator('.devolucion', { hasText: `Venta ${ventas.yape}` });
-  await tarjeta.getByRole('button', { name: 'Ver pagos' }).click();
-  const idTransaccion = valor(
-    `SELECT id_transaccion FROM VENTA_PAGO WHERE id_venta = ${ventas.yape} AND id_transaccion IS NOT NULL`,
-  );
-  await tarjeta.getByLabel(`Número de operación del pago ${idTransaccion}`).fill('YAPE-E2E-001');
-  const devolucion = admin.waitForResponse((r) => r.url().endsWith('/devolucion-manual'));
-  await tarjeta.getByRole('button', { name: 'Registrar devolución manual' }).click();
-  expect((await devolucion).status()).toBe(201);
-  await expect(tarjeta).toContainText('Devuelto · YAPE-E2E-001');
-  const [canal, estado] = sql(
-    "SELECT canal, estado FROM TRANSACCION_PASARELA WHERE codigo_operacion = 'YAPE-E2E-001'",
-  )[0];
-  expect([canal, estado]).toEqual(['QR', 'APROBADA']);
-  obtenido('CUS24', `devolución manual de Yape: ${canal} ${estado} con YAPE-E2E-001`);
+  await revisar(admin, 'Devoluciones');
+  await expect(admin.locator('.devolucion', { hasText: comprobanteDe(ventas.yape!) })).toHaveCount(0);
+  const anuladas = valor("SELECT COUNT(*) FROM VENTA WHERE estado = 'ANULADA'");
+  expect(anuladas).toBe('0');
   obtenido(
-    'RN44',
-    `SALDO_FAVOR: ${CLIENTA_A} tiene S/ ${saldo} (adelanto + venta anulada); MEDIO_ORIGINAL: Yape devuelto`,
+    'CUS24',
+    `sin venta ANULADA (RN46 en dev): la venta Yape ${comprobanteDe(ventas.yape!)} no aparece en Devoluciones`,
   );
+  obtenido('RN44', `SALDO_FAVOR: ${CLIENTA_A} tiene S/ ${saldo} (adelanto de la cita cancelada)`);
 });
 
 test('7 · CUS45, CUS46 y RN30: aprueba el cierre con diferencia y reabre la caja del día', async () => {
@@ -995,19 +1058,23 @@ test('7 · CUS45, CUS46 y RN30: aprueba el cierre con diferencia y reabre la caj
     await observaciones.nth(i).fill('Faltan tres soles');
   }
   await modal(recepcion).getByRole('button', { name: 'Confirmar cierre' }).click();
-  await expect(recepcion.getByText(`Cierre de la caja ${idCaja}`)).toBeVisible();
+  await expect(recepcion.getByText(`Cierre de la caja N° ${idCaja}`)).toBeVisible();
+  await revisar(recepcion, 'Cierre de caja');
 
   await admin.goto('/inicio');
   await expect(admin.locator('app-panel-avisos')).toContainText(/cierre/);
   await admin.goto('/caja/revision');
-  const cierre = admin.locator('.cierre', { hasText: `Caja ${idCaja}` });
+  const cierre = admin.locator('.cierre', { hasText: new RegExp(`Caja N° ${idCaja}\\b`) });
   await expect(cierre).toContainText('Faltan tres soles');
+  // It. 2.1: quién cerró, por su nombre (CajaDTO.nombreUsuarioCierre).
+  await expect(cierre).toContainText(nombreDe('recepcion'));
+  await revisar(admin, 'Revisión de caja');
   const aprobacion = admin.waitForResponse((r) => r.url().endsWith(`/cajas/${idCaja}/revision`));
   await cierre.getByRole('button', { name: 'Aprobar cierre' }).click();
   expect((await aprobacion).status()).toBe(200);
   await expect(cierre).toHaveCount(0);
 
-  const fila = admin.locator('#cajasHoy tbody tr', { hasText: idCaja });
+  const fila = admin.locator('#cajasHoy tbody tr', { hasText: `N° ${idCaja}` });
   await fila.getByRole('button', { name: 'Reabrir caja' }).click();
   await expect(admin.locator('#avisoReapertura')).toContainText('arquear y cerrar');
   await admin.locator('#motivoReapertura').fill('Venta registrada después del cierre');
@@ -1058,6 +1125,7 @@ test('7 · CUS47 y RN31: sube la liquidación, concilia, justifica y cierra el m
   expect(respuesta.status()).toBe(201);
   const { idConciliacion } = (await respuesta.json()) as { idConciliacion: number };
 
+  await revisar(admin, 'Conciliación');
   const justificar = admin.getByRole('button', { name: 'Justificar', exact: true });
   let justificadas = 0;
   while ((await justificar.count()) > 0) {
@@ -1080,18 +1148,16 @@ test('7 · CUS47 y RN31: sube la liquidación, concilia, justifica y cierra el m
     `SELECT c.estado, (SELECT COUNT(*) FROM CONCILIACION_ITEM i WHERE i.id_conciliacion = c.id_conciliacion) FROM CONCILIACION c WHERE c.id_conciliacion = ${idConciliacion}`,
   )[0];
   expect(estado).toBe('CERRADA');
-  const anuladaComoValida = valor(
-    `SELECT COUNT(*) FROM CONCILIACION_ITEM WHERE id_conciliacion = ${idConciliacion} AND id_venta = ${ventas.saldo} AND estado = 'COINCIDE'`,
-  );
-  expect(anuladaComoValida).toBe('0');
+  const anuladas = valor("SELECT COUNT(*) FROM VENTA WHERE estado = 'ANULADA'");
   obtenido(
     'CUS47',
     `liquidación: ${resumen.filasRegistradas} de ${resumen.filasLeidas} filas casaron; conciliación ${idConciliacion} con ${items} ítems, ${justificadas} justificados, CERRADA`,
   );
   obtenido(
     'RN31',
-    'cada venta, comprobante y transacción del mes quedó como ítem; la anulada no coincide',
+    'cada venta, comprobante y transacción del mes quedó como ítem',
   );
+  obtenido('RN33', `sin venta anulada en dev (RN46): ${anuladas} ANULADAS, nada que excluir`);
 });
 
 test('7 · CUS48, CUS49 y RN24: genera y exporta el reporte de ventas', async () => {
@@ -1101,6 +1167,7 @@ test('7 · CUS48, CUS49 y RN24: genera y exporta el reporte de ventas', async ()
   expect((await generado).status()).toBe(200);
   await expect(admin.locator('#tablaReporte tbody tr').first()).toBeVisible();
   await expect(admin.locator('.grafico .relleno').first()).toBeVisible();
+  await revisar(admin, 'Reportes');
 
   const archivos: string[] = [];
   for (const formato of ['Exportar a Excel', 'Exportar a PDF']) {
@@ -1143,11 +1210,49 @@ test('7 · CUS55 y RN48: consulta la auditoría; la última administradora no pi
   expect((await consulta).status()).toBe(200);
   const filas = admin.locator('app-auditoria tbody tr');
   await expect(filas.first()).toContainText('admin');
+  await revisar(admin, 'Auditoría');
   const cuantas = await filas.count();
   expect(cuantas).toBeGreaterThan(0);
   obtenido('CUS55', `auditoría de admin: ${cuantas} filas (precio, paquete, anulación, caja...)`);
   obtenido(
     'RN48',
     `quitarle el rol a la última administradora: HTTP ${quitar.status} ${String(quitar.json['regla'])}`,
+  );
+});
+
+// Va al final: si la venta con tarjeta falla (ver NOTAS_IT2, It. 2.1), los demás pasos corren igual.
+// La caja sigue ABIERTA tras la reapertura de CUS46.
+test('8 · RN52: con tarjeta por enlace la venta queda abierta y se cierra al aprobarse', async () => {
+  const venta = await venderProducto(recepcion, 'Tarjeta');
+  if (venta.status !== 202) {
+    obtenido('RN52', `venta con tarjeta por enlace: HTTP ${venta.status} ${venta.cuerpo}`);
+  }
+  expect(venta.status, venta.cuerpo).toBe(202);
+  ventas.tarjeta = venta.idVenta;
+  await expect(recepcion).toHaveURL(new RegExp(`/ventas/cobros\\?idVenta=${venta.idVenta}`));
+  expect(valor(`SELECT estado FROM VENTA WHERE id_venta = ${venta.idVenta}`)).toBe('ABIERTA');
+
+  const codigo = valor(
+    "SELECT codigo_operacion FROM TRANSACCION_PASARELA WHERE estado = 'PENDIENTE' AND canal = 'LINK' AND id_cita IS NULL ORDER BY id_transaccion DESC FETCH FIRST 1 ROW ONLY",
+  );
+  const cuerpo = JSON.stringify({ codigoOperacion: codigo, estado: 'APROBADA' });
+  const firma = createHmac('sha256', claves.hmac).update(cuerpo).digest('hex');
+  const izipay = await request.newContext({ baseURL: `http://localhost:${PUERTO_API}` });
+  const aviso = await izipay.post('/api/v1/pagos/notificaciones', {
+    data: cuerpo,
+    headers: { 'Content-Type': 'application/json', 'X-Firma-Hmac': firma },
+  });
+  expect(aviso.status()).toBe(200);
+  await izipay.dispose();
+
+  await revisar(recepcion, 'Cobro de la venta abierta');
+  await recepcion.getByRole('button', { name: 'Verificar aprobación' }).click();
+  await expect(recepcion.getByText('Pagos completos')).toBeVisible();
+  await recepcion.getByRole('button', { name: 'Cerrar venta y emitir comprobante' }).click();
+  await expect(recepcion.locator('app-comprobante-emitido')).toContainText(/Boleta B001-\d+/);
+  expect(valor(`SELECT estado FROM VENTA WHERE id_venta = ${venta.idVenta}`)).toBe('CERRADA');
+  obtenido(
+    'RN52',
+    `venta ${venta.idVenta}: 202 ABIERTA; tras el webhook APROBADA, CERRADA en Cobros`,
   );
 });

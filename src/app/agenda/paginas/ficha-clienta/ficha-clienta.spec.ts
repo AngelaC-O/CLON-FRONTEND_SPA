@@ -49,8 +49,16 @@ const FICHA: FichaClienteDTO = {
       horaInicio: '2026-11-02T10:00:00',
       idPersonal: 4,
       idVariante: 2,
+      nombreServicio: 'Tinte · Raíz',
+      nombreEspecialista: 'Lucía Ramos',
+      nombreRecurso: 'Sillón 1',
       recomendaciones: [
-        { idRecomendacion: 8, idProducto: 40, observacion: 'Para mantener el color' },
+        {
+          idRecomendacion: 8,
+          idProducto: 41,
+          nombreProducto: 'Mascarilla de color',
+          observacion: 'Para mantener el color',
+        },
       ],
     },
   ],
@@ -61,6 +69,8 @@ const FICHA: FichaClienteDTO = {
       idPersonal: 4,
       idRecurso: 1,
       idVariante: 2,
+      nombreServicio: 'Corte de Cabello Caballero · Estándar',
+      nombreEspecialista: 'Ana Torres',
       duracionMin: 30,
       estado: 'PENDIENTE',
       fechaHoraInicio: '2026-11-16T10:00:00',
@@ -70,6 +80,7 @@ const FICHA: FichaClienteDTO = {
     {
       idClientePaquete: 5,
       idPaquete: 3,
+      nombrePaquete: 'Tres cortes',
       estado: 'ACTIVO',
       sesionesTotales: 3,
       sesionesUsadas: 1,
@@ -163,15 +174,29 @@ describe('FichaClienta (CUS03 y CUS04)', () => {
     expect(texto).toContain('Pendiente');
     expect(texto).toContain('02/11/2026 10:00');
     expect(texto).toContain('Cobrada');
-    // La recomendación trae el id del producto; el nombre sale de lo que compró.
-    expect(texto).toContain('Shampoo reparador');
+    // La recomendación trae el nombre del producto (It. 2.1), aunque no lo haya comprado.
+    expect(texto).toContain('Mascarilla de color');
     expect(texto).toContain('Para mantener el color');
+    expect(texto).toContain('Shampoo reparador');
     expect(raiz.querySelector('tbody tr')?.textContent).toContain('S/ 45.00');
+  });
+
+  it('It. 2.1: el historial nombra servicio y especialista; nunca sus ids', async () => {
+    await montar(editar);
+    await clic('Historial');
+    const texto = raiz.textContent ?? '';
+    expect(texto).toContain('Tinte · Raíz');
+    expect(texto).toContain('Lucía Ramos');
+    expect(texto).toContain('Corte de Cabello Caballero · Estándar');
+    expect(texto).toContain('Ana Torres');
+    expect(texto).not.toMatch(/Variante 2|Especialista 4|Producto 41/);
   });
 
   it('CUS03: paquetes con sesiones (RN36) y saldo a favor', async () => {
     await montar(editar);
     await clic('Paquetes y membresías');
+    expect(raiz.textContent).toContain('Tres cortes');
+    expect(raiz.textContent).not.toContain('Paquete 3');
     expect(raiz.textContent).toContain('2 disponibles');
     expect(raiz.textContent).toContain('1 de 3 sesiones usadas');
     expect(raiz.textContent).toContain('31/01/2027');

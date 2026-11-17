@@ -1025,7 +1025,7 @@ export interface paths {
     /** Listar los recursos de una sede */
     get: operations['listarRecursos'];
     put?: never;
-    /** Registrar un recurso con su limpieza */
+    /** Registrar un recurso con su tipo y su sede */
     post: operations['registrarRecurso'];
     delete?: never;
     options?: never;
@@ -1599,7 +1599,10 @@ export interface components {
       idPersonal?: number;
       /** Format: int64 */
       idVariante?: number;
+      nombreCliente?: string;
       nombreClientePaso?: string;
+      nombreEspecialista?: string;
+      nombreServicio?: string;
     };
     AtencionDTO: {
       consumosPendientes?: components['schemas']['ConsumoPendienteDTO'][];
@@ -1623,6 +1626,10 @@ export interface components {
       idRecurso?: number;
       /** Format: int64 */
       idVariante?: number;
+      nombreCliente?: string;
+      nombreEspecialista?: string;
+      nombreRecurso?: string;
+      nombreServicio?: string;
       observaciones?: string;
       /** Format: int32 */
       tiempoDeclaradoMin?: number;
@@ -1646,6 +1653,9 @@ export interface components {
       idRecurso?: number;
       /** Format: int64 */
       idVariante?: number;
+      nombreEspecialista?: string;
+      nombreRecurso?: string;
+      nombreServicio?: string;
       observaciones?: string;
       recomendaciones?: components['schemas']['RecomendacionDTO'][];
     };
@@ -1697,6 +1707,10 @@ export interface components {
       idUsuarioRevisa?: number;
       montoInicial?: number;
       motivoReapertura?: string;
+      nombreUsuarioApertura?: string;
+      nombreUsuarioCierre?: string;
+      nombreUsuarioReapertura?: string;
+      nombreUsuarioRevisa?: string;
     };
     CambioClaveDTO: {
       claveActual: string;
@@ -1739,6 +1753,9 @@ export interface components {
       idRecurso?: number;
       /** Format: int64 */
       idVariante?: number;
+      nombreCliente?: string;
+      nombreRecurso?: string;
+      nombreServicio?: string;
     };
     CitaDTO: {
       adelantoMonto?: number;
@@ -1775,6 +1792,10 @@ export interface components {
       /** Format: int64 */
       idVariante: number;
       motivoCancelacion?: string;
+      nombreCliente?: string;
+      nombreEspecialista?: string;
+      nombreRecurso?: string;
+      nombreServicio?: string;
     };
     ClaveDTO: {
       clave: string;
@@ -1803,9 +1824,16 @@ export interface components {
       telefono: string;
     };
     CobroPendienteDTO: {
+      canal?: string;
       enlacePago?: string;
+      estado?: string;
+      /** Format: date-time */
+      fechaExpiracion?: string;
+      /** Format: int64 */
+      idMedioPago?: number;
       /** Format: int64 */
       idTransaccion?: number;
+      monto?: number;
     };
     Columna: {
       campo?: string;
@@ -1845,7 +1873,7 @@ export interface components {
       idConciliacion?: number;
       /** Format: int64 */
       idUsuario?: number;
-      items?: components['schemas']['Item'][];
+      items?: components['schemas']['ItemConciliacion'][];
       /** Format: int32 */
       mes?: number;
       /** Format: int64 */
@@ -1898,6 +1926,7 @@ export interface components {
     DetalleVentaDTO: {
       /** Format: int32 */
       cantidad?: number;
+      descripcion?: string;
       descuento?: number;
       /** Format: int64 */
       idAtencion?: number;
@@ -1911,6 +1940,7 @@ export interface components {
       idProducto?: number;
       /** Format: int64 */
       idPromocion?: number;
+      nombreEspecialista?: string;
       precioUnitario?: number;
       subtotal?: number;
       /** @enum {string} */
@@ -1951,6 +1981,11 @@ export interface components {
       /** Format: int64 */
       idPersonal?: number;
       nombres?: string;
+    };
+    EspecialistaLibre: {
+      /** Format: int64 */
+      idPersonal?: number;
+      nombre?: string;
     };
     EsperadoDTO: {
       comprobantesPendientes?: components['schemas']['ComprobantePendiente'][];
@@ -1996,8 +2031,6 @@ export interface components {
       estado?: string;
       /** Format: date-time */
       fin?: string;
-      /** Format: date-time */
-      finServicio?: string;
       franja?: string;
       /** Format: int64 */
       idCliente?: number;
@@ -2013,16 +2046,19 @@ export interface components {
       inicio?: string;
       nombreCliente?: string;
       nombreEspecialista?: string;
+      nombreRecurso?: string;
       nombreServicio?: string;
       origen?: string;
     };
     HoraLibre: {
       /** Format: int32 */
       duracionMin?: number;
+      especialistas?: components['schemas']['EspecialistaLibre'][];
       idsPersonal?: number[];
       idsRecurso?: number[];
       /** Format: date-time */
       inicio?: string;
+      recursos?: components['schemas']['RecursoLibre'][];
     };
     InicioAtencionDTO: {
       /** Format: int64 */
@@ -2038,6 +2074,7 @@ export interface components {
     Item: {
       /** Format: int32 */
       cantidad: number;
+      descripcion?: string;
       /** Format: int64 */
       idPaquete?: number;
       /** Format: int64 */
@@ -2048,6 +2085,20 @@ export interface components {
       subtotal?: number;
       /** @enum {string} */
       tipoItem: 'SERVICIO' | 'PRODUCTO' | 'PAQUETE';
+    };
+    ItemConciliacion: {
+      aceptadoSunat?: boolean;
+      /** @enum {string} */
+      estado?: 'COINCIDE' | 'SIN_JUSTIFICAR' | 'JUSTIFICADA' | 'EXCLUIDA';
+      /** Format: int64 */
+      idItem?: number;
+      /** Format: int64 */
+      idTransaccion?: number;
+      /** Format: int64 */
+      idVenta?: number;
+      justificacion?: string;
+      pagoRespaldado?: boolean;
+      referenciaSunat?: string;
     };
     JustificacionDTO: {
       /** @enum {string} */
@@ -2122,6 +2173,8 @@ export interface components {
     MovimientoKardexDTO: {
       /** Format: int32 */
       cantidad?: number;
+      comprobante?: string;
+      documentoCompra?: string;
       /** Format: date-time */
       fechaHora?: string;
       /** Format: int64 */
@@ -2155,6 +2208,7 @@ export interface components {
       /** Format: int64 */
       idTransaccion?: number;
       monto?: number;
+      nombreMedioPago?: string;
       referencia?: string;
     };
     PagosDTO: {
@@ -2170,6 +2224,7 @@ export interface components {
       /** Format: int32 */
       numSesiones?: number;
       precio?: number;
+      servicios?: components['schemas']['ServicioIncluidoDTO'][];
       /** @enum {string} */
       tipo: 'PAQUETE' | 'MEMBRESIA';
       /** Format: int32 */
@@ -2186,6 +2241,7 @@ export interface components {
       idClientePaquete?: number;
       /** Format: int64 */
       idPaquete?: number;
+      nombrePaquete?: string;
       /** Format: int32 */
       sesionesRestantes?: number;
       /** Format: int32 */
@@ -2305,6 +2361,7 @@ export interface components {
       idPromocion?: number;
       idsServicio?: number[];
       nombre: string;
+      servicios?: components['schemas']['ServicioIncluidoDTO'][];
       /** @enum {string} */
       tipoDescuento: 'PORCENTAJE' | 'MONTO';
       valor?: number;
@@ -2324,6 +2381,7 @@ export interface components {
       idProducto: number;
       /** Format: int64 */
       idRecomendacion?: number;
+      nombreProducto?: string;
       observacion?: string;
     };
     Recurso: {
@@ -2340,8 +2398,6 @@ export interface components {
       idRecurso?: number;
       /** Format: int64 */
       idSede: number;
-      /** Format: int32 */
-      minutosLimpieza: number;
       nombre: string;
       /** @enum {string} */
       tipo:
@@ -2352,6 +2408,11 @@ export interface components {
         | 'MESA_MANICURA'
         | 'LAVACABEZAS'
         | 'HIDROTERAPIA';
+    };
+    RecursoLibre: {
+      /** Format: int64 */
+      idRecurso?: number;
+      nombre?: string;
     };
     ReporteDTO: {
       agrupacion?: string;
@@ -2434,6 +2495,11 @@ export interface components {
         | 'HIDROTERAPIA';
       variantes: components['schemas']['VarianteDTO'][];
     };
+    ServicioIncluidoDTO: {
+      /** Format: int64 */
+      idServicio?: number;
+      nombre?: string;
+    };
     SesionDTO: {
       apellidos?: string;
       debeCambiarClave?: boolean;
@@ -2443,6 +2509,7 @@ export interface components {
       idSede?: number;
       /** Format: int64 */
       idUsuario?: number;
+      nombreSede?: string;
       nombreUsuario?: string;
       nombres?: string;
       permisos?: string[];
@@ -2473,6 +2540,9 @@ export interface components {
       idVenta?: number;
       motivo?: string;
       motivoRechazo?: string;
+      nombreCliente?: string;
+      nombreUsuarioResuelve?: string;
+      nombreUsuarioSolicita?: string;
       totalVenta?: number;
     };
     TipoDocumentoDTO: {
@@ -2499,6 +2569,7 @@ export interface components {
       idTransaccion?: number;
     };
     UsuarioDTO: {
+      apellidos?: string;
       clave: string;
       debeCambiarClave?: boolean;
       /** @enum {string} */
@@ -2509,7 +2580,11 @@ export interface components {
       idRol: number;
       /** Format: int64 */
       idUsuario?: number;
+      nombreRol?: string;
       nombreUsuario: string;
+      nombres?: string;
+      /** Format: date-time */
+      ultimoAcceso?: string;
     };
     VarianteDTO: {
       /** Format: int64 */
@@ -2535,6 +2610,7 @@ export interface components {
       /** Format: int64 */
       idVenta?: number;
       igv?: number;
+      nombreCliente?: string;
       pagado?: number;
       pagos?: components['schemas']['PagoVentaDTO'][];
       pendiente?: number;
@@ -2625,6 +2701,7 @@ export type Egreso = components['schemas']['Egreso'];
 export type EnlaceComprobanteDTO = components['schemas']['EnlaceComprobanteDTO'];
 export type EnlacePagoDTO = components['schemas']['EnlacePagoDTO'];
 export type Especialista = components['schemas']['Especialista'];
+export type EspecialistaLibre = components['schemas']['EspecialistaLibre'];
 export type EsperadoDTO = components['schemas']['EsperadoDTO'];
 export type EsperadoMedioDTO = components['schemas']['EsperadoMedioDTO'];
 export type FichaClienteDTO = components['schemas']['FichaClienteDTO'];
@@ -2635,6 +2712,7 @@ export type HoraLibre = components['schemas']['HoraLibre'];
 export type InicioAtencionDTO = components['schemas']['InicioAtencionDTO'];
 export type InsumoDTO = components['schemas']['InsumoDTO'];
 export type Item = components['schemas']['Item'];
+export type ItemConciliacion = components['schemas']['ItemConciliacion'];
 export type JustificacionDTO = components['schemas']['JustificacionDTO'];
 export type Linea = components['schemas']['Linea'];
 export type ListaEsperaDTO = components['schemas']['ListaEsperaDTO'];
@@ -2663,6 +2741,7 @@ export type RechazoDTO = components['schemas']['RechazoDTO'];
 export type RecomendacionDTO = components['schemas']['RecomendacionDTO'];
 export type Recurso = components['schemas']['Recurso'];
 export type RecursoDTO = components['schemas']['RecursoDTO'];
+export type RecursoLibre = components['schemas']['RecursoLibre'];
 export type ReporteDTO = components['schemas']['ReporteDTO'];
 export type ReprogramacionDTO = components['schemas']['ReprogramacionDTO'];
 export type ResultadoConsulta = components['schemas']['ResultadoConsulta'];
@@ -2670,6 +2749,7 @@ export type ResumenImportacionDTO = components['schemas']['ResumenImportacionDTO
 export type RolDTO = components['schemas']['RolDTO'];
 export type SerieDTO = components['schemas']['SerieDTO'];
 export type ServicioDTO = components['schemas']['ServicioDTO'];
+export type ServicioIncluidoDTO = components['schemas']['ServicioIncluidoDTO'];
 export type SesionDTO = components['schemas']['SesionDTO'];
 export type SolicitudAnulacionDTO = components['schemas']['SolicitudAnulacionDTO'];
 export type TipoDocumentoDTO = components['schemas']['TipoDocumentoDTO'];
@@ -2854,6 +2934,10 @@ export interface operations {
            *       "idPersonal": 4,
            *       "idRecurso": 1,
            *       "idVariante": 2,
+           *       "nombreCliente": "Rosaura Quispe",
+           *       "nombreEspecialista": "Lucía Ramos",
+           *       "nombreRecurso": "Sillón 1",
+           *       "nombreServicio": "Corte de Cabello Caballero · Estándar",
            *       "tiempoDeclaradoMin": 45
            *     }
            */
@@ -2970,6 +3054,10 @@ export interface operations {
            *       "idPersonal": 4,
            *       "idRecurso": 1,
            *       "idVariante": 2,
+           *       "nombreCliente": "Rosaura Quispe",
+           *       "nombreEspecialista": "Lucía Ramos",
+           *       "nombreRecurso": "Sillón 1",
+           *       "nombreServicio": "Corte de Cabello Caballero · Estándar",
            *       "tiempoDeclaradoMin": 45
            *     }
            */
@@ -3064,13 +3152,16 @@ export interface operations {
            *         "duracionMin": 30,
            *         "estado": "EN_ATENCION",
            *         "estadoAtencion": "EN_CURSO",
-           *         "fechaHoraFin": "2026-11-09T10:40:00",
+           *         "fechaHoraFin": "2026-11-09T10:30:00",
            *         "fechaHoraInicio": "2026-11-09T10:00:00",
            *         "idAtencion": 1532,
            *         "idCita": 950,
            *         "idCliente": 407,
            *         "idRecurso": 1,
-           *         "idVariante": 2
+           *         "idVariante": 2,
+           *         "nombreCliente": "Rosaura Quispe",
+           *         "nombreRecurso": "Sillón 1",
+           *         "nombreServicio": "Corte de Cabello Caballero · Estándar"
            *       }
            *     ]
            */
@@ -3222,6 +3313,10 @@ export interface operations {
            *       "idPersonal": 4,
            *       "idRecurso": 1,
            *       "idVariante": 2,
+           *       "nombreCliente": "Rosaura Quispe",
+           *       "nombreEspecialista": "Lucía Ramos",
+           *       "nombreRecurso": "Sillón 1",
+           *       "nombreServicio": "Corte de Cabello Caballero · Estándar",
            *       "observaciones": "Sin novedad",
            *       "tiempoDeclaradoMin": 45
            *     }
@@ -3327,6 +3422,7 @@ export interface operations {
            *       "idAtencion": 1532,
            *       "idProducto": 40,
            *       "idRecomendacion": 8,
+           *       "nombreProducto": "Shampoo reparador",
            *       "observacion": "Para mantener el color"
            *     }
            */
@@ -3607,6 +3703,7 @@ export interface operations {
            *       "idPersonal": 3,
            *       "idSede": 1,
            *       "idUsuario": 2,
+           *       "nombreSede": "Pichanaki Centro",
            *       "nombreUsuario": "recepcion",
            *       "nombres": "Rosa",
            *       "permisos": [
@@ -3743,6 +3840,7 @@ export interface operations {
            *       "idPersonal": 3,
            *       "idSede": 1,
            *       "idUsuario": 2,
+           *       "nombreSede": "Pichanaki Centro",
            *       "nombreUsuario": "recepcion",
            *       "nombres": "Rosa",
            *       "permisos": [
@@ -3874,7 +3972,8 @@ export interface operations {
            *       "idCaja": 214,
            *       "idSede": 1,
            *       "idUsuarioApertura": 2,
-           *       "montoInicial": 100
+           *       "montoInicial": 100,
+           *       "nombreUsuarioApertura": "Rosa Quispe"
            *     }
            */
           'application/json': components['schemas']['CajaDTO'];
@@ -3950,7 +4049,8 @@ export interface operations {
            *       "idCaja": 214,
            *       "idSede": 1,
            *       "idUsuarioApertura": 2,
-           *       "montoInicial": 100
+           *       "montoInicial": 100,
+           *       "nombreUsuarioApertura": "Rosa Quispe"
            *     }
            */
           'application/json': components['schemas']['CajaDTO'];
@@ -4026,7 +4126,9 @@ export interface operations {
            *         "idSede": 1,
            *         "idUsuarioApertura": 2,
            *         "idUsuarioCierre": 2,
-           *         "montoInicial": 100
+           *         "montoInicial": 100,
+           *         "nombreUsuarioApertura": "Rosa Quispe",
+           *         "nombreUsuarioCierre": "Rosa Quispe"
            *       }
            *     ]
            */
@@ -4085,7 +4187,9 @@ export interface operations {
            *         "fechaCierre": "2026-11-09T20:05:00",
            *         "idCaja": 12,
            *         "idSede": 1,
-           *         "montoInicial": 100
+           *         "montoInicial": 100,
+           *         "nombreUsuarioApertura": "Rosa Quispe",
+           *         "nombreUsuarioCierre": "Rosa Quispe"
            *       }
            *     ]
            */
@@ -4180,7 +4284,9 @@ export interface operations {
            *       "idSede": 1,
            *       "idUsuarioApertura": 2,
            *       "idUsuarioCierre": 2,
-           *       "montoInicial": 100
+           *       "montoInicial": 100,
+           *       "nombreUsuarioApertura": "Rosa Quispe",
+           *       "nombreUsuarioCierre": "Rosa Quispe"
            *     }
            */
           'application/json': components['schemas']['CajaDTO'];
@@ -4382,7 +4488,8 @@ export interface operations {
            *       "idCaja": 12,
            *       "idSede": 1,
            *       "idUsuarioReapertura": 1,
-           *       "motivoReapertura": "Venta registrada después del cierre"
+           *       "motivoReapertura": "Venta registrada después del cierre",
+           *       "nombreUsuarioReapertura": "Administradora Cautiva Spa"
            *     }
            */
           'application/json': components['schemas']['CajaDTO'];
@@ -4494,7 +4601,8 @@ export interface operations {
            *       "fechaRevision": "2026-11-10T09:00:00",
            *       "idCaja": 12,
            *       "idSede": 1,
-           *       "idUsuarioRevisa": 1
+           *       "idUsuarioRevisa": 1,
+           *       "nombreUsuarioRevisa": "Administradora Cautiva Spa"
            *     }
            */
           'application/json': components['schemas']['CajaDTO'];
@@ -4742,7 +4850,7 @@ export interface operations {
       };
     };
     responses: {
-      /** @description Cita creada; Oracle calcula el fin con la limpieza del recurso. Con idEspera, la espera queda ASIGNADA con esta cita (RF09) */
+      /** @description Cita creada; Oracle calcula el fin del servicio (inicio + duración, RN03). Con idEspera, la espera queda ASIGNADA con esta cita (RF09) */
       201: {
         headers: {
           [name: string]: unknown;
@@ -4753,7 +4861,7 @@ export interface operations {
            *       "adelantoMonto": 0,
            *       "duracionMin": 30,
            *       "estado": "PENDIENTE",
-           *       "fechaHoraFin": "2026-11-09T10:40:00",
+           *       "fechaHoraFin": "2026-11-09T10:30:00",
            *       "fechaHoraInicio": "2026-11-09T10:00:00",
            *       "idCita": 950,
            *       "idCliente": 407,
@@ -4762,7 +4870,11 @@ export interface operations {
            *       "idRecurso": 1,
            *       "idSede": 1,
            *       "idUsuario": 2,
-           *       "idVariante": 2
+           *       "idVariante": 2,
+           *       "nombreCliente": "Rosaura Quispe",
+           *       "nombreEspecialista": "Lucía Ramos",
+           *       "nombreRecurso": "Sillón 1",
+           *       "nombreServicio": "Corte de Cabello Caballero · Estándar"
            *     }
            */
           'application/json': components['schemas']['CitaDTO'];
@@ -4813,7 +4925,7 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description Cruce de horario de la especialista o del recurso, con limpieza (RN02), o la espera ya no está PENDIENTE (RF09) */
+      /** @description Cruce de horario de la especialista o del recurso (RN02), o la espera ya no está PENDIENTE (RF09) */
       409: {
         headers: {
           [name: string]: unknown;
@@ -4821,7 +4933,7 @@ export interface operations {
         content: {
           /**
            * @example {
-           *       "detail": "Cruce de horario de la especialista o del recurso, con limpieza (RN02), o la espera ya no está PENDIENTE (RF09)",
+           *       "detail": "Cruce de horario de la especialista o del recurso (RN02), o la espera ya no está PENDIENTE (RF09)",
            *       "regla": "RN02",
            *       "status": 409,
            *       "title": "Conflict",
@@ -4864,7 +4976,7 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description Franjas ocupadas (fin con la limpieza del recurso; finServicio, sin ella, libera a la especialista, RN03) y libres; LIBRE es de una especialista o de un recurso. Cada franja trae los nombres de la clienta, la especialista y el servicio */
+      /** @description Franjas ocupadas (fin del servicio: libera a la especialista y al recurso, RN03) y libres; LIBRE es de una especialista o de un recurso. Cada franja trae los nombres de la clienta, la especialista y el servicio */
       200: {
         headers: {
           [name: string]: unknown;
@@ -4874,8 +4986,7 @@ export interface operations {
            * @example [
            *       {
            *         "estado": "PENDIENTE",
-           *         "fin": "2026-11-09T10:40:00",
-           *         "finServicio": "2026-11-09T10:30:00",
+           *         "fin": "2026-11-09T10:30:00",
            *         "franja": "OCUPADA",
            *         "idCliente": 407,
            *         "idOrigen": 950,
@@ -4885,6 +4996,7 @@ export interface operations {
            *         "inicio": "2026-11-09T10:00:00",
            *         "nombreCliente": "Marisol Quispe",
            *         "nombreEspecialista": "Lucía Ramos",
+           *         "nombreRecurso": "Sillón 1",
            *         "nombreServicio": "Corte de Cabello Caballero",
            *         "origen": "CITA"
            *       },
@@ -4959,7 +5071,7 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description Horas cada AGENDA_PASO_MIN minutos (RN51) con las especialistas y recursos libres; la limpieza solo ocupa al recurso (RN03) */
+      /** @description Horas cada AGENDA_PASO_MIN minutos (RN51) con las especialistas y recursos libres; quedan libres al terminar el servicio, sin limpieza (RN03) */
       200: {
         headers: {
           [name: string]: unknown;
@@ -4969,6 +5081,12 @@ export interface operations {
            * @example [
            *       {
            *         "duracionMin": 30,
+           *         "especialistas": [
+           *           {
+           *             "idPersonal": 4,
+           *             "nombre": "Lucía Ramos"
+           *           }
+           *         ],
            *         "idsPersonal": [
            *           4
            *         ],
@@ -4977,7 +5095,21 @@ export interface operations {
            *           2,
            *           3
            *         ],
-           *         "inicio": "2026-11-09T09:00:00"
+           *         "inicio": "2026-11-09T09:00:00",
+           *         "recursos": [
+           *           {
+           *             "idRecurso": 1,
+           *             "nombre": "Sillón 1"
+           *           },
+           *           {
+           *             "idRecurso": 2,
+           *             "nombre": "Sillón 2"
+           *           },
+           *           {
+           *             "idRecurso": 3,
+           *             "nombre": "Sillón 3"
+           *           }
+           *         ]
            *       }
            *     ]
            */
@@ -5200,13 +5332,25 @@ export interface operations {
            *       "horasLibres": [
            *         {
            *           "duracionMin": 30,
+           *           "especialistas": [
+           *             {
+           *               "idPersonal": 4,
+           *               "nombre": "Lucía Ramos"
+           *             }
+           *           ],
            *           "idsPersonal": [
            *             4
            *           ],
            *           "idsRecurso": [
            *             1
            *           ],
-           *           "inicio": "2026-11-09T09:00:00"
+           *           "inicio": "2026-11-09T09:00:00",
+           *           "recursos": [
+           *             {
+           *               "idRecurso": 1,
+           *               "nombre": "Sillón 1"
+           *             }
+           *           ]
            *         }
            *       ],
            *       "idCliente": 407,
@@ -5423,7 +5567,11 @@ export interface operations {
            *       "idPersonal": 4,
            *       "idRecurso": 1,
            *       "idSede": 1,
-           *       "idVariante": 2
+           *       "idVariante": 2,
+           *       "nombreCliente": "Rosaura Quispe",
+           *       "nombreEspecialista": "Lucía Ramos",
+           *       "nombreRecurso": "Sillón 1",
+           *       "nombreServicio": "Corte de Cabello Caballero · Estándar"
            *     }
            */
           'application/json': components['schemas']['CitaDTO'];
@@ -5525,7 +5673,7 @@ export interface operations {
            *       "adelantoMonto": 20,
            *       "duracionMin": 30,
            *       "estado": "CANCELADA",
-           *       "fechaHoraFin": "2026-11-16T10:40:00",
+           *       "fechaHoraFin": "2026-11-16T10:30:00",
            *       "fechaHoraInicio": "2026-11-16T10:00:00",
            *       "idCita": 951,
            *       "idCliente": 407,
@@ -5534,7 +5682,11 @@ export interface operations {
            *       "idSede": 1,
            *       "idUsuario": 2,
            *       "idVariante": 2,
-           *       "motivoCancelacion": "No se presentó"
+           *       "motivoCancelacion": "No se presentó",
+           *       "nombreCliente": "Rosaura Quispe",
+           *       "nombreEspecialista": "Lucía Ramos",
+           *       "nombreRecurso": "Sillón 1",
+           *       "nombreServicio": "Corte de Cabello Caballero · Estándar"
            *     }
            */
           'application/json': components['schemas']['CitaDTO'];
@@ -5760,7 +5912,7 @@ export interface operations {
            *       "adelantoMonto": 20,
            *       "duracionMin": 30,
            *       "estado": "PENDIENTE",
-           *       "fechaHoraFin": "2026-11-16T15:40:00",
+           *       "fechaHoraFin": "2026-11-16T15:30:00",
            *       "fechaHoraInicio": "2026-11-16T15:00:00",
            *       "idCaja": 12,
            *       "idCita": 952,
@@ -5771,7 +5923,11 @@ export interface operations {
            *       "idRecurso": 2,
            *       "idSede": 1,
            *       "idUsuario": 2,
-           *       "idVariante": 2
+           *       "idVariante": 2,
+           *       "nombreCliente": "Rosaura Quispe",
+           *       "nombreEspecialista": "Lucía Ramos",
+           *       "nombreRecurso": "Sillón 2",
+           *       "nombreServicio": "Corte de Cabello Caballero · Estándar"
            *     }
            */
           'application/json': components['schemas']['CitaDTO'];
@@ -6153,12 +6309,16 @@ export interface operations {
            *           "idAtencion": 1532,
            *           "idPersonal": 4,
            *           "idVariante": 2,
+           *           "nombreEspecialista": "Lucía Ramos",
+           *           "nombreRecurso": "Sillón 1",
+           *           "nombreServicio": "Corte de Cabello Caballero · Estándar",
            *           "recomendaciones": [
            *             {
            *               "fecha": "2026-11-02T10:31:00",
            *               "idAtencion": 1532,
            *               "idProducto": 40,
            *               "idRecomendacion": 8,
+           *               "nombreProducto": "Shampoo reparador",
            *               "observacion": "Para mantener el color"
            *             }
            *           ]
@@ -6170,7 +6330,11 @@ export interface operations {
            *           "estado": "PENDIENTE",
            *           "fechaHoraInicio": "2026-11-16T10:00:00",
            *           "idCita": 951,
-           *           "idCliente": 407
+           *           "idCliente": 407,
+           *           "nombreCliente": "Rosaura Quispe",
+           *           "nombreEspecialista": "Lucía Ramos",
+           *           "nombreRecurso": "Sillón 1",
+           *           "nombreServicio": "Corte de Cabello Caballero · Estándar"
            *         }
            *       ],
            *       "cliente": {
@@ -6189,6 +6353,7 @@ export interface operations {
            *           "fechaVencimiento": "2027-01-31",
            *           "idClientePaquete": 5,
            *           "idPaquete": 3,
+           *           "nombrePaquete": "Tres cortes",
            *           "sesionesRestantes": 2,
            *           "sesionesTotales": 3,
            *           "sesionesUsadas": 1
@@ -7686,6 +7851,12 @@ export interface operations {
            *         "nombre": "Tres cortes",
            *         "numSesiones": 3,
            *         "precio": 90,
+           *         "servicios": [
+           *           {
+           *             "idServicio": 1,
+           *             "nombre": "Corte de Cabello Caballero"
+           *           }
+           *         ],
            *         "tipo": "PAQUETE",
            *         "vigenciaDias": 90
            *       }
@@ -7764,6 +7935,12 @@ export interface operations {
            *       "nombre": "Tres cortes",
            *       "numSesiones": 3,
            *       "precio": 90,
+           *       "servicios": [
+           *         {
+           *           "idServicio": 1,
+           *           "nombre": "Corte de Cabello Caballero"
+           *         }
+           *       ],
            *       "tipo": "PAQUETE",
            *       "vigenciaDias": 90
            *     }
@@ -7924,10 +8101,10 @@ export interface operations {
         content: {
           /**
            * @example {
-           *       "codigo": "LIMPIEZA_MAX_MIN",
-           *       "descripcion": "Minutos máximos de limpieza del recurso (RN03)",
+           *       "codigo": "AGENDA_PASO_MIN",
+           *       "descripcion": "Minutos entre horas libres de la agenda (RN51)",
            *       "fechaVigencia": "2026-11-10",
-           *       "idParametro": 8,
+           *       "idParametro": 9,
            *       "idUsuario": 1,
            *       "valorNumero": 10
            *     }
@@ -7980,7 +8157,7 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description Falta el valor (CK_PARAMETRO_VALOR), AGENDA_PASO_MIN no es un entero mayor que 0 (RN51) o LIMPIEZA_MAX_MIN no es un entero de 0 a 10 (RN03) */
+      /** @description Falta el valor (CK_PARAMETRO_VALOR) o AGENDA_PASO_MIN no es un entero mayor que 0 (RN51) */
       422: {
         headers: {
           [name: string]: unknown;
@@ -7988,8 +8165,8 @@ export interface operations {
         content: {
           /**
            * @example {
-           *       "detail": "Falta el valor (CK_PARAMETRO_VALOR), AGENDA_PASO_MIN no es un entero mayor que 0 (RN51) o LIMPIEZA_MAX_MIN no es un entero de 0 a 10 (RN03)",
-           *       "regla": "RN03",
+           *       "detail": "Falta el valor (CK_PARAMETRO_VALOR) o AGENDA_PASO_MIN no es un entero mayor que 0 (RN51)",
+           *       "regla": "RN51",
            *       "status": 422,
            *       "title": "Unprocessable Content",
            *       "type": "about:blank"
@@ -8386,6 +8563,17 @@ export interface operations {
            *         "saldo": 7,
            *         "tipo": "SALIDA",
            *         "usuario": "especialista1"
+           *       },
+           *       {
+           *         "cantidad": -1,
+           *         "comprobante": "B001-00000125",
+           *         "fechaHora": "2026-11-09T12:10:00",
+           *         "idDetalleVenta": 900,
+           *         "idMovimiento": 312,
+           *         "motivo": "Venta",
+           *         "saldo": 6,
+           *         "tipo": "SALIDA",
+           *         "usuario": "recepcion"
            *       }
            *     ]
            */
@@ -8623,6 +8811,7 @@ export interface operations {
            *       "items": [
            *         {
            *           "cantidad": 2,
+           *           "descripcion": "Corte de Cabello Caballero · Estándar",
            *           "idVariante": 2,
            *           "precioUnitario": 35,
            *           "subtotal": 70,
@@ -8730,6 +8919,16 @@ export interface operations {
            *           2
            *         ],
            *         "nombre": "Noviembre feliz",
+           *         "servicios": [
+           *           {
+           *             "idServicio": 1,
+           *             "nombre": "Corte de Cabello Caballero"
+           *           },
+           *           {
+           *             "idServicio": 2,
+           *             "nombre": "Corte de Cabello Dama"
+           *           }
+           *         ],
            *         "tipoDescuento": "PORCENTAJE",
            *         "valor": 10
            *       }
@@ -8810,6 +9009,16 @@ export interface operations {
            *         2
            *       ],
            *       "nombre": "Noviembre feliz",
+           *       "servicios": [
+           *         {
+           *           "idServicio": 1,
+           *           "nombre": "Corte de Cabello Caballero"
+           *         },
+           *         {
+           *           "idServicio": 2,
+           *           "nombre": "Corte de Cabello Dama"
+           *         }
+           *       ],
            *       "tipoDescuento": "PORCENTAJE",
            *       "valor": 10
            *     }
@@ -8893,7 +9102,7 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description Recursos con su tipo, estado y limpieza */
+      /** @description Recursos con su tipo y estado */
       200: {
         headers: {
           [name: string]: unknown;
@@ -8905,7 +9114,6 @@ export interface operations {
            *         "estado": "DISPONIBLE",
            *         "idRecurso": 1,
            *         "idSede": 1,
-           *         "minutosLimpieza": 10,
            *         "nombre": "Sillón 1",
            *         "tipo": "SILLON"
            *       }
@@ -8973,7 +9181,6 @@ export interface operations {
         /**
          * @example {
          *       "idSede": 1,
-         *       "minutosLimpieza": 10,
          *       "nombre": "Sillón 11",
          *       "tipo": "SILLON"
          *     }
@@ -8993,7 +9200,6 @@ export interface operations {
            *       "estado": "DISPONIBLE",
            *       "idRecurso": 21,
            *       "idSede": 1,
-           *       "minutosLimpieza": 10,
            *       "nombre": "Sillón 11",
            *       "tipo": "SILLON"
            *     }
@@ -9025,24 +9231,6 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/problem+json': components['schemas']['ProblemDetail'];
-        };
-      };
-      /** @description El tiempo de limpieza va de 0 a LIMPIEZA_MAX_MIN (10) minutos */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          /**
-           * @example {
-           *       "detail": "El tiempo de limpieza va de 0 a LIMPIEZA_MAX_MIN (10) minutos",
-           *       "regla": "RN03",
-           *       "status": 422,
-           *       "title": "Unprocessable Content",
-           *       "type": "about:blank"
-           *     }
-           */
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
@@ -10109,6 +10297,8 @@ export interface operations {
            *         "idUsuarioSolicita": 2,
            *         "idVenta": 620,
            *         "motivo": "La clienta desistió",
+           *         "nombreCliente": "Rosaura Quispe",
+           *         "nombreUsuarioSolicita": "Rosa Quispe",
            *         "totalVenta": 90
            *       }
            *     ]
@@ -10177,6 +10367,9 @@ export interface operations {
            *       "idUsuarioSolicita": 2,
            *       "idVenta": 620,
            *       "motivo": "La clienta desistió",
+           *       "nombreCliente": "Rosaura Quispe",
+           *       "nombreUsuarioResuelve": "Administradora Cautiva Spa",
+           *       "nombreUsuarioSolicita": "Rosa Quispe",
            *       "totalVenta": 90
            *     }
            */
@@ -10289,6 +10482,9 @@ export interface operations {
            *       "idVenta": 620,
            *       "motivo": "La clienta desistió",
            *       "motivoRechazo": "La venta es correcta",
+           *       "nombreCliente": "Rosaura Quispe",
+           *       "nombreUsuarioResuelve": "Administradora Cautiva Spa",
+           *       "nombreUsuarioSolicita": "Rosa Quispe",
            *       "totalVenta": 90
            *     }
            */
@@ -10566,12 +10762,16 @@ export interface operations {
           /**
            * @example [
            *       {
+           *         "apellidos": "Quispe",
            *         "debeCambiarClave": false,
            *         "estado": "ACTIVO",
            *         "idPersonal": 3,
            *         "idRol": 2,
            *         "idUsuario": 5,
-           *         "nombreUsuario": "recepcion2"
+           *         "nombreRol": "RECEPCIONISTA",
+           *         "nombreUsuario": "recepcion2",
+           *         "nombres": "Rosa",
+           *         "ultimoAcceso": "2026-11-16T08:55:00"
            *       }
            *     ]
            */
@@ -10636,12 +10836,15 @@ export interface operations {
         content: {
           /**
            * @example {
+           *       "apellidos": "Quispe",
            *       "debeCambiarClave": true,
            *       "estado": "ACTIVO",
            *       "idPersonal": 3,
            *       "idRol": 2,
            *       "idUsuario": 5,
-           *       "nombreUsuario": "recepcion2"
+           *       "nombreRol": "RECEPCIONISTA",
+           *       "nombreUsuario": "recepcion2",
+           *       "nombres": "Rosa"
            *     }
            */
           'application/json': components['schemas']['UsuarioDTO'];
@@ -10797,12 +11000,15 @@ export interface operations {
         content: {
           /**
            * @example {
+           *       "apellidos": "Salón",
            *       "debeCambiarClave": true,
            *       "estado": "ACTIVO",
            *       "idPersonal": 4,
            *       "idRol": 3,
            *       "idUsuario": 3,
-           *       "nombreUsuario": "especialista1"
+           *       "nombreRol": "ESPECIALISTA_TECNICA",
+           *       "nombreUsuario": "especialista1",
+           *       "nombres": "Especialista"
            *     }
            */
           'application/json': components['schemas']['UsuarioDTO'];
@@ -10901,12 +11107,16 @@ export interface operations {
         content: {
           /**
            * @example {
+           *       "apellidos": "Quispe",
            *       "debeCambiarClave": false,
            *       "estado": "ACTIVO",
            *       "idPersonal": 3,
            *       "idRol": 3,
            *       "idUsuario": 5,
-           *       "nombreUsuario": "recepcion2"
+           *       "nombreRol": "ESPECIALISTA_TECNICA",
+           *       "nombreUsuario": "recepcion2",
+           *       "nombres": "Rosa",
+           *       "ultimoAcceso": "2026-11-16T08:55:00"
            *     }
            */
           'application/json': components['schemas']['UsuarioDTO'];
@@ -11009,10 +11219,12 @@ export interface operations {
            *       "detalles": [
            *         {
            *           "cantidad": 1,
+           *           "descripcion": "Corte de Cabello Caballero · Estándar",
            *           "descuento": 0,
            *           "idAtencion": 1532,
            *           "idDetalle": 20311,
            *           "idPersonal": 9,
+           *           "nombreEspecialista": "Lucía Ramos",
            *           "precioUnitario": 60,
            *           "subtotal": 60,
            *           "tipoItem": "SERVICIO"
@@ -11024,6 +11236,7 @@ export interface operations {
            *       "idSede": 1,
            *       "idVenta": 8812,
            *       "igv": 0,
+           *       "nombreCliente": "Rosaura Quispe",
            *       "pagado": 0,
            *       "pagos": [],
            *       "pendiente": 60,
@@ -11231,7 +11444,10 @@ export interface operations {
            *           "idAtencion": 1532,
            *           "idCliente": 407,
            *           "idPersonal": 4,
-           *           "idVariante": 2
+           *           "idVariante": 2,
+           *           "nombreCliente": "Rosaura Quispe",
+           *           "nombreEspecialista": "Lucía Ramos",
+           *           "nombreServicio": "Corte de Cabello Caballero · Estándar"
            *         }
            *       ],
            *       "ventasAbiertas": [
@@ -11242,6 +11458,7 @@ export interface operations {
            *           "idCliente": 407,
            *           "idSede": 1,
            *           "idVenta": 8812,
+           *           "nombreCliente": "Rosaura Quispe",
            *           "pagado": 0,
            *           "pendiente": 60,
            *           "total": 60
@@ -11395,10 +11612,12 @@ export interface operations {
            *       "detalles": [
            *         {
            *           "cantidad": 2,
+           *           "descripcion": "Shampoo reparador",
            *           "descuento": 0,
            *           "idDetalle": 900,
            *           "idPersonal": 4,
            *           "idProducto": 40,
+           *           "nombreEspecialista": "Lucía Ramos",
            *           "precioUnitario": 45,
            *           "subtotal": 90,
            *           "tipoItem": "PRODUCTO"
@@ -11410,11 +11629,13 @@ export interface operations {
            *       "idSede": 1,
            *       "idVenta": 620,
            *       "igv": 0,
+           *       "nombreCliente": "Rosaura Quispe",
            *       "pagado": 90,
            *       "pagos": [
            *         {
            *           "idMedioPago": 1,
-           *           "monto": 90
+           *           "monto": 90,
+           *           "nombreMedioPago": "EFECTIVO"
            *         }
            *       ],
            *       "pendiente": 0,
@@ -11436,8 +11657,13 @@ export interface operations {
            * @example {
            *       "cobrosPendientes": [
            *         {
+           *           "canal": "QR",
            *           "enlacePago": "https://pasarela.example/qr/77",
-           *           "idTransaccion": 77
+           *           "estado": "PENDIENTE",
+           *           "fechaExpiracion": "2026-11-17T10:00:00",
+           *           "idMedioPago": 3,
+           *           "idTransaccion": 77,
+           *           "monto": 45
            *         }
            *       ],
            *       "estado": "ABIERTA",
@@ -11599,8 +11825,13 @@ export interface operations {
            * @example {
            *       "cobrosPendientes": [
            *         {
+           *           "canal": "QR",
            *           "enlacePago": "https://enlace-de-izipay.example/xyz",
-           *           "idTransaccion": 5512
+           *           "estado": "PENDIENTE",
+           *           "fechaExpiracion": "2026-11-17T10:00:00",
+           *           "idMedioPago": 3,
+           *           "idTransaccion": 5512,
+           *           "monto": 35
            *         }
            *       ],
            *       "estado": "ABIERTA",
@@ -11702,6 +11933,12 @@ export interface operations {
            * @example [
            *       {
            *         "duracionMin": 30,
+           *         "especialistas": [
+           *           {
+           *             "idPersonal": 4,
+           *             "nombre": "Lucía Ramos"
+           *           }
+           *         ],
            *         "idsPersonal": [
            *           4
            *         ],
@@ -11709,7 +11946,17 @@ export interface operations {
            *           1,
            *           2
            *         ],
-           *         "inicio": "2026-10-22T10:15:00"
+           *         "inicio": "2026-10-22T10:15:00",
+           *         "recursos": [
+           *           {
+           *             "idRecurso": 1,
+           *             "nombre": "Sillón 1"
+           *           },
+           *           {
+           *             "idRecurso": 2,
+           *             "nombre": "Sillón 2"
+           *           }
+           *         ]
            *       }
            *     ]
            */
@@ -11774,7 +12021,7 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description La venta; cada pago digital trae el estado actual de su transacción en la pasarela (RN42, RN52) */
+      /** @description La venta; cada pago digital trae el estado actual de su transacción en la pasarela (RN42, RN52) y cobrosPendientes, todos los cobros PENDIENTES de la venta, también los iniciados en otro equipo (D-22) */
       200: {
         headers: {
           [name: string]: unknown;
@@ -11782,12 +12029,23 @@ export interface operations {
         content: {
           /**
            * @example {
-           *       "cobrosPendientes": [],
+           *       "cobrosPendientes": [
+           *         {
+           *           "canal": "QR",
+           *           "enlacePago": "https://enlace-de-izipay.example/def",
+           *           "estado": "PENDIENTE",
+           *           "fechaExpiracion": "2026-11-17T10:00:00",
+           *           "idMedioPago": 3,
+           *           "idTransaccion": 5511,
+           *           "monto": 20
+           *         }
+           *       ],
            *       "estado": "ABIERTA",
            *       "idCaja": 214,
            *       "idCliente": 407,
            *       "idSede": 1,
            *       "idVenta": 8812,
+           *       "nombreCliente": "Rosaura Quispe",
            *       "pagado": 40,
            *       "pagos": [
            *         {
@@ -11795,7 +12053,8 @@ export interface operations {
            *           "idMedioPago": 2,
            *           "idPago": 9901,
            *           "idTransaccion": 5510,
-           *           "monto": 40
+           *           "monto": 40,
+           *           "nombreMedioPago": "TARJETA"
            *         }
            *       ],
            *       "pendiente": 20,
@@ -12003,6 +12262,7 @@ export interface operations {
            *       "idSede": 1,
            *       "idVenta": 8812,
            *       "igv": 0,
+           *       "nombreCliente": "Rosaura Quispe",
            *       "pagado": 0,
            *       "pagos": [],
            *       "pendiente": 45,
@@ -12384,12 +12644,14 @@ export interface operations {
            *           "idPago": 9901,
            *           "idTransaccion": 5510,
            *           "monto": 40,
+           *           "nombreMedioPago": "TARJETA",
            *           "referencia": "IZ-000184322"
            *         },
            *         {
            *           "idMedioPago": 1,
            *           "idPago": 9902,
-           *           "monto": 20
+           *           "monto": 20,
+           *           "nombreMedioPago": "EFECTIVO"
            *         }
            *       ],
            *       "pendiente": 0,
@@ -12409,8 +12671,13 @@ export interface operations {
            * @example {
            *       "cobrosPendientes": [
            *         {
+           *           "canal": "QR",
            *           "enlacePago": "https://enlace-de-izipay.example/abc",
-           *           "idTransaccion": 5510
+           *           "estado": "PENDIENTE",
+           *           "fechaExpiracion": "2026-11-17T10:00:00",
+           *           "idMedioPago": 3,
+           *           "idTransaccion": 5510,
+           *           "monto": 60
            *         }
            *       ],
            *       "estado": "ABIERTA",
@@ -12469,7 +12736,7 @@ export interface operations {
           'application/problem+json': components['schemas']['ProblemDetail'];
         };
       };
-      /** @description La pasarela rechazó el cobro (la transacción RECHAZADA queda guardada, RN52) o la transacción aún no está APROBADA */
+      /** @description La pasarela rechazó el cobro (la transacción RECHAZADA queda guardada, RN52), la transacción aún no está APROBADA o cobró otra venta (-20107, RN42) */
       422: {
         headers: {
           [name: string]: unknown;
@@ -12477,7 +12744,7 @@ export interface operations {
         content: {
           /**
            * @example {
-           *       "detail": "La pasarela rechazó el cobro (la transacción RECHAZADA queda guardada, RN52) o la transacción aún no está APROBADA",
+           *       "detail": "La pasarela rechazó el cobro (la transacción RECHAZADA queda guardada, RN52), la transacción aún no está APROBADA o cobró otra venta (-20107, RN42)",
            *       "regla": "RF103",
            *       "status": 422,
            *       "title": "Unprocessable Content",
@@ -12529,6 +12796,8 @@ export interface operations {
            *       "idUsuarioSolicita": 2,
            *       "idVenta": 620,
            *       "motivo": "La clienta desistió",
+           *       "nombreCliente": "Rosaura Quispe",
+           *       "nombreUsuarioSolicita": "Rosa Quispe",
            *       "totalVenta": 90
            *     }
            */

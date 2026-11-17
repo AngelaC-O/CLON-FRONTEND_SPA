@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, input, OnInit, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { especialistaLibre, nombreO, recursoLibre } from '../../../core/api/nombres';
 import { leerProblema, mensajeDelProblema } from '../../../core/api/problema';
 import { Modal } from '../../../layout/modal/modal';
 import {
@@ -31,8 +32,7 @@ import { CitasService } from '../../servicios/citas.service';
       <form [formGroup]="formulario" (ngSubmit)="reprogramar()">
         <div class="mb">
           <div class="mut sm">
-            {{ tituloBloque(cita()) }} ·
-            {{ cita().nombreServicio || 'Variante ' + cita().idVariante }} ·
+            {{ tituloBloque(cita()) }} · {{ nombreO(cita().nombreServicio) }} ·
             {{ fechaCorta(cita().inicio, true) }}
           </div>
           <div class="alert info">Si la cita tiene adelanto, se mantiene en la nueva cita.</div>
@@ -86,7 +86,7 @@ import { CitasService } from '../../servicios/citas.service';
                 <label class="lbl" for="reprogramarIdPersonal">ESPECIALISTA</label>
                 <select class="inp" id="reprogramarIdPersonal" formControlName="idPersonal">
                   @for (id of hora.idsPersonal; track id) {
-                    <option [ngValue]="id">{{ nombreEspecialista(id) }}</option>
+                    <option [ngValue]="id">{{ nombreEspecialista(hora, id) }}</option>
                   }
                 </select>
               </div>
@@ -94,7 +94,7 @@ import { CitasService } from '../../servicios/citas.service';
                 <label class="lbl" for="reprogramarIdRecurso">RECURSO</label>
                 <select class="inp" id="reprogramarIdRecurso" formControlName="idRecurso">
                   @for (id of hora.idsRecurso; track id) {
-                    <option [ngValue]="id">{{ nombreRecurso(id) }}</option>
+                    <option [ngValue]="id">{{ nombreRecurso(hora, id) }}</option>
                   }
                 </select>
               </div>
@@ -121,6 +121,7 @@ export class ReprogramarCita implements OnInit {
   readonly reprogramada = output<CitaDTO>();
 
   protected readonly horaDe = horaDe;
+  protected readonly nombreO = nombreO;
   protected readonly tituloBloque = tituloBloque;
   protected readonly fechaCorta = fechaCorta;
   protected readonly hoy = hoyIso();
@@ -168,13 +169,18 @@ export class ReprogramarCita implements OnInit {
     });
   }
 
-  protected nombreEspecialista(id: number): string {
+  /** El nombre llega en la hora libre (It. 2.1); si no, el de los filtros de la agenda, o «—». */
+  protected nombreEspecialista(hora: HoraLibre, id: number): string {
     const especialista = this.filtros()?.especialistas?.find((e) => e.idPersonal === id);
-    return especialista ? nombreDe(especialista) : `Especialista ${id}`;
+    return especialistaLibre(hora, id, especialista && nombreDe(especialista));
   }
 
-  protected nombreRecurso(id: number): string {
-    return this.filtros()?.recursos?.find((r) => r.idRecurso === id)?.nombre ?? `Recurso ${id}`;
+  protected nombreRecurso(hora: HoraLibre, id: number): string {
+    return recursoLibre(
+      hora,
+      id,
+      this.filtros()?.recursos?.find((r) => r.idRecurso === id)?.nombre,
+    );
   }
 
   /** Propone la especialista y el recurso de la cita si siguen libres a esa hora. */

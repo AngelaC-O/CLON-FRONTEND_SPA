@@ -2,7 +2,7 @@
   <div class="row">
     <div class="sp">
       <h1 class="h1">Catálogo y configuración</h1>
-      <div class="mut">Recursos de la sede {{ idSede() }} con su tiempo de limpieza (CUS61).</div>
+      <div class="mut">Recursos de la sede {{ nombreSede() }} con su tipo y estado (CUS61).</div>
     </div>
     @if (puedeCrear()) {
       <button class="btn lg" type="button" (click)="abrir()">+ Recurso</button>
@@ -22,7 +22,6 @@
         <tr>
           <th>Recurso</th>
           <th>Tipo</th>
-          <th class="r">Limpieza</th>
           <th>Estado</th>
         </tr>
       </thead>
@@ -31,7 +30,6 @@
           <tr>
             <td class="b">{{ recurso.nombre }}</td>
             <td class="sm">{{ etiquetaTipo(recurso.tipo) }}</td>
-            <td class="r num">{{ recurso.minutosLimpieza }} <span class="xs mut">min</span></td>
             <td>
               <span
                 class="chip"
@@ -44,7 +42,7 @@
           </tr>
         } @empty {
           <tr>
-            <td class="vacio" colspan="4">
+            <td class="vacio" colspan="3">
               {{ cargando() ? 'Cargando los recursos…' : 'La sede aún no tiene recursos.' }}
             </td>
           </tr>
@@ -53,8 +51,7 @@
     </table>
   </div>
   <div class="xs mut">
-    Cada recurso tiene su propio tiempo de limpieza, de 0 a {{ limpiezaMax }} minutos (RN03), que la
-    agenda bloquea solo en el recurso después de cada servicio.
+    El recurso queda libre en cuanto termina el servicio, sin tiempo de limpieza (RN03).
   </div>
 </div>
 
@@ -84,15 +81,6 @@
           <select class="inp" id="tipo" formControlName="tipo">
             @for (tipo of tipos; track tipo.valor) {
               <option [value]="tipo.valor">{{ tipo.etiqueta }}</option>
-            }
-          </select>
-        </div>
-        <div class="fld">
-          <label class="lbl" for="minutosLimpieza">MINUTOS DE LIMPIEZA</label>
-          <select class="inp" id="minutosLimpieza" formControlName="minutosLimpieza">
-            <option [ngValue]="null" disabled>Elige los minutos</option>
-            @for (minuto of minutos; track minuto) {
-              <option [ngValue]="minuto">{{ minuto }} min</option>
             }
           </select>
         </div>

@@ -28,6 +28,7 @@ const TIPOS: TipoDocumentoDTO[] = [
 const VENTA: VentaDTO = {
   idVenta: 8812,
   idCliente: 407,
+  nombreCliente: 'Rosaura Quispe',
   estado: 'ABIERTA',
   subtotal: 60,
   igv: 0,
@@ -39,13 +40,38 @@ const VENTA: VentaDTO = {
   pendiente: 60,
   pagos: [],
   cobrosPendientes: [],
-  detalles: [{ idDetalle: 1, idAtencion: 1532, tipoItem: 'SERVICIO', subtotal: 60 }],
+  detalles: [
+    {
+      idDetalle: 1,
+      idAtencion: 1532,
+      tipoItem: 'SERVICIO',
+      subtotal: 60,
+      descripcion: 'Corte de Cabello Caballero · Estándar',
+      nombreEspecialista: 'Lucía Ramos',
+    },
+  ],
 };
 const PAGADA: VentaDTO = { ...VENTA, pagado: 60, pendiente: 0 };
 const POR_COBRAR: PorCobrarDTO = {
   atenciones: [
-    { idAtencion: 1531, idCliente: 405, idVariante: 3, adelantoMonto: 0 },
-    { idAtencion: 1532, idCliente: 407, idVariante: 2, adelantoMonto: 10 },
+    {
+      idAtencion: 1531,
+      idCliente: 405,
+      idVariante: 3,
+      adelantoMonto: 0,
+      nombreCliente: 'Marisol Quispe',
+      nombreServicio: 'Manicura · Clásica',
+      nombreEspecialista: 'Ana Torres',
+    },
+    {
+      idAtencion: 1532,
+      idCliente: 407,
+      idVariante: 2,
+      adelantoMonto: 10,
+      nombreCliente: 'Rosaura Quispe',
+      nombreServicio: 'Corte de Cabello Caballero · Estándar',
+      nombreEspecialista: 'Lucía Ramos',
+    },
   ],
   ventasAbiertas: [{ ...VENTA, idVenta: 8800, total: 35, pendiente: 35 }],
 };
@@ -146,15 +172,36 @@ describe('Cobros', () => {
   it('lista «Por cobrar» con GET /ventas/por-cobrar (diferencia 31)', async () => {
     await montar();
     const filas = raiz.querySelectorAll('tbody tr');
-    expect(filas[0].textContent).toContain('Atención 1531');
+    expect(filas[0].textContent).toContain('Atención N° 1531');
     expect(filas[1].textContent).toContain('S/ 10.00');
-    expect(raiz.textContent).toContain('Venta 8800');
+    expect(raiz.textContent).toContain('Venta N° 8800');
     expect(raiz.querySelector('#cobroIdAtencion')).toBeNull();
+  });
+
+  it('It. 2.1: «Por cobrar» nombra clienta, servicio y especialista, nunca sus ids', async () => {
+    await montar({
+      porCobrar: {
+        ...POR_COBRAR,
+        atenciones: [{ idAtencion: 1533, idCliente: 409, idVariante: 4 }],
+      },
+    });
+    const texto = raiz.querySelector('tbody tr')!.textContent!;
+    expect(texto).toContain('—');
+    expect(texto).not.toMatch(/Clienta 409|Variante 4/);
+    expect(raiz.textContent).toContain('Rosaura Quispe');
+  });
+
+  it('It. 2.1: la venta muestra la clienta y la descripción del detalle, no ids', async () => {
+    await montar({ venta: VENTA });
+    expect(raiz.textContent).toContain('Venta N° 8812 · Rosaura Quispe');
+    const detalle = raiz.querySelector('tbody tr')!.textContent!;
+    expect(detalle).toContain('Corte de Cabello Caballero · Estándar · Lucía Ramos');
+    expect(raiz.textContent).not.toMatch(/Clienta 407|Atención 1532|Detalle 1\b/);
   });
 
   it('pone primero la atención que llega desde IGU_Atencion, sin cobrarla sola', async () => {
     await montar({ idAtencion: 1532 });
-    expect(raiz.querySelector('tbody tr')?.textContent).toContain('Atención 1532');
+    expect(raiz.querySelector('tbody tr')?.textContent).toContain('Atención N° 1532');
     expect(raiz.querySelector('tbody tr')?.classList).toContain('resaltada');
     http.expectNone('/api/v1/ventas');
   });
@@ -197,7 +244,7 @@ describe('Cobros', () => {
       .expectOne('/api/v1/ventas/8800')
       .flush({ ...VENTA, idVenta: 8800, pagado: 20, pendiente: 40 });
     await estable();
-    expect(raiz.textContent).toContain('Venta 8800');
+    expect(raiz.textContent).toContain('Venta N° 8800');
     expect(raiz.querySelector('.kpi')?.textContent).toContain('S/ 40.00');
     await clic('Volver a');
     http.expectOne('/api/v1/ventas/por-cobrar').flush(POR_COBRAR);
@@ -253,6 +300,13 @@ describe('Cobros', () => {
     expect(raiz.textContent).toContain('Pagos completos');
   });
 
+  const COBRO_YAPE = {
+    idTransaccion: 5510,
+    idMedioPago: 12,
+    monto: 40,
+    canal: 'QR',
+    estado: 'PENDIENTE',
+  };
   const cobrarConYape = async () => {
     await montar({ venta: VENTA });
     escribir('pagoMonto12', '40');
@@ -262,7 +316,7 @@ describe('Cobros', () => {
     cobro.flush(
       {
         ...VENTA,
-        cobrosPendientes: [{ idTransaccion: 5510, enlacePago: 'https://izipay.example/abc' }],
+        cobrosPendientes: [{ ...COBRO_YAPE, enlacePago: 'https://izipay.example/abc' }],
       },
       { status: 202, statusText: 'Accepted' },
     );
@@ -280,36 +334,16 @@ describe('Cobros', () => {
 
     // Aún pendiente: sin reenviar y sin el 422 de la Iteración 1.
     await clic('Verificar aprobación');
-    http.expectOne('/api/v1/ventas/8812').flush({
-      ...VENTA,
-      cobrosPendientes: [{ idTransaccion: 5510 }],
-      pagos: [
-        {
-          idPago: 9901,
-          idMedioPago: 12,
-          monto: 40,
-          idTransaccion: 5510,
-          estadoTransaccion: 'PENDIENTE',
-        },
-      ],
-    });
+    http.expectOne('/api/v1/ventas/8812').flush({ ...VENTA, cobrosPendientes: [COBRO_YAPE] });
     await estable();
     http.expectNone('/api/v1/ventas/8812/pagos');
     expect(raiz.textContent).toContain('Esperando a Izipay');
 
     await clic('Verificar aprobación');
+    // Aprobado y aún sin sumar: se reenvía con el medio y el monto de cobrosPendientes (RN42).
     http.expectOne('/api/v1/ventas/8812').flush({
       ...VENTA,
-      cobrosPendientes: [{ idTransaccion: 5510 }],
-      pagos: [
-        {
-          idPago: 9901,
-          idMedioPago: 12,
-          monto: 40,
-          idTransaccion: 5510,
-          estadoTransaccion: 'APROBADA',
-        },
-      ],
+      cobrosPendientes: [{ ...COBRO_YAPE, estado: 'APROBADA' }],
     });
     await estable();
     const reenvio = http.expectOne('/api/v1/ventas/8812/pagos');
@@ -361,25 +395,27 @@ describe('Cobros', () => {
     await montar({
       venta: {
         ...VENTA,
-        cobrosPendientes: [{ idTransaccion: 5511, enlacePago: 'https://izipay.example/t' }],
-        pagos: [
+        // Iniciado en otro equipo: medio, monto, canal y enlace llegan en cobrosPendientes (Duda 4).
+        cobrosPendientes: [
           {
-            idPago: 9903,
+            idTransaccion: 5511,
             idMedioPago: 14,
             monto: 60,
-            idTransaccion: 5511,
-            estadoTransaccion: 'PENDIENTE',
+            canal: 'LINK',
+            estado: 'PENDIENTE',
+            enlacePago: 'https://izipay.example/t',
           },
         ],
       },
     });
     expect(raiz.textContent).toContain('Esperando a Izipay');
-    expect(raiz.textContent).toContain('Tarjeta');
+    expect(raiz.querySelector('.espera')?.textContent).toMatch(/Tarjeta\s+· S\/ 60\.00/);
     expect(raiz.querySelector<HTMLInputElement>('app-compartir-enlace input')?.value).toBe(
       'https://izipay.example/t',
     );
-    await clic('Quitar');
-    expect(raiz.textContent).not.toContain('Esperando a Izipay');
+    // Ya no se ofrece «Quitar»: el cobro se espera o se reenvía al aprobarse.
+    expect(boton('Quitar')).toBeUndefined();
+    expect(boton('Cerrar venta')?.disabled).toBe(true);
   });
 
   it('CUS19: consulta el RUC, emite la factura y lee el estado SUNAT (Duda 12)', async () => {
@@ -543,10 +579,22 @@ describe('Cobros', () => {
       nombreCliente: 'Novia',
       fechaValidez: '2026-11-30',
       total: 70,
-      items: [{ tipoItem: 'SERVICIO', cantidad: 2, idVariante: 2, subtotal: 70 }],
+      items: [
+        {
+          tipoItem: 'SERVICIO',
+          cantidad: 2,
+          idVariante: 2,
+          subtotal: 70,
+          descripcion: 'Peinado de novia · Clásico',
+        },
+      ],
     });
     await estable();
-    expect(modal().querySelector('.imprimible')?.textContent).toContain('S/ 70.00');
+    const proforma = modal().querySelector('.imprimible')!.textContent!;
+    expect(proforma).toContain('S/ 70.00');
+    // El ítem por su descripción, nunca «Variante 2» (It. 2.1).
+    expect(proforma).toContain('Peinado de novia · Clásico × 2');
+    expect(proforma).not.toContain('Variante 2');
     expect(modal().textContent).toContain('RN09');
     await clic('Imprimir');
     expect(imprimir).toHaveBeenCalled();

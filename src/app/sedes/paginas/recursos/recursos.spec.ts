@@ -12,7 +12,6 @@ const RECURSOS: RecursoDTO[] = [
     idSede: 1,
     nombre: 'Sillón 1',
     tipo: 'SILLON',
-    minutosLimpieza: 10,
     estado: 'DISPONIBLE',
   },
   {
@@ -20,7 +19,6 @@ const RECURSOS: RecursoDTO[] = [
     idSede: 1,
     nombre: 'Camilla 1',
     tipo: 'CAMILLA',
-    minutosLimpieza: 5,
     estado: 'MANTENIMIENTO',
   },
 ];
@@ -40,11 +38,6 @@ describe('Recursos', () => {
     entrada.value = valor;
     entrada.dispatchEvent(new Event('input'));
   };
-  const elegirMinutos = (minutos: number) => {
-    const lista = raiz.querySelector<HTMLSelectElement>('#minutosLimpieza')!;
-    lista.selectedIndex = minutos + 1;
-    lista.dispatchEvent(new Event('change'));
-  };
   const enviar = async () => {
     raiz.querySelector('app-modal form')!.dispatchEvent(new Event('submit'));
     await estable();
@@ -56,7 +49,7 @@ describe('Recursos', () => {
       providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     });
     http = TestBed.inject(HttpTestingController);
-    entrarComo({ idSede: 1, permisos });
+    entrarComo({ idSede: 1, nombreSede: 'Pichanaki Centro', permisos });
     fixture = TestBed.createComponent(Recursos);
     await estable();
     raiz = fixture.nativeElement;
@@ -78,13 +71,18 @@ describe('Recursos', () => {
     ).toBe(false);
   });
 
-  it('la limpieza se elige de 0 a 10 minutos (RN03)', async () => {
+  it('nombra la sede de la sesión, no su id (It. 2.1)', async () => {
+    await montar(['SEDES:VER']);
+    const encabezado = raiz.querySelector('.mut')!.textContent!;
+    expect(encabezado).toContain('Pichanaki Centro');
+    expect(encabezado).not.toMatch(/sede 1/);
+  });
+
+  it('sin tiempo de limpieza: ni columna ni selector (RN03, It. 2.1)', async () => {
     await montar(['SEDES:VER', 'SEDES:CREAR']);
+    expect(raiz.querySelector('thead')!.textContent).not.toContain('Limpieza');
     await abrir();
-    const opciones = [...raiz.querySelectorAll('#minutosLimpieza option')].map((o) =>
-      o.textContent?.trim(),
-    );
-    expect(opciones.slice(1)).toEqual(Array.from({ length: 11 }, (_, i) => `${i} min`));
+    expect(raiz.querySelector('#minutosLimpieza')).toBeNull();
   });
 
   it('CUS61: registra el recurso con la sede de la sesión y lo agrega a la tabla', async () => {
@@ -92,7 +90,6 @@ describe('Recursos', () => {
     await abrir();
     expect(raiz.querySelector<HTMLInputElement>('#idSede')?.value).toBe('1');
     escribir('nombre', 'Sillón 11');
-    elegirMinutos(10);
     await enviar();
     const peticion = http.expectOne('/api/v1/recursos');
     expect(peticion.request.method).toBe('POST');
@@ -100,7 +97,6 @@ describe('Recursos', () => {
       idSede: 1,
       nombre: 'Sillón 11',
       tipo: 'SILLON',
-      minutosLimpieza: 10,
     });
     peticion.flush({ ...peticion.request.body, idRecurso: 21, estado: 'DISPONIBLE' });
     await estable();
@@ -110,21 +106,11 @@ describe('Recursos', () => {
     expect(filas[2].textContent).toContain('Sillón 11');
   });
 
-  it('no envía sin minutos de limpieza', async () => {
+  it('no envía sin nombre', async () => {
     await montar(['SEDES:VER', 'SEDES:CREAR']);
     await abrir();
-    escribir('nombre', 'Camilla 2');
     await enviar();
     http.expectNone('/api/v1/recursos');
-    expect(raiz.querySelector('app-modal .alert.bad')?.textContent).toContain('0 a 10');
-  });
-
-  it('acepta 0 minutos de limpieza', async () => {
-    await montar(['SEDES:VER', 'SEDES:CREAR']);
-    await abrir();
-    escribir('nombre', 'Camilla 2');
-    elegirMinutos(0);
-    await enviar();
-    http.expectOne('/api/v1/recursos').flush({ idRecurso: 22, idSede: 1 });
+    expect(raiz.querySelector('app-modal .alert.bad')?.textContent).toContain('nombre');
   });
 });

@@ -207,3 +207,90 @@ Dudas de NOTAS_IT1 que el contrato cierra: 1 (`x-permiso`), 2 (listas, salvo pro
 39. **Un recorrido después del otro.** El recorrido 2 no depende de lo que deja el 1, pero corre después de él (proyecto con dependencia). El 1 necesita las claves temporales de `admin` y `especialista1`, que el 2 también cambia. El 2 usa los usuarios que el 1 no toca (`recepcion`, `almacen`, `especialista2`) y abre su propia caja.
 40. **Horario por paso.** El recorrido 2 exige el horario de atención (lunes a sábado, de 09:00 a 17:00) desde el paso 3 ·, no al empezar. Así los pasos de configuración e inventario pueden correr a cualquier hora con `--grep`.
 41. **Datos de la base en la prueba.** Como en la Iteración 1, lo que ninguna pantalla muestra (ids, estados, kardex, saldo a favor, auditoría) se lee de la base como dueño del esquema, solo con SELECT.
+
+## Iteración 2.1
+
+Ajustes sin CUS nuevos (rama `tineo-feature/f12-nombres-sin-limpieza`), con el contrato 2.1 (`docs/openapi.yaml`) y `docs/Iteracion_2_1_Cautiva_Spa.drawio`, que manda para sus 21 páginas «modificado It. 2.1» y para la página «02 Nombres en las respuestas».
+
+### Estado
+
+Hecho:
+
+- `npm run modelos` regenera `core/api/modelos.generados.ts` con el contrato 2.1; `permisos.generados.ts` no cambia (103 operaciones, 33 permisos).
+- Sin limpieza (RN03 ajustada): `IGU_Recursos` ya no tiene selector ni columna de limpieza; `IGU_Agenda` pinta un solo bloque hasta `fin`, sin el bloque «Limpieza» ni `finServicio`; `IGU_Parametros` ya no valida `LIMPIEZA_MAX_MIN`.
+- Nombres, nunca ids, en agenda, Mi agenda, atención, ficha, nueva cita, reprogramar, cancelar, cobros, proforma, venta rápida, venta de productos, anulaciones (solicitud, bandeja y devoluciones), caja, revisión de caja, conciliación, usuarios, cabecera, inicio, reportes, kardex, paquetes y promociones. Si un nombre no llega se muestra «—».
+- Cobro digital al retomar (Duda 4): los cobros en espera salen de `VentaDTO.cobrosPendientes` (medio, monto, canal y enlace), también los iniciados en otro equipo. Se quitó «Quitar».
+- El grep del encargo sobre `src/app` (sin `.spec.ts`) da cero para `'Clienta ' +`, `` `Clienta ${ ``, `'Usuario '`, `Usuario {{`, `Sede {{`, `Personal {{`, `Recurso {{`, `Especialista {{`, `` `Especialista ${ ``, `` `Recurso ${ ``, `` `Producto ${ ``, `` `Paquete ${ ``, `` `Servicio ${ ``, `` `Medio ${ ``, `` `Detalle ${ `` y `(línea`. Para `Variante` ver la Duda 3 de esta sección.
+
+Comprobado:
+
+- `npm run build` sin errores ni advertencias.
+- `npm test -- --watch=false`: 41 archivos, 276 pruebas, todas aprobadas. Cada página tocada tiene una prueba que comprueba que se ve el nombre y no el id.
+
+Recorridos e2e (F13, rama `tineo-test/f13-e2e-it21`):
+
+- `e2e/preparar-bd.mjs` instala 00, 14, 13, 15, 17, 18 (`18_ajustes_v52.sql`) y 19 (`19_datos_prueba_horario.sql`). `exigirHorario` (en `e2e/apoyo.ts`, para los dos recorridos) deja correr cualquier día de 09:00 a 18:00, hora de Lima.
+- La especialista del día sale de `HORARIO_PERSONAL` (solo SELECT): si `especialista1` descansa entra `especialista3`, y si `especialista2` descansa, `especialista4`, con la misma clave final. RN50 y CUS54 siguen con `especialista2`. CUS13 busca a una especialista que trabaja hoy.
+- Sin limpieza: se quitó el paso de `LIMPIEZA_MAX_MIN = 11` (ahora se comprueba que el parámetro no existe) y la limpieza de CUS61; el fin es inicio + duración. Paso nuevo de RN03: una cita a la hora exacta del fin de otra, con el mismo sillón y la misma especialista, se agenda sin cruce.
+- En cada pantalla que visita el recorrido, `sinIds` comprueba que no haya un texto como «Clienta 12» (14 pantallas en el recorrido 1 y 34 en el 2, sin ninguna coincidencia).
+- **Corrida final (16/11/2026, 09:24 a 09:27): 51 de 52 pasos aprobados.** Falla `8 · RN52` por el back-end (Duda 6). Resultados en `docs/pruebas_it2.md` (con su sección «Iteración 2.1») y `docs/pruebas_it1.md`.
+
+Corridas de esa mañana (`npm run e2e:bd` y `npm run e2e`, cada una con base nueva; horas de Lima):
+
+| N° | Hora | Resultado | Qué se hizo |
+| --- | --- | --- | --- |
+| 1 | 09:01 | `e2e:bd` cayó con ORA-03114 en el script 17 | Se repitió una vez (corrida 2) |
+| 2 | 09:01 | 9 aprobados; CUS05 del recorrido 1 falló: `elegirVariante` contaba los campos antes de que se abriera el modal | Prueba: espera el campo de la variante |
+| 3 | 09:03 | `e2e:bd` cayó con ORA-03113 y ORA-03114 en el script 00 | Se repitió una vez (corrida 4) |
+| 4 | 09:04 | 43 aprobados; RN13 en el paso 6 · respondió 409 RN15 | Prueba: RN13 se comprueba en el paso 3 · (Duda 7) |
+| 5 | 09:07 | 44 aprobados; RN52 respondió 422 | Prueba: el aviso muestra el cuerpo de la respuesta |
+| 6 | 09:10 | `e2e:bd` cayó con ORA-03114 | Se repitió una vez (corrida 7) |
+| 7 | 09:11 | 44 aprobados; RN52: 422 `CK_TRANS_PAS_LINK` | Falla del back-end (Duda 6); RN52 pasa al final |
+| 8 | 09:14 | 36 aprobados; RN03 sin «+ Nueva cita»: `ng serve` no sirvió un chunk («Failed to fetch dynamically imported module: chunk-RF5VOPJF.js») | Falla pasajera del servidor de desarrollo; se volvió a correr |
+| 9 | 09:17 | `e2e:bd` cayó con ORA-03114 | Se repitió una vez (corrida 10) |
+| 10 | 09:18 | 45 aprobados; CUS23: aprobar respondió 409 | Prueba: el aviso muestra el cuerpo |
+| 11 | 09:21 | 45 aprobados; CUS23: 409 RN46, comprobante PENDIENTE en SUNAT | Comportamiento del contrato con el simulador (Duda 8): CUS23 espera el 409 RN46 |
+| 12 | 09:24 | **51 aprobados, 1 fallido (RN52)** | Corrida final |
+
+Sin comprobar:
+
+- No se revisaron las pantallas en el navegador a 834 y 390 (el recorrido corre a 1440).
+- CUS24, RN12, RN33 y las notas de crédito de RN47 no se pueden ver en `dev` (Duda 8).
+- `./mvnw -q verify` no aplica: este repositorio es solo el front-end y el back-end no se modificó (`develop` en `d1514f2`).
+- Los recorridos piden `JAVA_HOME`: en este equipo no estaba definido y se usó el JDK 26 de `~/.jdks/openjdk-26.0.2.1`.
+
+### Dudas
+
+1. **Nombre de otra sede.** `SesionDTO.nombreSede` nombra solo la sede de la sesión. En reportes, un resultado de otra sede y, en `IGU_Recursos`, un recurso registrado en otra sede no tienen nombre (no hay `GET /sedes`, Duda 29): reportes muestra «—» y el aviso dice «Recurso registrado en otra sede.». ¿`RecursoDTO` y el resultado del reporte traen `nombreSede`?
+2. **Estados de `CobroPendienteDTO`.** El contrato no enumera `estado`. Se supone que es el de la transacción: PENDIENTE espera, APROBADA se reenvía con `idTransaccion` (RN42) y RECHAZADA no se muestra. Si un cobro ya no está en la lista y no hay pago RECHAZADO, se da por sumado, como en la decisión 8.
+3. **El patrón `Variante` del grep no puede quedar en cero.** Coincide con identificadores (`idVariante`, `nombreVariante`, `SelectorVariante`, `VarianteDTO`) y con etiquetas que no muestran un id: «+ Variante», el placeholder «Variante» y «Variantes y precio fijo (RN40)» del catálogo, y «CÓDIGO DE LA VARIANTE» del selector. Ningún texto muestra «Variante 2».
+4. **Códigos que se escriben.** Siguen tres campos donde se escribe un código, sin mostrarlo como nombre: la variante sin `CATALOGO:VER` (decisión 5), la especialista que recomendó sin `AGENDA:VER` (Duda 16) y la clienta de la proforma («nombre o código»). ¿Se quitan también, como el código de la clienta en la cita?
+5. **Venta o compra sin documento en el kardex.** Si `MovimientoKardexDTO` trae la línea sin `comprobante` o sin `documentoCompra`, el origen dice «Venta —» o «Compra —».
+6. **Venta con tarjeta por enlace (RN52): 422 `CK_TRANS_PAS_LINK`.** En el recorrido 2 (`8 · RN52`), `POST /ventas/productos` con Tarjeta y canal LINK respondió: `{"detail":"El dato no cumple una regla de la base de datos.","instance":"/api/v1/ventas/productos","status":422,"title":"Unprocessable Content","regla":"CK_TRANS_PAS_LINK","constraint":"CK_TRANS_PAS_LINK"}`. La restricción (`03_agenda_ventas.sql`) pide `fecha_expiracion` en toda transacción LINK. En el back-end (solo leído), `ServicioPago.cobrar` registra la fecha solo cuando la pasarela responde PENDIENTE (`registrarEnlace`). El simulador del perfil `dev` (`PasarelaPagosFalsa.crearCobro`, `respuesta-falsa: APROBADA`) responde APROBADA también al enlace, y `aprobar(...)` deja la fecha vacía. Es una falla del back-end, no de la prueba, y queda fallando: ¿el cobro LINK aprobado debe guardar `fecha_expiracion`, o el simulador debe dejar el enlace PENDIENTE, como `crearEnlace` en el adelanto?
+7. **Orden de las reglas al vender un insumo.** En el paso 6 ·, el insumo ya sin stock y con un monto que no es el total responde 409 RN15 («No hay stock suficiente») y no 422 RN13. El contrato lista las dos respuestas sin orden. RN13 se comprobó en el paso 3 ·, con stock y el monto exacto: 422 RN13. ¿Debe RN13 (un insumo no se vende) responder antes que el stock?
+8. **Anulación sin SUNAT en `dev`.** `FacturacionElectronicaFalsa` deja todo comprobante PENDIENTE, y aprobar una anulación responde 409 RN46 («El comprobante B001-3 está PENDIENTE en SUNAT: la nota de crédito se emite cuando SUNAT lo acepta.»), como dice el contrato. Ninguna venta llega a ANULADA en el e2e: CUS24, RN12, RN33 y las notas BC01 de RN47 quedan sin verificar. El recorrido no cambia el estado SUNAT en la base porque el dueño solo lee. ¿Se agrega al simulador una respuesta ACEPTADO para las pruebas, o se prueban en `sandbox`?
+
+Dudas de esta nota que el contrato 2.1 cierra: 1 (`CitaAtencionDTO` con nombres), 2 (`UsuarioDTO` con nombres, `nombreRol` y `ultimoAcceso`), 4 (`cobrosPendientes` con medio, monto y canal), 7 (`SesionDTO.nombreSede`), 9 (ficha con nombres), 14 (`nombreUsuarioSolicita`), 21 (`comprobante` y `documentoCompra` en el kardex), 22 (`ItemConciliacion` en el contrato) y 25 (`CajaDTO` con los nombres de los usuarios). La Duda 8 (especialista libre tras terminar antes) queda resuelta por RN03: sin limpieza, la especialista y el recurso quedan libres al terminar el servicio.
+
+### Diferencias encontradas
+
+| N° | Dónde | Diferencia | Qué se hizo |
+| --- | --- | --- | --- |
+| 1 | Contrato 2.1 frente a la Iteración 2 (RN03) | `RecursoDTO` deja `minutosLimpieza`, `FranjaAgendaDTO` deja `finServicio` y `LIMPIEZA_MAX_MIN` se retira. | Reemplaza las diferencias 1 y 7 de esta nota: sin selector, sin bloque «Limpieza» y sin la validación del parámetro. |
+| 2 | `HoraLibre` (diferencia 11) | Trae `especialistas` y `recursos` con nombre, y conserva `idsPersonal` e `idsRecurso`. | Nueva cita, reprogramar y venta rápida recorren los ids y los nombran con la hora libre; en la agenda, si falta, con `GET /citas/filtros`. Cierra la diferencia 11. |
+| 3 | `ConciliacionDTO` (Duda 22) | `items` ya apunta a `ItemConciliacion`. | Se borró la interfaz propia de `caja.modelos.ts`: se reexporta la generada y `Conciliacion` es `ConciliacionDTO`. |
+| 4 | Encargo frente al código | La lista del 15/11/2026 no nombraba: «SEDE 1» de Inicio, la sede del resultado de reportes, el rol de la fila de usuarios (caía al id), «Caja 12» de revisión y caja, «Venta 620» y «Transacción 82» de la conciliación, y «Cita 950» de las notificaciones de la agenda. | La sede, por su nombre; el rol, con `nombreRol`; los números de documento, como «N° 123». |
+| 5 | Encargo frente a la Iteración 2 (CUS01) | «CÓDIGO DE LA CLIENTA» dejaba agendar sin buscar y mostraba «Clienta 407». | La clienta se elige siempre de la búsqueda. Sin `CLIENTAS:VER` el selector lo dice y la cita no se puede agendar. |
+| 6 | Página «02 Nombres» frente a `AtencionFicha` | La ficha trae también `nombreRecurso`. | El historial muestra servicio y especialista, como el prototipo; el recurso no se agregó. |
+
+### Decisiones tomadas
+
+1. **Ayudas de nombres en `core/api/nombres.ts`.** `nombreO(...)` da el primer nombre con texto o «—» (`SIN_NOMBRE`); `nombreCompleto` une nombres y apellidos; `numero(id)` da «N° 123»; `nombreVenta(comprobante, idVenta)` da «B001-123» o «Venta N° 123»; `comprobanteDe` arma la serie y el número; `especialistaLibre` y `recursoLibre` nombran desde una `HoraLibre`.
+2. **Orden de los nombres.** Primero el de la respuesta (página «02 Nombres»); si no llega, el de una lista que la página ya leyó (filtros de la agenda, medios de pago, servicios, paquetes, roles, productos comprados); si tampoco, «—». Nunca se pide una lista nueva solo para nombrar.
+3. **Documentos con número.** Cita, atención, venta, caja, nota de crédito y transacción se muestran como «N° 123»; la venta, con su comprobante cuando lo tiene. Las etiquetas de accesibilidad («Cobrar la atención 1532») siguen con el número.
+4. **`etiquetaMedio(medio, nombreMedioPago)`.** El segundo parámetro ya no es el id: es el nombre que trae el pago (`PagoVentaDTO.nombreMedioPago`). Sin medio ni nombre, «—».
+5. **Cobros en espera sin memoria propia.** `enEspera` se calcula de `venta().cobrosPendientes`: no se recuerda nada en la página y la venta del servidor manda. «Verificar aprobación» relee `GET /ventas/{idVenta}`: aprobado y aún pendiente se reenvía con `idTransaccion`, medio y monto del cobro pendiente (RN42); pendiente, se espera; rechazado, se avisa. El cierre sigue bloqueado mientras haya cobros en espera. Reemplaza la parte de «quitarlo» de la decisión 8.
+6. **Detalle de la venta.** `DetalleVentaDTO.descripcion` con `nombreEspecialista` cuando la hay («Corte de Cabello Caballero · Estándar · Lucía Ramos»); ya no «Atención 1532» ni «Detalle 1».
+7. **Usuarios.** La primera columna muestra nombres y apellidos de la persona con su último acceso; el rol sale de `nombreRol`.
+8. **Plan de commits de la Iteración 2.1.** El contrato regenerado quita `finServicio` y `minutosLimpieza`, así que agenda y recursos no compilan con él si van separados: el primer commit lleva `core/api/modelos.generados.ts`, `core/api/nombres.ts`, `agenda` y `sedes`. El cambio de `etiquetaMedio` en `core/api/medios.ts` va con `ventas`, que es el que le pasa `nombreMedioPago`; `caja` va antes y compila con las dos versiones. `layout` y `reportes` comparten un commit porque los dos solo pasan a `SesionDTO.nombreSede` y así no se pasa de ocho. Cada módulo lleva sus pruebas en su commit y la documentación va al final.
+9. **Pasos del e2e que cambian por las dudas 6 a 8.** RN52 pasa al final (`8 · RN52`) y sigue exigiendo 202: así la falla del back-end se ve y no salta los pasos 6 · y 7 ·. RN44 usa la venta en efectivo de un cliente de paso, antes de pedir su anulación, en lugar de la de tarjeta. RN13 se comprueba en el paso 3 ·, con stock y el monto exacto; en el paso 6 · se exige solo que el insumo no se venda y se anota la respuesta. CUS23 espera el 409 RN46 del contrato y su mensaje en pantalla; CUS24 y RN33 anotan que no hay venta ANULADA. Ningún paso escribe en la base: el dueño solo lee.
